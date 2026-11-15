@@ -1,0 +1,17 @@
+[Unit]
+Description=OpenVideo Studio (production line UI + executor)
+After=network.target openvideo-engine.service
+
+[Service]
+Type=simple
+User=%USER%
+WorkingDirectory=%APP_DIR%
+Environment=STUDIO_ALLOW_RENDER=1
+Environment=STUDIO_DATA=%DATA_DIR%
+Environment=PATH=%VENV%/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/wsl/lib
+ExecStart=%VENV%/bin/python -m uvicorn studio.api.app:app --host 127.0.0.1 --port 8801
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

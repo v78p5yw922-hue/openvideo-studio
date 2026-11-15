@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# 运行数据（绝不入库）
+studio-data/
+*.db
+*.db-wal
+*.db-shm
+data/
+
+# 模型与引擎（体积大、协议不同）
+engine/
+models/
+*.safetensors
+*.ckpt
+
+# 产物
+output/
+takes/
+previews/
+firstframes/
+assemble/
+
+# 日志与状态
+*.log
+.ov_state.json
+state.json
+.pytest_cache/
+.coverage
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

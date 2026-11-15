@@ -1,0 +1,11 @@
+[Unit]
+Description=OpenVideo Studio daily backup (SQLite snapshot + assets + takes)
+After=studio.service
+
+[Service]
+Type=oneshot
+User=agent
+Environment=HOME=/home/agent
+Environment=STUDIO_DATA=/home/agent/openvideo/studio-data
+WorkingDirectory=/home/agent/openvideo/video-agent
+ExecStart=/home/agent/openvideo/video-agent/.venv/bin/python -m studio.backup --dest /mnt/d/openvideo-backups/studio --keep 14

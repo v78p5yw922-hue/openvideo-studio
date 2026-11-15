@@ -1,0 +1,37 @@
+{
+  "$comment": "Pinned versions the reference build was validated on. Change only together.",
+  "validated_on": "2026-11-15",
+  "os": "Ubuntu 22.04 under WSL2 (Windows 11)",
+  "gpu": "NVIDIA RTX 4090 24 GB",
+  "python": "3.10.12",
+  "comfyui": {
+    "repo": "https://github.com/comfyanonymous/ComfyUI",
+    "ref": "v0.30.0",
+    "notes": "任何 0.28+ 一般都能跑，但工作流节点可能改名；升级前先跑 ov doctor --workflow"
+  },
+  "custom_nodes": [
+    {
+      "name": "ComfyUI-H3-Cast",
+      "required": true,
+      "source": "随 H3 权重包分发 / 私有仓库",
+      "provides": ["H3CastMember"],
+      "notes": "角色一致性节点。缺失时角色参考图不生效，只剩文生视频。"
+    },
+    {
+      "name": "H3-Video-Upsampler",
+      "required": false,
+      "source": "随 H3 权重包分发 / 私有仓库",
+      "provides": ["H3VideoUpsampler"],
+      "notes": "2K/4K 超分。缺失时用 --no-upscale 出 1344x768。"
+    }
+  ],
+  "torch": {
+    "version": "2.14.1",
+    "index": "https://download.pytorch.org/whl/cu124",
+    "notes": "必须与显卡驱动匹配；24 GB 显存建议 cu124/cu126，12-16 GB 建议 int8 权重 + 896x512。可用 --torch-index 覆盖。"
+  },
+  "ffmpeg": {
+    "min_version": "5.0",
+    "notes": "需要 libx264、aac；合并与烧字幕都依赖它"
+  }
+}

@@ -1,0 +1,659 @@
+#!/usr/bin/env python3
+"""ov — OpenVideo Studio installer / doctor.
+
+设计目标只有一条：**任何一步都能重复执行，且不会破坏已经装好的东西。**
+
+    ov doctor                 只体检，不改任何东西
+    ov install                全流程（已完成的阶段自动跳过）
+    ov install --only models  只处理模型
+    ov install --resume       从中断处继续
+    ov status                 看各阶段状态
+    ov selftest               跑真实链路（引擎 + 工作台）
+    ov models                 列出模型清单与命中情况
+
+状态写在 $OV_HOME/state.json，每个阶段、每个文件都有独立记录。
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import platform
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+VERSION = "0.1.0"
+HERE = Path(__file__).resolve().parent
+OV_HOME = Path(os.environ.get("OV_HOME", Path.home() / ".openvideo"))
+STATE_PATH = OV_HOME / "state.json"
+MANIFEST = HERE / "manifest"
+
+C_OK, C_BAD, C_WARN, C_DIM, C_END = "\033[32m", "\033[31m", "\033[33m", "\033[2m", "\033[0m"
+
+
+# --------------------------------------------------------------------------- io
+def load_state() -> dict:
+    if STATE_PATH.is_file():
+        try:
+            return json.loads(STATE_PATH.read_text("utf-8"))
+        except json.JSONDecodeError:
+            pass
+    return {"version": 1, "phases": {}, "models": {}, "config": {}}
+
+
+def save_state(state: dict) -> None:
+    OV_HOME.mkdir(parents=True, exist_ok=True)
+    tmp = STATE_PATH.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(state, ensure_ascii=False, indent=2), "utf-8")
+    tmp.replace(STATE_PATH)                       # atomic: never a half state file
+
+
+def phase(state: dict, name: str, status: str, **extra) -> None:
+    state.setdefault("phases", {})[name] = {"status": status, "at": now(), **extra}
+    save_state(state)
+
+
+def now() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def log(msg: str, kind: str = "info") -> None:
+    mark = {"ok": f"{C_OK}✓{C_END}", "bad": f"{C_BAD}✗{C_END}",
+            "warn": f"{C_WARN}!{C_END}", "dim": f"{C_DIM}·{C_END}"}.get(kind, "·")
+    print(f"  {mark} {msg}", flush=True)
+
+
+def section(title: str) -> None:
+    print(f"\n{title}")
+
+
+# ---------------------------------------------------------------------- probing
+def run(cmd: list[str], timeout: int = 20) -> tuple[int, str]:
+    try:
+        cp = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            text=True, timeout=timeout)
+        return cp.returncode, (cp.stdout or "").strip()
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return 127, str(e)
+
+
+def find_comfyui(state: dict) -> Path | None:
+    """显式配置 > 环境变量 > 常见目录。绝不猜错位置去删改东西。"""
+    candidates = [
+        state.get("config", {}).get("comfyui_dir"),
+        os.environ.get("OV_COMFYUI_DIR"),
+        str(HERE / "engine" / "ComfyUI"),
+        str(Path.home() / "openvideo" / "video-agent" / "ComfyUI"),
+        str(Path.home() / "ComfyUI"),
+        "/opt/ComfyUI",
+    ]
+    for c in candidates:
+        if c and (Path(c) / "main.py").is_file():
+            return Path(c)
+    return None
+
+
+def find_models_root(state: dict, explicit: str | None) -> Path | None:
+    """模型解析顺序：--models-dir > OV_MODELS_DIR > 上次记录的 > ComfyUI/models > 扫描。"""
+    for c in (explicit, os.environ.get("OV_MODELS_DIR"),
+              state.get("config", {}).get("models_dir")):
+        if c and Path(c).is_dir():
+            return Path(c)
+    comfy = find_comfyui(state)
+    if comfy and (comfy / "models").is_dir():
+        return comfy / "models"
+    for root in (Path.home() / ".cache" / "openvideo" / "models",
+                 Path("/mnt/d"), Path("/mnt/e"), Path("D:/")):
+        if not root.is_dir():
+            continue
+        try:
+            for hit in root.glob("**/models/diffusion_models"):
+                return hit.parent
+        except OSError:
+            continue
+    return None
+
+
+def model_status(models_root: Path | None) -> list[dict]:
+    spec = json.loads((MANIFEST / "models.json").read_text("utf-8"))["models"]
+    out = []
+    index: dict[str, Path] = {}
+    if models_root and models_root.is_dir():
+        for p in models_root.rglob("*"):
+            if p.is_file() and p.suffix in (".safetensors", ".ckpt", ".pt", ".bin"):
+                index.setdefault(p.name, p)      # 同名取第一个，避免重复扫描
+    for m in spec:
+        p = index.get(m["filename"])
+        ok = bool(p) and p.stat().st_size >= int(m["size_bytes"] * 0.97)
+        out.append({**m, "found": str(p) if p else None,
+                    "found_size": p.stat().st_size if p else 0, "ok": ok})
+    return out
+
+
+def port_open(port: int, host: str = "127.0.0.1") -> bool:
+    import socket
+    with socket.socket() as s:
+        s.settimeout(0.6)
+        return s.connect_ex((host, port)) == 0
+
+
+def systemd_active(unit: str) -> bool:
+    code, _ = run(["systemctl", "is-active", unit], timeout=8)
+    return code == 0
+
+
+# ---------------------------------------------------------------------- doctor
+def cmd_doctor(args) -> int:
+    state = load_state()
+    problems, warnings = [], []
+
+    section(f"OpenVideo doctor  v{VERSION}   ({platform.system()} {platform.release()})")
+
+    py = sys.version_info
+    if py >= (3, 10):
+        log(f"Python {py.major}.{py.minor}.{py.micro}", "ok")
+    else:
+        log(f"Python {py.major}.{py.minor} 太旧，需要 3.10+", "bad")
+        problems.append("python")
+
+    code, out = run(["nvidia-smi", "--query-gpu=name,memory.total,driver_version",
+                     "--format=csv,noheader"])
+    if code != 0:
+        # WSL 里 nvidia-smi 常在 /usr/lib/wsl/lib，不在默认 PATH
+        for extra in ("/usr/lib/wsl/lib/nvidia-smi",):
+            if Path(extra).is_file():
+                code, out = run([extra, "--query-gpu=name,memory.total,driver_version",
+                                 "--format=csv,noheader"])
+                break
+    if code == 0 and out:
+        log(f"GPU: {out.splitlines()[0]}", "ok")
+    else:
+        log("找不到 nvidia-smi（无 GPU 或未装驱动）", "bad")
+        problems.append("gpu")
+
+    code, out = run(["ffmpeg", "-version"])
+    if code == 0:
+        log(f"ffmpeg: {out.splitlines()[0][:60]}", "ok")
+    else:
+        log("找不到 ffmpeg（合并/烧字幕必需）", "bad")
+        problems.append("ffmpeg")
+
+    venv = HERE / ".venv"
+    if (venv / "bin" / "python").is_file() or (venv / "Scripts" / "python.exe").is_file():
+        log(f"Python 虚拟环境: {venv}", "ok")
+    else:
+        log("还没有虚拟环境（ov install 会创建）", "warn")
+        warnings.append("venv")
+
+    comfy = find_comfyui(state)
+    if comfy:
+        ver = (comfy / "comfyui_version.py")
+        v = ""
+        if ver.is_file():
+            for line in ver.read_text().splitlines():
+                if "__version__" in line:
+                    v = line.split("=")[-1].strip().strip('"')
+        log(f"ComfyUI: {comfy}  ({v or 'version unknown'})", "ok")
+        nodes = comfy / "custom_nodes"
+        have = {p.name for p in nodes.iterdir()} if nodes.is_dir() else set()
+        for need in ("ComfyUI-H3-Cast", "H3-Video-Upsampler"):
+            if need in have:
+                log(f"节点 {need}", "ok")
+            else:
+                log(f"节点 {need} 缺失（角色一致性/超分不可用）", "warn")
+                warnings.append(need)
+    else:
+        log("找不到 ComfyUI（ov install --comfyui-dir 指定，或让它自动拉取）", "bad")
+        problems.append("comfyui")
+
+    root = find_models_root(state, args.models_dir)
+    if root:
+        log(f"模型目录: {root}", "ok")
+        rows = model_status(root)
+        for r in rows:
+            tag = "ok" if r["ok"] else ("warn" if not r["required"] else "bad")
+            extra = "" if r["ok"] else ("（可选）" if not r["required"] else "（必需）")
+            log(f"{r['filename']}  {r['role'][:26]}{extra}", tag)
+            if not r["ok"] and r["required"]:
+                problems.append(r["id"])
+    else:
+        log("找不到模型目录（用 --models-dir 指定）", "bad")
+        problems.append("models")
+
+    for port, name in ((8188, "引擎"), (8801, "工作台")):
+        if port_open(port):
+            log(f"{name}端口 {port} 已监听", "ok")
+        else:
+            log(f"{name}端口 {port} 未监听", "warn")
+
+    for unit in ("openvideo-engine", "openvideo-studio"):
+        if systemd_active(unit):
+            log(f"服务 {unit}.service 运行中", "ok")
+
+    section("结论")
+    if problems:
+        print(f"  {C_BAD}不可用{C_END}：{', '.join(problems)}")
+        print("  下一步：ov install" + (" --models-dir /path/to/models" if "models" in problems else ""))
+        return 1
+    if warnings:
+        print(f"  {C_WARN}可用但有缺口{C_END}：{', '.join(warnings)}")
+        return 0
+    print(f"  {C_OK}一切就绪{C_END}")
+    return 0
+
+
+# --------------------------------------------------------------------- install
+PHASES = ["config", "venv", "comfyui", "nodes", "models", "services", "selftest"]
+
+
+def cmd_install(args) -> int:
+    state = load_state()
+    only = set(x.strip() for x in args.only.split(",")) if args.only else set(PHASES)
+    todo = [p for p in PHASES if p in only]
+
+    section(f"安装计划：{', '.join(todo)}")
+    for p in PHASES:
+        if p not in only:
+            continue
+        cur = state.get("phases", {}).get(p, {}).get("status", "absent")
+        log(f"{p}: {cur}", "dim" if cur != "failed" else "bad")
+    if not args.yes:
+        print("\n  这是预演。加 --yes 真正执行。")
+
+    if args.models_dir:
+        state.setdefault("config", {})["models_dir"] = str(Path(args.models_dir).expanduser())
+        save_state(state)
+        log(f"模型目录记为 {args.models_dir}", "ok")
+    if args.comfyui_dir:
+        state.setdefault("config", {})["comfyui_dir"] = str(Path(args.comfyui_dir).expanduser())
+        save_state(state)
+
+    for p in todo:
+        status = state.get("phases", {}).get(p, {}).get("status")
+        if status == "done" and not args.force:
+            log(f"{p} 已完成，跳过（--force 可重做）", "dim")
+            continue
+        if not args.yes:
+            continue
+        fn = globals().get(f"install_{p}")
+        if not fn:
+            log(f"{p}: 没有实现", "warn")
+            continue
+        section(f"→ {p}")
+        try:
+            fn(state, args)
+            phase(state, p, "done")
+            log(f"{p} 完成", "ok")
+        except SystemExit:
+            raise
+        except Exception as e:                      # noqa: BLE001
+            phase(state, p, "failed", error=str(e)[:400])
+            log(f"{p} 失败：{e}", "bad")
+            print("\n  已完成的阶段不会丢；修好后 ov install --resume 继续。")
+            return 1
+    return 0
+
+
+def install_config(state, args):
+    OV_HOME.mkdir(parents=True, exist_ok=True)
+    (OV_HOME / "logs").mkdir(exist_ok=True)
+    state.setdefault("config", {}).setdefault("http_port", 8801)
+    state["config"].setdefault("engine_port", 8188)
+    comfy = find_comfyui(state)
+    if comfy:
+        state["config"]["comfyui_dir"] = str(comfy)
+    save_state(state)
+    write_env_file(state)
+
+
+def write_env_file(state: dict) -> Path:
+    """生成 config.env —— 让服务、启动脚本、渲染器用同一套路径，不写死。"""
+    cfg = state.get("config", {})
+    comfy = cfg.get("comfyui_dir") or ""
+    lines = [
+        "# 由 `ov install` 生成，改这里比改代码安全",
+        f"OV_APP_DIR={HERE / 'app'}",
+        f"OV_VENV_PY={HERE / '.venv' / 'bin' / 'python'}",
+        f"OV_COMFYUI_DIR={comfy}",
+        f"STUDIO_DATA={Path(cfg.get('data_dir') or (Path.home() / 'openvideo' / 'studio-data'))}",
+        f"STUDIO_COMFY_LOG={OV_HOME / 'logs' / 'comfyui-8188.log'}",
+        f"STUDIO_ALLOW_RENDER={cfg.get('allow_render', 1)}",
+    ]
+    path = OV_HOME / "config.env"
+    path.write_text("\n".join(lines) + "\n", "utf-8")
+    return path
+
+
+def install_venv(state, args):
+    venv = HERE / ".venv"
+    py = sys.executable
+    if not venv.is_dir():
+        log("创建虚拟环境…")
+        subprocess.run([py, "-m", "venv", str(venv)], check=True)
+    pip = venv / ("Scripts/pip.exe" if os.name == "nt" else "bin/pip")
+    req = HERE / "app" / "requirements.txt"
+    log("安装 Python 依赖（首次约 1-2 分钟）…")
+    subprocess.run([str(pip), "install", "-q", "-U", "pip"], check=False)
+    cp = subprocess.run([str(pip), "install", "-q", "-r", str(req)],
+                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if cp.returncode != 0:
+        raise RuntimeError((cp.stdout or "")[-300:])
+
+
+def install_comfyui(state, args):
+    comfy = find_comfyui(state)
+    if comfy:
+        log(f"已存在，复用：{comfy}", "ok")
+    else:
+        target = Path(args.comfyui_dir or (HERE / "engine" / "ComfyUI")).expanduser()
+        target.parent.mkdir(parents=True, exist_ok=True)
+        ref = json.loads((MANIFEST / "components.json").read_text("utf-8"))["comfyui"]["ref"]
+        log(f"克隆 ComfyUI {ref} → {target}（约 2 分钟）…")
+        code, out = run(["git", "clone", "--depth", "1", "--branch", ref,
+                         "https://github.com/comfyanonymous/ComfyUI", str(target)], timeout=900)
+        if code != 0:
+            raise RuntimeError(out[-300:])
+        comfy = target
+        state.setdefault("config", {})["comfyui_dir"] = str(target)
+        save_state(state)
+
+    # 引擎自己的依赖（torch 等）必须装进同一个 venv，否则 ComfyUI 起不来
+    pip = HERE / ".venv" / ("Scripts/pip.exe" if os.name == "nt" else "bin/pip")
+    venv_py = HERE / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    req = comfy / "requirements.txt"
+    if req.is_file():
+        log("安装 ComfyUI 依赖（torch/transformers，首次 5–15 分钟）…")
+        cp = subprocess.run([str(pip), "install", "-q", "-r", str(req)],
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        if cp.returncode != 0:
+            log((cp.stdout or "")[-400:], "bad")
+            raise RuntimeError("ComfyUI 依赖安装失败")
+
+    torch_ok = subprocess.run([str(venv_py), "-c", "import torch"],
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+    if not torch_ok:
+        idx = args.torch_index or json.loads(
+            (MANIFEST / "components.json").read_text("utf-8")).get("torch", {}).get("index", "")
+        cmd = [str(pip), "install", "-U", "torch", "torchvision", "torchaudio"]
+        if idx:
+            cmd += ["--index-url", idx]
+        log(f"安装 torch {('从 ' + idx) if idx else ''}（2–5 GB，看网速）…")
+        cp = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        if cp.returncode != 0:
+            raise RuntimeError("torch 安装失败：" + (cp.stdout or "")[-300:])
+
+
+def install_nodes(state, args):
+    comfy = find_comfyui(state)
+    if not comfy:
+        raise RuntimeError("先装 ComfyUI")
+    nodes = comfy / "custom_nodes"
+    have = {p.name for p in nodes.iterdir()} if nodes.is_dir() else set()
+    missing = [n for n in ("ComfyUI-H3-Cast", "H3-Video-Upsampler") if n not in have]
+    if not missing:
+        log("节点已就位", "ok")
+        return
+    log(f"缺少 {', '.join(missing)}（可选：只影响角色一致性与 2K 超分）", "warn")
+    print("""
+  这两个节点随权重包分发，不在公开仓库。只做"纯文生视频"可以不装；
+  要角色一致性（H3CastMember）就必须装。放好后重跑：ov install --only nodes
+""")
+    if args.strict:
+        raise RuntimeError("strict 模式下缺节点视为失败")
+
+
+def install_models(state, args):
+    root = find_models_root(state, args.models_dir)
+    if not root:
+        raise RuntimeError("找不到模型目录，用 --models-dir 指定")
+
+    # 模型不在 <ComfyUI>/models 下时，必须显式告诉引擎去别处找
+    comfy = find_comfyui(state)
+    if comfy and root.resolve() != (comfy / "models").resolve():
+        cfg = comfy / "extra_model_paths.yaml"
+        cfg.write_text(
+            "openvideo:\n"
+            f"  base_path: {root}\n"
+            "  diffusion_models: diffusion_models\n"
+            "  text_encoders: text_encoders\n"
+            "  vae: vae\n"
+            "  loras: loras\n"
+            "  latent_upscale_models: latent_upscale_models\n", "utf-8")
+        log(f"已写 {cfg}（指向 {root}）", "ok")
+
+    rows = model_status(root)
+    for r in rows:
+        if r["ok"]:
+            state.setdefault("models", {})[r["id"]] = {
+                "path": r["found"], "size": r["found_size"], "verified": "size"}
+            log(f"{r['filename']} ✓", "ok")
+        else:
+            log(f"{r['filename']} 缺失（{r['role'][:20]}）", "warn" if not r["required"] else "bad")
+    save_state(state)
+    missing_required = [r for r in rows if r["required"] and not r["ok"]]
+    if missing_required:
+        print("\n  必需权重缺失。安装器不会替你下载（权重许可未确认），")
+        print("  请从授权渠道获取后用 --models-dir 指向所在目录。")
+
+
+def install_services(state, args):
+    if platform.system() != "Linux":
+        log("非 Linux，跳过 systemd（用 ./ov start 前台启动）", "warn")
+        return
+    print("""
+  注册服务需要 root，请手动执行（或在 ov install --yes 时加 --with-services 并 sudo）：
+
+    sudo cp services/*.service /etc/systemd/system/
+    sudo systemctl daemon-reload
+    sudo systemctl enable --now openvideo-engine openvideo-studio
+""")
+
+
+def install_selftest(state, args):
+    code = cmd_selftest(args)
+    if code != 0:
+        raise RuntimeError("自检未通过")
+
+
+def cmd_fetch_models(args) -> int:
+    spec = json.loads((MANIFEST / "models.json").read_text("utf-8"))["models"]
+    downloadable = [m for m in spec if m.get("sources")]
+    if not downloadable:
+        print("没有可下载的模型源（权重许可未确认，见 manifest/models.json）。\n"
+              "请自备模型，用 --models-dir 指向目录。")
+        return 2
+    print(f"可下载 {len(downloadable)} 个，但本版本未实现下载器（M2 里程碑）。")
+    return 2
+
+
+# -------------------------------------------------------------------- commands
+def cmd_status(args) -> int:
+    state = load_state()
+    section("阶段")
+    for p in PHASES:
+        info = state.get("phases", {}).get(p, {})
+        st = info.get("status", "absent")
+        mark = {"done": "ok", "failed": "bad"}.get(st, "dim")
+        log(f"{p:9} {st:8} {info.get('at', '')}", mark)
+    section("配置")
+    for k, v in state.get("config", {}).items():
+        log(f"{k} = {v}", "dim")
+    return 0
+
+
+def cmd_selftest(args) -> int:
+    import urllib.request
+    state = load_state()
+    engine = state.get("config", {}).get("engine_port", 8188)
+    studio = state.get("config", {}).get("http_port", 8801)
+    section("自检")
+
+    def get(url, timeout=6):
+        with urllib.request.urlopen(url, timeout=timeout) as r:
+            return r.status, r.read()
+
+    ok = True
+    try:
+        st, body = get(f"http://127.0.0.1:{engine}/system_stats")
+        log(f"引擎 /system_stats → {st}", "ok" if st == 200 else "bad")
+    except Exception as e:                       # noqa: BLE001
+        log(f"引擎不可达：{e}", "bad")
+        ok = False
+    try:
+        st, body = get(f"http://127.0.0.1:{studio}/api/health")
+        log(f"工作台 /api/health → {st} {body[:60].decode('utf-8', 'ignore')}", "ok")
+    except Exception as e:                       # noqa: BLE001
+        log(f"工作台不可达：{e}", "bad")
+        ok = False
+    if ok:
+        print("\n  下一镜：ov start，然后打开 http://127.0.0.1:8801")
+    return 0 if ok else 1
+
+
+def cmd_start(args) -> int:
+    state = load_state()
+    write_env_file(state)
+    cfg = state.get("config", {})
+    comfy = find_comfyui(state)
+    venv_py = HERE / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    if not venv_py.is_file():
+        log("还没有虚拟环境：先跑 ov install --yes", "bad")
+        return 1
+
+    env = {**os.environ}
+    for line in (OV_HOME / "config.env").read_text("utf-8").splitlines():
+        if "=" in line and not line.startswith("#"):
+            k, v = line.split("=", 1)
+            env[k] = v
+
+    if platform.system() == "Linux" and systemd_active("openvideo-studio"):
+        run(["systemctl", "start", "openvideo-engine"])
+        run(["systemctl", "start", "openvideo-studio"])
+        log("已通过 systemd 启动", "ok")
+        return 0
+
+    # 无 systemd：自己拉起两个进程，pid 写进 ~/.openvideo/pids
+    pids = OV_HOME / "pids"
+    pids.mkdir(parents=True, exist_ok=True)
+    logs = OV_HOME / "logs"
+    logs.mkdir(exist_ok=True)
+
+    def alive(name: str) -> bool:
+        f = pids / f"{name}.pid"
+        if not f.is_file():
+            return False
+        try:
+            os.kill(int(f.read_text().strip()), 0)
+            return True
+        except (OSError, ValueError):
+            return False
+
+    if comfy and not alive("engine") and not port_open(8188):
+        logf = open(logs / "comfyui-8188.log", "ab")
+        p = subprocess.Popen([str(venv_py), "main.py", "--listen", "127.0.0.1",
+                              "--port", "8188"], cwd=str(comfy),
+                             stdout=logf, stderr=subprocess.STDOUT, env=env)
+        (pids / "engine.pid").write_text(str(p.pid))
+        log(f"引擎已启动 pid={p.pid}（首次加载模型约 1-2 分钟）", "ok")
+    elif port_open(8188):
+        log("引擎已在 8188 运行，复用", "dim")
+
+    if not alive("studio") and not port_open(int(cfg.get("http_port", 8801))):
+        logf = open(logs / "studio.log", "ab")
+        p = subprocess.Popen([str(venv_py), "-m", "uvicorn", "studio.api.app:app",
+                              "--host", "127.0.0.1", "--port",
+                              str(cfg.get("http_port", 8801))],
+                             cwd=str(HERE / "app"), stdout=logf,
+                             stderr=subprocess.STDOUT, env=env)
+        (pids / "studio.pid").write_text(str(p.pid))
+        log(f"工作台已启动 pid={p.pid}", "ok")
+    else:
+        log("工作台已在运行，复用", "dim")
+
+    time.sleep(3)
+    port = int(cfg.get("http_port", 8801))
+    log("打开 " + f"http://127.0.0.1:{port}",
+        "ok" if port_open(port) else "warn")
+    print(f"\n  日志：{logs}/studio.log  {logs}/comfyui-8188.log")
+    print("  停止：ov stop")
+    return 0
+
+
+def cmd_stop(args) -> int:
+    if platform.system() == "Linux" and systemd_active("openvideo-studio"):
+        for unit in ("openvideo-studio", "openvideo-engine"):
+            run(["systemctl", "stop", unit])
+            log(f"stop {unit}", "ok")
+        return 0
+    pids = OV_HOME / "pids"
+    if not pids.is_dir():
+        log("没有记录到由 ov 启动的进程", "dim")
+        return 0
+    for f in pids.glob("*.pid"):
+        try:
+            pid = int(f.read_text().strip())
+            os.kill(pid, 15)
+            log(f"停止 {f.stem} pid={pid}", "ok")
+        except (OSError, ValueError):
+            log(f"{f.stem} 已不在", "dim")
+        f.unlink(missing_ok=True)
+    return 0
+
+
+def cmd_models(args) -> int:
+    state = load_state()
+    root = find_models_root(state, args.models_dir)
+    section(f"模型（根目录：{root}）")
+    for r in model_status(root):
+        mark = "ok" if r["ok"] else ("warn" if not r["required"] else "bad")
+        log(f"{r['filename']}\n      {r['role']}", mark)
+        if r["found"]:
+            log(f"→ {r['found']}  ({r['found_size'] / 2**30:.1f} GB)", "dim")
+    return 0
+
+
+# ------------------------------------------------------------------------ main
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(prog="ov", description="OpenVideo Studio installer")
+    ap.add_argument("--version", action="version", version=f"ov {VERSION}")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    d = sub.add_parser("doctor", help="体检，不改任何东西")
+    d.add_argument("--models-dir")
+    d.set_defaults(fn=cmd_doctor)
+
+    i = sub.add_parser("install", help="安装（幂等，可续跑）")
+    i.add_argument("--only", help="只跑这些阶段，逗号分隔：" + ",".join(PHASES))
+    i.add_argument("--resume", action="store_true", help="从上次失败处继续")
+    i.add_argument("--force", action="store_true", help="已完成的阶段也重做")
+    i.add_argument("--models-dir", help="已有模型目录（跳过下载）")
+    i.add_argument("--comfyui-dir", help="已有 ComfyUI 目录（跳过克隆）")
+    i.add_argument("--torch-index", help="torch 的 wheel 源，如 https://download.pytorch.org/whl/cu124")
+    i.add_argument("--strict", action="store_true", help="缺可选组件也视为失败")
+    i.add_argument("--with-services", action="store_true")
+    i.add_argument("--yes", action="store_true", help="真正执行（默认只预演）")
+    i.set_defaults(fn=cmd_install)
+
+    sub.add_parser("status", help="阶段状态").set_defaults(fn=cmd_status)
+    sub.add_parser("selftest", help="真实链路自检").set_defaults(fn=cmd_selftest)
+    sub.add_parser("fetch-models", help="下载模型（默认不可用）").set_defaults(fn=cmd_fetch_models)
+
+    s = sub.add_parser("start", help="启动")
+    s.add_argument("--foreground", action="store_true")
+    s.set_defaults(fn=cmd_start)
+    sub.add_parser("stop", help="停止").set_defaults(fn=cmd_stop)
+
+    m = sub.add_parser("models", help="模型清单")
+    m.add_argument("--models-dir")
+    m.set_defaults(fn=cmd_models)
+
+    args = ap.parse_args(argv)
+    return args.fn(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

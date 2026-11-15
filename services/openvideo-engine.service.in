@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenVideo engine (ComfyUI, H3)
+After=network.target
+
+[Service]
+Type=simple
+User=%USER%
+WorkingDirectory=%COMFYUI_DIR%
+Environment=PATH=%VENV%/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/wsl/lib
+ExecStart=%VENV%/bin/python main.py --listen 127.0.0.1 --port 8188
+Restart=on-failure
+RestartSec=5
+# 显存观测在 WSL 下依赖 /usr/lib/wsl/lib 里的 nvidia-smi，PATH 里必须有它
+
+[Install]
+WantedBy=multi-user.target

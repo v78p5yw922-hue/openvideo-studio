@@ -1,0 +1,10 @@
+# OpenVideo Studio — runtime dependencies
+# The web platform (app/studio) and the render pipeline (app/scripts).
+# ComfyUI brings its own torch/transformers stack; those are NOT listed here.
+
+fastapi>=0.110
+uvicorn[standard]>=0.27
+python-multipart>=0.0.9     # multipart uploads (character refs, plates)
+pydantic>=2.5
+Pillow>=10.0                # image probing / thumbnails
+opentimelineio>=0.17        # optional: OTIO export (EDL export works without it)

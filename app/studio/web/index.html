@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpenVideo Studio</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#151a21; --panel2:#1b222b; --line:#242c38;
+    --fg:#e6edf6; --dim:#8b98a9; --accent:#4c8dff;
+    --empty:#5c6775; --queued:#d6a53a; --running:#3d8bff; --review:#a86cff;
+    --passed:#37b26d; --rejected:#e05555; --stale:#c96a2b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font:14px/1.5 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);
+         background:var(--panel2);color:var(--fg);padding:6px 12px}
+  button:hover{border-color:#35404f}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.ghost{background:transparent}
+  input,select,textarea{font:inherit;background:#0f141a;color:var(--fg);
+       border:1px solid var(--line);border-radius:8px;padding:6px 8px;width:100%}
+  textarea{resize:vertical;min-height:70px}
+
+  header{display:flex;gap:14px;align-items:center;padding:10px 16px;
+         border-bottom:1px solid var(--line);background:var(--panel)}
+  header .brand{font-weight:700;letter-spacing:.5px}
+  header .spacer{flex:1}
+  .pill{font-size:12px;color:var(--dim);border:1px solid var(--line);
+        border-radius:999px;padding:2px 10px}
+  .pill.on{color:#8ff0b0;border-color:#2f6b49}
+
+  .budget{display:flex;gap:18px;padding:8px 16px;background:#111722;
+          border-bottom:1px solid var(--line);font-size:12.5px;color:var(--dim)}
+  .budget b{color:var(--fg);font-weight:600}
+
+  main{display:grid;grid-template-columns:250px 1fr 330px;height:calc(100vh - 96px)}
+  .col{overflow:auto;padding:12px}
+  .col.left{border-right:1px solid var(--line);background:var(--panel)}
+  .col.right{border-left:1px solid var(--line);background:var(--panel)}
+  .col.mid{background:var(--bg)}
+
+  h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim)}
+  .asset{display:flex;gap:8px;align-items:center;padding:6px;border-radius:8px;cursor:pointer}
+  .asset:hover{background:var(--panel2)}
+  .asset img{width:34px;height:44px;object-fit:cover;border-radius:5px;background:#0b0f14}
+  .asset .n{font-size:13px}
+  .asset .s{font-size:11px;color:var(--dim)}
+
+  .shot{display:grid;grid-template-columns:64px 1fr auto;gap:10px;align-items:center;
+        background:var(--panel);border:1px solid var(--line);border-radius:10px;
+        padding:8px 10px;margin-bottom:8px;cursor:pointer}
+  .shot.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .shot.drop{border-color:var(--review);background:#1b2333}
+  .asset[draggable="true"]{cursor:grab}
+  .shot .thumb{width:56px;height:76px;border-radius:6px;background:#0b0f14;object-fit:cover}
+  .shot .title{font-weight:600}
+  .shot .meta{font-size:12px;color:var(--dim)}
+  .shot .right{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+  .chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line)}
+  .st-empty{color:var(--empty)} .st-queued{color:var(--queued)} .st-running{color:var(--running)}
+  .st-review{color:var(--review)} .st-passed{color:var(--passed)}
+  .st-rejected{color:var(--rejected)} .st-stale{color:var(--stale)}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+  .d-empty{background:var(--empty)} .d-queued{background:var(--queued)}
+  .d-running{background:var(--running)} .d-review{background:var(--review)}
+  .d-passed{background:var(--passed)} .d-rejected{background:var(--rejected)}
+  .d-stale{background:var(--stale)}
+
+  .inspector label{display:block;font-size:12px;color:var(--dim);margin:8px 0 3px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+  .cast{background:#20304a;border:1px solid #2f4a72;padding:2px 8px;border-radius:999px;font-size:12px}
+  .cast button{border:0;background:none;color:var(--dim);padding:0 2px}
+
+  .bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:12px;align-items:center;
+       padding:10px 16px;background:#121821;border-top:1px solid var(--line)}
+  .modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;
+         justify-content:center;padding:20px}
+  .modal.on{display:flex}
+  .modal .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+              padding:18px;max-width:640px;width:100%;max-height:80vh;overflow:auto}
+  .warn{font-size:13px;padding:6px 8px;border-radius:6px;margin:4px 0;background:#2a2113;color:#f0c674}
+  .err{background:#2d1518;color:#f08a8a}
+  .ok{background:#13291d;color:#88e0a8}
+  .msg{font-size:13px;margin-top:8px;min-height:18px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  td,th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">OpenVideo Studio</div>
+  <select id="proj" style="width:auto" onchange="openProject()"></select>
+  <button class="ghost" onclick="newProject()">新建项目</button>
+  <button class="ghost" onclick="openImport()">导入剧本</button>
+  <button class="ghost" style="color:#f0a0a0" onclick="deleteProject()">删除项目</button>
+  <div class="spacer"></div>
+  <span class="pill" id="exec">执行器：检测中</span>
+  <span class="pill" id="health">—</span>
+  <a class="pill" id="to-review" href="/review" style="text-decoration:none">审片</a>
+  <a class="pill" href="/selftest" target="_blank" style="text-decoration:none">自检</a>
+  <span class="pill" id="gpu">GPU 空闲</span>
+  <button class="pill" id="stop-all" style="display:none;color:#f0a0a0;border-color:#5a2a2a"
+          onclick="stopAll()">■ 停止渲染</button>
+</header>
+
+<div class="budget">
+  <span>镜头 <b id="b-total">0</b></span>
+  <span>已通过 <b id="b-passed">0</b></span>
+  <span>待审 <b id="b-review">0</b></span>
+  <span>失效 <b id="b-stale">0</b></span>
+  <span>未生成 <b id="b-empty">0</b></span>
+  <span>已选 <b id="b-sel">0</b> · 预计 <b id="b-min">0</b> 分钟</span>
+  <span id="b-stats" style="color:var(--dim)"></span>
+</div>
+
+<main>
+  <div class="col left">
+    <h3>本项目角色（点击指派给选中镜）</h3>
+    <div id="chars-project"></div>
+    <h3 style="margin-top:14px">库里其他角色（拖进镜头即可用）</h3>
+    <div id="chars"></div>
+    <h3 style="margin-top:16px">场景（点击指派）</h3>
+    <div id="scenes"></div>
+    <h3 style="margin-top:16px">新增角色</h3>
+    <input id="ch-id" placeholder="character_id（英文）">
+    <input id="ch-name" placeholder="名字" style="margin-top:6px">
+    <input id="ch-file" type="file" accept="image/png,image/jpeg" style="margin-top:6px">
+    <button class="ghost" style="margin-top:6px;width:100%" onclick="addCharacter()">保存角色</button>
+
+    <h3 style="margin-top:16px">新增场景</h3>
+    <input id="sc-id" placeholder="scene_id（英文）">
+    <input id="sc-name" placeholder="名称" style="margin-top:6px">
+    <input id="sc-file" type="file" accept="image/jpeg,image/png" style="margin-top:6px">
+    <button class="ghost" style="margin-top:6px;width:100%" onclick="addScene()">保存场景 + 母版</button>
+  </div>
+
+  <div class="col mid" id="shots">
+    <div style="color:var(--dim);padding:20px">还没有项目。点右上角「新建项目」。</div>
+  </div>
+
+  <div class="col right">
+    <h3>检查器</h3>
+    <div id="inspector"><div style="color:var(--dim)">选一个镜头</div></div>
+  </div>
+</main>
+
+<div class="bar">
+  <span id="bar-msg" style="color:var(--dim)">选中镜头后可批量生成</span>
+  <button class="ghost" style="font-size:12px" onclick="selectAll()">全选</button>
+  <button class="ghost" style="font-size:12px" onclick="selectNone()">清空选择</button>
+  <div id="batch-bar" class="hidden" style="display:flex;gap:6px;align-items:center">
+    <select id="batch-scene" style="width:auto"><option value="">场景不变</option></select>
+    <select id="batch-trans" style="width:auto">
+      <option value="">转场不变</option><option value="cut">cut</option><option value="chain">chain</option>
+    </select>
+    <button class="ghost" style="font-size:12px" onclick="applyBatch()">应用到已选</button>
+  </div>
+  <button class="ghost" onclick="chainAll()">全部接上一镜</button>
+  <button class="ghost" onclick="autoTransitions()">按角色自动设转场</button>
+  <button class="primary" onclick="assemble()">🎬 合成成片</button>
+  </div>
+  <button class="ghost hidden" id="btn-undo" style="font-size:12px;padding:3px 8px" onclick="undoAssign()">撤销</button>
+  <div class="spacer"></div>
+  <label style="display:flex;gap:6px;align-items:center;color:var(--dim);width:auto">
+    <input type="checkbox" id="pause1" style="width:auto"> 跑完一镜暂停
+  </label>
+  <label style="display:flex;gap:6px;align-items:center;color:var(--dim);width:auto">
+    <input type="checkbox" id="draft" checked style="width:auto"> 草稿
+  </label>
+  <button onclick="makePlan()">生成计划</button>
+  <button class="primary" onclick="confirmPlan()" id="btn-confirm" disabled>确认执行</button>
+  <button class="ghost" onclick="exportTimeline('edl')">导出 EDL</button>
+  <button class="ghost" onclick="exportTimeline('otio')">导出 OTIO</button>
+  <button class="ghost" onclick="exportTimeline('markdown')">导出 Markdown</button>
+  <button class="ghost" onclick="clearQueue()">清空排队</button>
+</div>
+
+<input type="file" id="asset-upload" accept="image/jpeg,image/png" style="display:none" onchange="onAssetFile(event)">
+
+<div class="modal" id="player-modal">  <div class="box" style="max-width:900px">
+    <h2 style="margin:0 0 8px;font-size:16px" id="player-title">播放</h2>
+    <video id="player-video" controls autoplay loop style="width:100%;border-radius:10px;background:#000"></video>
+    <div class="msg" id="player-meta" style="color:var(--dim);font-size:12.5px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+      <a id="player-dl" class="pill" style="text-decoration:none" download>下载</a>
+      <button class="ghost" onclick="$('#player-modal').classList.remove('on');$('#player-video').pause()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="ver-modal">
+  <div class="box">
+    <h2 style="margin:0 0 10px;font-size:16px" id="ver-title">版本历史</h2>
+    <div id="ver-body"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px">
+      <button class="ghost" onclick="$('#ver-modal').classList.remove('on')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="imp-modal">
+  <div class="box">
+    <h2 style="margin:0 0 10px;font-size:16px">导入剧本（Markdown）</h2>
+    <p style="color:var(--dim);font-size:12.5px">
+      粘贴 DeepSeek 按模板输出的全文。会自动识别：项目 / 角色卡 / 场景卡 / 镜头表 / 每镜 prompt。
+    </p>
+    <label style="font-size:12px;color:var(--dim)">项目 ID（英文）</label>
+    <input id="imp-pid" placeholder="yuanxing_kuangmai">
+    <label style="font-size:12px;color:var(--dim);margin-top:8px;display:block">剧本正文</label>
+    <textarea id="imp-text" style="min-height:260px" spellcheck="false"></textarea>
+    <div class="msg" id="imp-msg"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="ghost" onclick="closeImport()">取消</button>
+      <button class="primary" onclick="doImport()">导入并建项目</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="box">
+    <h2 style="margin:0 0 10px;font-size:16px">执行计划</h2>
+    <div id="plan-body"></div>
+    <div class="msg" id="plan-msg"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="ghost" onclick="closeModal()">取消</button>
+      <button class="primary" onclick="doConfirm()" id="btn-go" disabled>确认并排队</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const el = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstElementChild; };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let PROJECT = null, SHOTS = [], SCENES = [], CHARS = [], SELECTED = new Set(), CURRENT = null;
+let PLAN = null;
+
+const STLABEL = {empty:'未生成', queued:'排队', running:'生成中', review:'待审',
+                 passed:'通过', rejected:'打回', stale:'已失效'};
+
+async function api(path, opt) {
+  const r = await fetch(path, opt);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.detail || j.error || ('HTTP ' + r.status));
+  return j;
+}
+
+async function boot() {
+  try {
+    const h = await api('/api/health');
+    $('#health').textContent = '数据 ' + h.data.split('/').slice(-1)[0];
+    $('#exec').textContent = h.executor ? '执行器：已启用' : '执行器：关闭（确认也不会渲染）';
+    $('#exec').classList.toggle('on', !!h.executor);
+    const cs = await api('/api/characters');
+    CHARS = cs.characters || [];
+    const ps = await api('/api/projects');
+    const sel = $('#proj');
+    sel.innerHTML = '<option value="">— 选择项目 —</option>' +
+      ps.projects.map(p => `<option value="${esc(p.id)}">${esc(p.title)}</option>`).join('');
+    const want = new URLSearchParams(location.search).get('project');
+    if (want && ps.projects.some(p => p.id === want)) {
+      sel.value = want;
+    } else if (ps.projects.length) {
+      sel.value = ps.projects[0].id;
+    }
+    if (sel.value) { PROJECT = null; openProject(); }
+  } catch (e) { $('#bar-msg').textContent = '加载失败：' + e.message; }
+}
+
+async function newProject() {
+  const id = prompt('项目 ID（英文，如 demo_film）');
+  if (!id) return;
+  const title = prompt('片名') || id;
+  await api('/api/projects', {method:'POST', headers:{'content-type':'application/json'},
+    body: JSON.stringify({id, title, style: ''})});
+  const ps = await api('/api/projects');
+  $('#proj').innerHTML = ps.projects.map(p => `<option value="${esc(p.id)}">${esc(p.title)}</option>`).join('');
+  $('#proj').value = id;
+  openProject();
+}
+
+async function stopAll() {
+  if (!confirm('停止所有渲染任务？正在渲的这一镜会被终止，已完成的镜头不受影响。')) return;
+  const r = await api('/api/stop', {method:'POST'});
+  flash(`已取消 ${r.cancelled} 个任务，终止 ${r.killed.length} 个渲染进程`);
+  await openProject();
+}
+
+async function refreshGpu() {
+  try {
+    const q = await api('/api/queue/global');
+    const el = $('#gpu');
+    $('#stop-all').style.display = q.count ? '' : 'none';
+    if (!q.count) {
+      el.textContent = q.executor ? 'GPU 空闲' : 'GPU 空闲（执行器关闭）';
+      el.classList.remove('on');
+    } else {
+      const j = q.active[0];
+      const p = j.payload ? JSON.parse(j.payload) : {};
+      const shots = (p.shots || []).slice(0, 2).join(',');
+      el.textContent = `GPU 忙：${j.project_id} ${shots}${q.count > 1 ? ' 等' + q.count : ''}`;
+      el.classList.add('on');
+    }
+  } catch (e) { /* decorative */ }
+}
+
+async function refreshStats() {
+  if (!PROJECT) return;
+  try {
+    const s = await api(`/api/projects/${encodeURIComponent(PROJECT)}/stats`);
+    const bits = [];
+    if (s.shots) bits.push(`通过率 ${Math.round(s.pass_rate * 100)}%`);
+    if (s.takes) bits.push(`重渲 ${Math.round(s.rerender_rate * 100)}%`);
+    if (s.avg_shot_seconds) bits.push(`均 ${s.avg_shot_seconds}s/镜`);
+    if (s.peak_mib) bits.push(`峰值 ${(s.peak_mib / 1024).toFixed(1)}G`);
+    if (s.total_gpu_minutes) bits.push(`GPU ${s.total_gpu_minutes} 分钟`);
+    $('#b-stats').textContent = bits.join(' · ');
+  } catch (e) { /* stats are decorative */ }
+}
+
+async function openProject(initial = false) {
+  const pid = $('#proj').value;
+  if (!pid) return;
+  if (PROJECT !== pid) {          // 只有真的换了项目才清空选择
+    SELECTED.clear();
+    CURRENT = null;
+  }
+  PROJECT = pid;
+  const d = await api('/api/projects/' + encodeURIComponent(pid));
+  SHOTS = d.shots; SCENES = d.scenes; CHARS = d.characters || CHARS;
+  if (CURRENT) {                  // 刷新后按 shot_id 找回当前镜头
+    CURRENT = SHOTS.find(s => s.shot_id === CURRENT.shot_id) || null;
+  }
+  renderAll();
+  refreshStats();
+  refreshGpu();
+  const rv = $('#to-review');
+  if (rv) rv.href = '/review?project=' + encodeURIComponent(pid);
+}
+
+function counts() {
+  const c = {total: SHOTS.length, passed:0, review:0, stale:0, empty:0};
+  SHOTS.forEach(s => { if (c[s.state] !== undefined) c[s.state]++; });
+  return c;
+}
+
+function renderAll() {
+  renderBudget(); renderAssets(); renderShots(); renderInspector();
+}
+
+function renderBudget() {
+  const c = counts();
+  $('#b-total').textContent = c.total;
+  $('#b-passed').textContent = c.passed;
+  $('#b-review').textContent = c.review;
+  $('#b-stale').textContent = c.stale;
+  $('#b-empty').textContent = c.empty;
+  $('#b-sel').textContent = SELECTED.size;
+  const per = $('#draft').checked ? 5 : 8.5;
+  $('#b-min').textContent = Math.round(SELECTED.size * per);
+  const bb = $('#batch-bar');
+  if (bb) bb.classList.toggle('hidden', SELECTED.size === 0);
+  const bs = $('#batch-scene');
+  if (bs && bs.options.length <= 1) {
+    bs.innerHTML = '<option value="">场景不变</option>' +
+      SCENES.map(s => `<option value="${esc(s.scene_id)}">${esc(s.name || s.scene_id)}</option>`).join('');
+  }
+  if (CURRENT && CURRENT.state === 'stale') {
+    SELECTED.add(CURRENT.shot_id);
+  }
+}
+
+function charName(cid) {
+  const c = (CHARS || []).find(x => x.character_id === cid);
+  return c ? c.name : cid;
+}
+
+function castNames(cast) {
+  return (cast || []).map(charName).join('、');
+}
+
+function charRow(c) {
+  const used = (c.used_in || []).length;
+  const bust = encodeURIComponent(((c.primary_ref || '').split('/').pop()) || '0');
+  return `
+    <div class="asset" draggable="true"
+         ondragstart="dragAsset(event,'character','${esc(c.character_id)}')"
+         onclick="assignCharacter('${esc(c.character_id)}')">
+      <img src="/assets/characters/${encodeURIComponent(c.character_id)}?v=${bust}" onerror="this.style.visibility='hidden'">
+      <div style="flex:1"><div class="n">${esc(c.name)} ${c.locked ? '🔒' : ''}</div>
+      <div class="s">${used ? '用于 ' + used + ' 镜' : '未使用'} · 图 ${(c.refs || []).length || 0}</div></div>
+      <button class="ghost" style="padding:2px 6px;font-size:11px"
+        onclick="event.stopPropagation();showCharRefs('${esc(c.character_id)}')">图集</button>
+      <button class="ghost" style="padding:2px 6px;font-size:11px"
+        onclick="event.stopPropagation();addCharRef('${esc(c.character_id)}')">＋图</button>
+      <button class="ghost" style="padding:2px 6px;font-size:11px;color:#f0a0a0"
+        onclick="event.stopPropagation();deleteCharacter('${esc(c.character_id)}',${used})">删</button>
+    </div>`;
+}
+
+function renderAssets() {
+  const inProject = CHARS.filter(c => (c.used_in || []).length);
+  const other = CHARS.filter(c => !(c.used_in || []).length);
+  $('#chars-project').innerHTML = inProject.map(charRow).join('')
+    || '<div class="s" style="color:var(--dim)">还没有角色被指派到镜头</div>';
+  $('#chars').innerHTML = other.map(charRow).join('')
+    || '<div class="s" style="color:var(--dim)">库里没有其他角色</div>';
+  $('#scenes').innerHTML = SCENES.map(s => `
+    <div class="asset" draggable="true"
+         ondragstart="dragAsset(event,'scene','${esc(s.scene_id)}')"
+         onclick="assignScene('${esc(s.scene_id)}')">
+      ${s.plate_sha ? `<img src="/assets/scenes/${encodeURIComponent(PROJECT)}/${encodeURIComponent(s.scene_id)}">` : '<img style="visibility:hidden">'}
+      <div style="flex:1"><div class="n">${esc(s.name || s.scene_id)} ${s.locked ? '🔒' : ''}</div>
+      <div class="s">${s.plate_sha ? '母版 ✓' : '无母版'} · ${esc(s.scene_id)}</div></div>
+      <button class="ghost" style="padding:2px 6px;font-size:11px"
+        onclick="event.stopPropagation();pickAssetFile('scene','${esc(s.scene_id)}')">换母版</button>
+      <button class="ghost" style="padding:2px 6px;font-size:11px"
+        onclick="event.stopPropagation();showVersions('scene','${esc(s.scene_id)}')">版本</button>
+      <button class="ghost" style="padding:2px 6px;font-size:11px"
+        onclick="event.stopPropagation();toggleLock('scene','${esc(s.scene_id)}',${s.locked ? 'false' : 'true'})"
+        >${s.locked ? '解锁' : '锁定'}</button>
+    </div>`).join('') || '<div class="s" style="color:var(--dim)">还没有场景</div>';
+}
+
+function takeOf(s) {
+  return (s.take && s.take.version) ? s.take : null;   // API 的 take 可能是空对象
+}
+
+function thumb(s) {
+  const t = takeOf(s);
+  if (t) return `<video class="thumb" src="/media/${encodeURIComponent(PROJECT)}/${encodeURIComponent(s.shot_id)}/${t.version}" muted preload="metadata" title="点击播放"></video>`;
+  if (s.preview && s.preview.path) return `<div style="position:relative"><img class="thumb" src="/assets/previews/${encodeURIComponent(PROJECT)}/${encodeURIComponent(s.shot_id)}?t=${encodeURIComponent(s.preview.created_at || '')}" title="预览首帧（还不是视频）"><span style="position:absolute;left:2px;top:2px;background:#a86cff;color:#fff;font-size:9px;padding:0 3px;border-radius:3px">预览</span></div>`;
+  if (s.chain_from && s.chain_from.ready) return `<div style="position:relative"><img class="thumb" src="/assets/lastframe/${encodeURIComponent(PROJECT)}/${encodeURIComponent(s.chain_from.shot_id)}?t=${Date.now()}" title="将从 ${esc(s.chain_from.shot_id)} 的末帧起步"><span style="position:absolute;left:2px;top:2px;background:#37b26d;color:#fff;font-size:9px;padding:0 3px;border-radius:3px">接${esc(s.chain_from.shot_id.replace('s0','s'))}</span></div>`;
+  return `<div class="thumb" style="display:flex;align-items:center;justify-content:center;color:#3a4553;font-size:11px">无</div>`;
+}
+
+function openPlayer(shotId) {
+  const s = SHOTS.find(x => x.shot_id === shotId);
+  if (!s) return;
+  const t = takeOf(s);
+  if (!t) {
+    if (s.preview) {
+      $('#player-title').textContent = `${s.shot_id} · 首帧预览（还没有视频）`;
+      $('#player-video').innerHTML = '';
+      $('#player-video').poster = `/assets/previews/${encodeURIComponent(PROJECT)}/${encodeURIComponent(s.shot_id)}`;
+      $('#player-meta').textContent = '这镜只有首帧预览，生成后才有视频。';
+      $('#player-dl').style.display = 'none';
+      $('#player-modal').classList.add('on');
+      return;
+    }
+    return flash('这镜还没有视频，先点「生成这一镜」');
+  }
+  const url = `/media/${encodeURIComponent(PROJECT)}/${encodeURIComponent(s.shot_id)}/${t.version}`;
+  $('#player-title').textContent = `${s.shot_id} · v${t.version}`;
+  $('#player-video').poster = '';
+  $('#player-video').src = url;
+  $('#player-video').play().catch(() => {});
+  $('#player-meta').textContent =
+    `${Math.round(t.elapsed_s || 0)}s 渲染 · 峰值 ${Math.round((t.peak_mib || 0) / 1024)}G · ${t.note || ''}`;
+  $('#player-dl').style.display = '';
+  $('#player-dl').href = url;
+  $('#player-dl').setAttribute('download', `${s.shot_id}_v${t.version}.mp4`);
+  $('#player-modal').classList.add('on');
+}
+
+function renderShots() {
+  if (!SHOTS.length) {
+    $('#shots').innerHTML = '<div style="color:var(--dim);padding:20px">这个项目还没有镜头。用下面的「导入镜头」粘贴 JSON，或调用 API 保存。</div>' +
+      `<button class="ghost" style="margin-left:20px" onclick="importShots()">导入镜头</button>`;
+    return;
+  }
+  $('#shots').innerHTML = '';
+  SHOTS.forEach(s => {
+    const node = el(`<div class="shot ${CURRENT && CURRENT.shot_id === s.shot_id ? 'sel' : ''}"
+      draggable="true" ondragstart="dragShot(event,'${esc(s.shot_id)}')"
+      ondragover="dragOverShot(event,this)" ondragleave="dragLeaveShot(event,this)"
+      ondrop="dropOnShot(event,this,'${esc(s.shot_id)}')">
+      ${thumb(s)}
+      <div>
+        <div class="title"><span class="dot d-${s.state}"></span>${esc(s.shot_id)} · ${esc(s.scene_id || '未设场景')}</div>
+        <div class="meta">${esc(castNames(s.cast) || '空镜')} · ${esc(s.camera || '未设机位')} · ${esc(s.transition)}</div>
+        ${s.chain_from ? `<div class="meta" style="color:${s.chain_from.ready ? '#37b26d' : '#e05555'}">
+          ↳ 接 ${s.chain_from.ready ? esc(s.chain_from.shot_id) + ' v' + s.chain_from.version : '（缺上游，不能渲）'}</div>` : ''}
+        <div class="meta">${esc((s.dialogue || '').replace(/<\/?d>/g, '') || '无台词')}</div>
+        ${s.preview_job ? `<div class="meta" style="color:#a86cff">首帧预览中…</div>` : ''}
+        ${s.state === 'empty' && s.last_job && s.last_job.state === 'failed'
+          ? `<div class="meta" style="color:#e05555">上次失败：${esc((s.last_job.error || '未知原因').slice(0, 60))}</div>` : ''}
+      </div>
+      <div class="right">
+        <span class="chip st-${s.state}">${STLABEL[s.state] || s.state}${s.progress && s.state === 'running' ? ' ' + s.progress.pct + '%' : ''}</span>
+        <label style="width:auto;font-size:11px;color:var(--dim)" onclick="event.stopPropagation()">
+          <input type="checkbox" style="width:auto" ${SELECTED.has(s.shot_id) ? 'checked' : ''}
+            onclick="event.stopPropagation()"
+            onchange="toggleSel('${esc(s.shot_id)}')"> 选
+        </label>
+      </div>
+    </div>`);
+    node.onclick = () => { CURRENT = s; renderShots(); renderInspector(); };
+    const tv = node.querySelector('video.thumb, img.thumb');
+    if (tv) tv.onclick = (ev) => { ev.stopPropagation(); openPlayer(s.shot_id); };
+    $('#shots').appendChild(node);
+  });
+}
+
+function toggleSel(sid) {
+  SELECTED.has(sid) ? SELECTED.delete(sid) : SELECTED.add(sid);
+  renderBudget();
+}
+
+function assignScene(sid) {
+  if (!CURRENT) return flash('先在中间选一个镜头');
+  CURRENT.scene_id = sid;
+  CURRENT.anchor = (CURRENT.cast || []).length ? '' : 'plate';
+  saveCurrent();
+  flash(`已把场景 ${sid} 指派给 ${CURRENT.shot_id}`);
+}
+
+function assignCharacter(cid) {
+  if (!CURRENT) return flash('先在中间选一个镜头');
+  const cast = new Set(CURRENT.cast || []);
+  if (cast.has(cid)) cast.delete(cid); else cast.add(cid);
+  if (cast.size > 3) return flash('最多 3 个角色');
+  CURRENT.cast = [...cast];
+  if (CURRENT.cast.length) CURRENT.anchor = '';
+  saveCurrent();
+}
+
+function renderInspector() {
+  const s = CURRENT;
+  if (!s) { $('#inspector').innerHTML = '<div style="color:var(--dim)">选一个镜头</div>'; return; }
+  const opts = ['cut', 'chain'].map(t => `<option ${s.transition === t ? 'selected' : ''}>${t}</option>`).join('');
+  const scOpts = ['', ...SCENES.map(x => x.scene_id)].map(v =>
+    `<option value="${esc(v)}" ${s.scene_id === v ? 'selected' : ''}>${esc(v || '— 未设 —')}</option>`).join('');
+  $('#inspector').innerHTML = `
+    <div style="font-weight:600;margin-bottom:6px">${esc(s.shot_id)}
+      <span class="chip st-${s.state}" style="margin-left:6px">${STLABEL[s.state]}</span></div>
+    <label>场景</label><select id="i-scene">${scOpts}</select>
+    <label>角色（点左侧列表增删）</label>
+    <div class="chips">${(s.cast || []).map(c => `<span class="cast">${esc(charName(c))}</span>`).join('') || '<span style="color:var(--dim)">空镜</span>'}</div>
+    ${s.chain_from && s.chain_from.ready ? `
+      <label>上一镜末帧（这一镜将从这里起步）</label>
+      <div><img src="/assets/lastframe/${encodeURIComponent(PROJECT)}/${encodeURIComponent(s.chain_from.shot_id)}?t=${Date.now()}"
+                style="width:100%;border-radius:8px;border:1px solid var(--line)" title="${esc(s.chain_from.shot_id)} 末帧"></div>` : ''}
+    <label>机位</label><input id="i-cam" value="${esc(s.camera)}">
+    <label>转场</label><select id="i-trans">${opts}</select>
+    <label>提示词</label><textarea id="i-prompt">${esc(s.prompt)}</textarea>
+    <label>台词</label><input id="i-dlg" value="${esc(s.dialogue)}">
+    <button class="ghost" style="width:100%;margin-top:6px" onclick="pickFirstFrame('${esc(s.shot_id)}')">📌 指定别的图当首帧</button>
+    <button class="ghost" style="width:100%;margin-top:6px;color:#f0a0a0" onclick="deleteShot()">🗑 删除这一镜</button>
+    <label>首帧来源</label>
+    ${s.first_frame ? `
+      <div class="ok" style="padding:6px 8px;border-radius:8px;font-size:12px">
+        已指定首帧（覆盖 chain）
+        <img src="/assets/firstframes/${encodeURIComponent(PROJECT)}/${encodeURIComponent(s.shot_id)}?t=${Date.now()}"
+             style="width:100%;border-radius:6px;margin-top:6px">
+        <button class="ghost" style="width:100%;margin-top:6px" onclick="clearFirstFrame('${esc(s.shot_id)}')">清除指定，改回按 chain</button>
+      </div>` : s.chain_from && s.chain_from.ready ? `
+      <div style="font-size:12px;color:var(--dim);margin-bottom:4px">将从 ${esc(s.chain_from.shot_id)} v${s.chain_from.version} 的末帧起步</div>
+      <img src="/assets/lastframe/${encodeURIComponent(PROJECT)}/${encodeURIComponent(s.chain_from.shot_id)}?t=${Date.now()}"
+           style="width:100%;border-radius:8px;border:1px solid var(--line)">
+      <button class="ghost" style="width:100%;margin-top:6px" onclick="pinPrev('${esc(s.shot_id)}')">📌 固定这张为首帧</button>` : `
+      <div style="font-size:12px;color:var(--dim)">没有可接的上一镜（将按母版或文字生成）</div>`}
+    <button class="primary" style="width:100%;margin-top:10px" onclick="applyInspector()">保存修改</button>
+    <button class="ghost" style="width:100%;margin-top:6px" onclick="openPlayer('${esc(s.shot_id)}')">▶ 播放这一镜</button>
+    ${s.take && s.take.version ? `
+      <button class="ghost" style="width:100%;margin-top:6px;color:#f0a0a0" onclick="deleteTake('${esc(s.shot_id)}',${s.take.version})">🗑 删除这一版（v${s.take.version}）</button>` : ''}
+    ${s.state === 'stale' && s.take && s.take.version ? `
+      <button class="ghost" style="width:100%;margin-top:6px" onclick="adoptTake('${esc(s.shot_id)}')">✓ 确认这条片段有效（按当前参数）</button>` : ''}
+    ${s.job && (s.job.state === 'running' || s.job.state === 'queued') ? `
+      <button class="ghost" style="width:100%;margin-top:6px;color:#f0a0a0" onclick="stopJob('${esc(s.job.id)}')">■ ${s.job.state === 'running' ? '停止渲染' : '取消排队'}</button>` : ''}
+    <button class="ghost" style="width:100%;margin-top:6px" onclick="previewShot()">预览首帧（约 2 分钟，占 GPU）</button>
+    <button class="ghost" style="width:100%;margin-top:6px" onclick="renderOne()">生成这一镜（需确认）</button>
+    <div class="msg" id="i-msg"></div>
+    ${s.state === 'review' ? `
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button style="flex:1" onclick="review('pass')">通过</button>
+        <button style="flex:1" onclick="review('reject')">打回</button>
+      </div>` : ''}
+    ${s.take ? `<div class="meta" style="margin-top:8px;color:var(--dim);font-size:12px">
+      ${s.take.version ? 'v' + s.take.version : ''} · ${Math.round(s.take.elapsed_s || 0)}s</div>` : ''}
+    ${s.last_job && s.last_job.state === 'failed'
+      ? `<div class="msg err" style="margin-top:8px">上次失败：${esc((s.last_job.error || '').slice(0, 140))}</div>` : ''}
+  `;
+}
+
+function applyInspector() {
+  CURRENT.scene_id = $('#i-scene').value;
+  CURRENT.camera = $('#i-cam').value;
+  CURRENT.transition = $('#i-trans').value;
+  CURRENT.prompt = $('#i-prompt').value;
+  CURRENT.dialogue = $('#i-dlg').value;
+  saveCurrent();
+}
+
+async function saveCurrent() {
+  const shots = SHOTS.map(s => ({
+    shot_id: s.shot_id, scene_id: s.scene_id, cast: s.cast, camera: s.camera,
+    prompt: s.prompt, dialogue: s.dialogue, sound: s.sound,
+    transition: s.transition, anchor: s.anchor, duration: s.duration}));
+  await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots`,
+            {method:'PUT', headers:{'content-type':'application/json'}, body: JSON.stringify({shots})});
+  await openProject();
+  flash('已保存，指纹已重算（chain 下游自动失效）');
+}
+
+async function review(verdict) {
+  const reason = verdict === 'reject' ? (prompt('打回原因（构图/角色/环境/动作）') || '') : '';
+  await api(`/api/projects/${encodeURIComponent(PROJECT)}/review`, {method:'POST',
+    headers:{'content-type':'application/json'},
+    body: JSON.stringify({shot_id: CURRENT.shot_id, verdict, reason})});
+  await openProject();
+  flash(verdict === 'pass' ? '已通过' : '已打回，重新生成会出新版本');
+}
+
+async function previewShot() {
+  if (!CURRENT) return;
+  if (!confirm(`预览 ${CURRENT.shot_id} 的首帧会占用 GPU 约 2–3 分钟。确认？`)) return;
+  try {
+    const r = await api(`/api/projects/${encodeURIComponent(PROJECT)}/preview`,
+      {method:'POST', headers:{'content-type':'application/json'},
+       body: JSON.stringify({shot_id: CURRENT.shot_id})});
+    flash(r.executor ? '已排队预览（执行器会生成首帧）' : '已排队（执行器关闭，不会真的渲染）');
+  } catch (e) { flash('失败：' + e.message); }
+}
+
+async function deleteTake(shotId, version) {
+  if (!confirm(`删除 ${shotId} 的第 v${version} 版片段？文件会被删除，无法恢复（但可以重渲）。`)) return;
+  const r = await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots/${encodeURIComponent(shotId)}/takes?version=${version}`,
+                      {method:'DELETE'});
+  await openProject();
+  flash(`已删除 v${r.deleted_version}，剩余版本：${r.remaining.length ? r.remaining.join(', ') : '无'}`);
+}
+
+async function stopJob(jid) {
+  if (!confirm('停止这个任务？正在渲的这一镜会被终止，已完成的镜头不受影响。')) return;
+  const r = await api(`/api/jobs/${encodeURIComponent(jid)}/cancel`, {method:'POST'});
+  flash(r.killed ? '已终止渲染进程' : '已取消排队');
+  await openProject();
+}
+
+async function clearQueue() {
+  if (!PROJECT) return;
+  if (!confirm('取消这个项目所有"排队/暂停"的任务？已完成的 take 不受影响。')) return;
+  const r = await api(`/api/projects/${encodeURIComponent(PROJECT)}/clear-queue`, {method:'POST'});
+  flash(`已取消 ${r.cancelled} 个任务`);
+  await openProject();
+}
+
+function exportTimeline(kind) {
+  if (!PROJECT) return flash('先选一个项目');
+  window.open(`/api/projects/${encodeURIComponent(PROJECT)}/export/${kind}`, '_blank');
+}
+
+let CHAR_REF_TARGET = null;
+
+function addCharRef(cid) {
+  CHAR_REF_TARGET = cid;
+  $('#asset-upload').click();
+}
+
+function selectAll() {
+  SHOTS.forEach(s => SELECTED.add(s.shot_id));
+  renderShots(); renderBudget();
+  flash(`已全选 ${SELECTED.size} 个镜头`);
+}
+
+function selectNone() {
+  SELECTED.clear();
+  renderShots(); renderBudget();
+  flash('已清空选择');
+}
+
+async function deleteProject() {
+  if (!PROJECT) return;
+  const title = ($('#proj').selectedOptions[0] || {}).text || PROJECT;
+  if (!confirm(`删除项目「${title}」？\n所有镜头、片段、预览、母版都会一起删掉，无法恢复。`)) return;
+  try {
+    await api(`/api/projects/${encodeURIComponent(PROJECT)}`, {method:'DELETE'});
+    SELECTED.clear(); CURRENT = null; PROJECT = null;
+    await refreshProjectList();
+    const sel = $('#proj');
+    if (sel.options.length > 1) { sel.selectedIndex = 1; await openProject(); }
+    else { $('#shots').innerHTML = '<div style="color:var(--dim);padding:20px">没有项目了</div>'; }
+    flash('项目已删除');
+  } catch (e) { alert('删除失败：' + e.message); }
+}
+
+async function deleteShot() {
+  if (!CURRENT) return;
+  if (!confirm(`删除镜头 ${CURRENT.shot_id}？\n它的片段、预览、首帧都会删掉。`)) return;
+  try {
+    await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots/${encodeURIComponent(CURRENT.shot_id)}`, {method:'DELETE'});
+    CURRENT = null;
+    await openProject();
+    flash('镜头已删除');
+  } catch (e) { alert('删除失败：' + e.message); }
+}
+
+async function deleteCharacter(cid, usedCount) {
+  const first = usedCount
+    ? `${cid} 正被 ${usedCount} 个镜头使用。\n强制删除会把这些镜头里的它移除（那些镜头会变失效）。\n\n确定删除？`
+    : `删除角色 ${cid}？参考图也会删掉。`;
+  if (!confirm(first)) return;
+  try {
+    await api(`/api/characters/${encodeURIComponent(cid)}?force=1`, {method:'DELETE'});
+    await openProject();
+    flash(`✓ 已删除角色 ${cid}`);
+  } catch (e) {
+    // 服务端会说明它被哪些镜头占用；用 alert 保证一定被看到
+    alert(`删除失败：${e.message}`);
+  }
+}
+
+async function showCharRefs(cid) {
+  const r = await api('/api/characters/' + encodeURIComponent(cid));
+  $('#ver-title').textContent = `${r.name} · 参考图 ${r.refs.length} 张（最多 4 张会一起用）`;
+  $('#ver-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+      ${r.refs.map((p, i) => `
+        <div style="border:1px solid ${p === r.primary ? 'var(--accent)' : 'var(--line)'};border-radius:8px;padding:6px">
+          <img src="/assets/characters/${encodeURIComponent(cid)}/ref/${i}?v=${encodeURIComponent(p.split('/').pop())}" style="width:100%;border-radius:6px">
+          <div style="font-size:11px;color:var(--dim);margin:4px 0">${p === r.primary ? '主图' : '参考 ' + (i + 1)}</div>
+          <div style="display:flex;gap:4px">
+            ${p === r.primary ? '' : `<button class="ghost" style="flex:1;font-size:11px" onclick="setCharPrimary('${esc(cid)}','${p.replace(/\\/g, '\\\\')}')">设为主图</button>`}
+            <button class="ghost" style="flex:1;font-size:11px;color:#f0a0a0" onclick="delCharRef('${esc(cid)}','${p.replace(/\\/g, '\\\\')}')">删除</button>
+          </div>
+        </div>`).join('') || '<div style="color:var(--dim)">还没有参考图</div>'}
+    </div>
+    <p style="color:var(--dim);font-size:12px;margin-top:10px">建议：正面 / 3/4 侧 / 侧后各一张，脸部清晰、不要拼图。</p>`;
+  $('#ver-modal').classList.add('on');
+}
+
+async function setCharPrimary(cid, path) {
+  await api(`/api/characters/${encodeURIComponent(cid)}/ref/primary`, {method:'POST',
+    headers:{'content-type':'application/json'}, body: JSON.stringify({path})});
+  await openProject();
+  await showCharRefs(cid);
+}
+
+async function delCharRef(cid, path) {
+  if (!confirm('删除这张参考图？')) return;
+  await api(`/api/characters/${encodeURIComponent(cid)}/ref?path=${encodeURIComponent(path)}`, {method:'DELETE'});
+  await openProject();
+  await showCharRefs(cid);
+}
+
+let FIRST_FRAME_TARGET = null;
+
+function pickFirstFrame(shotId) {
+  FIRST_FRAME_TARGET = shotId;
+  $('#asset-upload').click();
+}
+
+async function pinPrev(shotId) {
+  flash('正在固定首帧…');
+  try {
+    await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots/${encodeURIComponent(shotId)}/first-frame/from-previous`,
+              {method:'POST'});
+    await openProject();
+    flash(`✓ ${shotId} 的首帧已固定为上一镜末帧（检查器顶部会显示这张图）`);
+  } catch (e) { flash('固定失败：' + e.message); }
+}
+
+async function clearFirstFrame(shotId) {
+  await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots/${encodeURIComponent(shotId)}/first-frame`,
+            {method:'DELETE'});
+  await openProject();
+  flash(`${shotId} 已改回按 chain/母版决定首帧`);
+}
+
+let UPLOAD_TARGET = null;
+
+function pickAssetFile(kind, id) {
+  UPLOAD_TARGET = {kind, id};
+  $('#asset-upload').click();
+}
+
+async function onAssetFile(ev) {
+  const f = ev.target.files[0];
+  ev.target.value = '';
+  if (!f) return;
+  if (CHAR_REF_TARGET) {
+    const cid = CHAR_REF_TARGET;
+    CHAR_REF_TARGET = null;
+    const fd1 = new FormData();
+    fd1.append('file', f);
+    try {
+      await api(`/api/characters/${encodeURIComponent(cid)}/ref`, {method:'POST', body: fd1});
+      await openProject();
+      flash(`${cid} 已添加一张参考图（现在会一起喂给模型）`);
+      await showCharRefs(cid);
+    } catch (e) { flash('上传失败：' + e.message); }
+    return;
+  }
+  if (FIRST_FRAME_TARGET) {
+    const sid = FIRST_FRAME_TARGET;
+    FIRST_FRAME_TARGET = null;
+    const fd0 = new FormData();
+    fd0.append('file', f);
+    try {
+      await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots/${encodeURIComponent(sid)}/first-frame`,
+                {method:'POST', body: fd0});
+      await openProject();
+      flash(`${sid} 的首帧已固定为这张图；重渲才生效`);
+    } catch (e) { flash('上传失败：' + e.message); }
+    return;
+  }
+  if (!UPLOAD_TARGET) return;
+  const {kind, id} = UPLOAD_TARGET;
+  UPLOAD_TARGET = null;
+  const fd = new FormData();
+  fd.append('file', f);
+  try {
+    const url = kind === 'scene'
+      ? `/api/projects/${encodeURIComponent(PROJECT)}/scenes/${encodeURIComponent(id)}/plate`
+      : `/api/characters/${encodeURIComponent(id)}/ref`;
+    await api(url, {method:'POST', body: fd});
+    await openProject();
+    flash(`${kind === 'scene' ? '母版' : '主图'}已更新；相关镜头会变「已失效」，需要重渲`);
+  } catch (e) {
+    flash('上传失败：' + e.message);
+  }
+}
+
+let DRAG = null;
+let UNDO = null;
+
+function dragAsset(ev, kind, id) {
+  DRAG = {kind, id};
+  ev.dataTransfer.setData('text/plain', kind + ':' + id);
+  ev.dataTransfer.effectAllowed = 'copy';
+}
+
+function dragShot(ev, id) {
+  DRAG = {kind: 'shot', id};
+  ev.dataTransfer.setData('text/plain', 'shot:' + id);
+  ev.dataTransfer.effectAllowed = 'move';
+}
+
+function dragOverShot(ev, node) {
+  if (!DRAG) return;
+  ev.preventDefault();
+  node.classList.add('drop');
+}
+
+function dragLeaveShot(ev, node) {
+  node.classList.remove('drop');
+}
+
+async function dropOnShot(ev, node, shotId) {
+  ev.preventDefault();
+  node.classList.remove('drop');
+  if (!DRAG) return;
+  const {kind, id} = DRAG;
+  DRAG = null;
+  try {
+    if (kind === 'shot') {
+      if (id === shotId) return;
+      const r = await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots/${encodeURIComponent(id)}/move`,
+        {method:'POST', headers:{'content-type':'application/json'},
+         body: JSON.stringify({before: shotId})});
+      await openProject();
+      const warn = (r.warnings || [])[0];
+      flash(warn ? `已移动，但 ${warn.shot_id}：${warn.msg}` : `已把 ${id} 移到 ${shotId} 前`);
+      return;
+    }
+    const payload = kind === 'character' ? {cast_add: [id]} : {scene_id: id};
+    const before = SHOTS.find(s => s.shot_id === shotId);
+    const undo = kind === 'character'
+      ? {cast_remove: [id]}
+      : {scene_id: before ? before.scene_id : ''};
+    const r = await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots/${encodeURIComponent(shotId)}/assign`,
+      {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(payload)});
+    UNDO = {shotId, payload: undo};
+    $('#btn-undo').classList.remove('hidden');
+    await openProject();
+    flash(`${kind === 'character' ? '角色' : '场景'} ${id} 已绑到 ${shotId} · 状态 ${STLABEL[r.state] || r.state}`);
+    clearTimeout(window.__undoT);
+    window.__undoT = setTimeout(() => {
+      UNDO = null;
+      $('#btn-undo').classList.add('hidden');
+    }, 5000);
+  } catch (e) {
+    flash('绑定失败：' + e.message);
+  }
+}
+
+async function undoAssign() {
+  if (!UNDO) return flash('没有可撤销的操作');
+  await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots/${encodeURIComponent(UNDO.shotId)}/assign`,
+    {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(UNDO.payload)});
+  UNDO = null;
+  $('#btn-undo').classList.add('hidden');
+  await openProject();
+  flash('已撤销');
+}
+
+async function autoTransitions() {
+  if (!PROJECT) return;
+  if (!confirm('按"出场角色是否变化"自动设转场？\n同一组角色 → chain；角色变了 → cut。\n这能避免画面几乎不动的问题。')) return;
+  const r = await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots/auto-transition`, {method:'POST'});
+  await openProject();
+  flash(`已调整 ${r.changed} 个镜头：角色相同才 chain，其余改 cut`);
+}
+
+async function assemble() {
+  if (!PROJECT) return;
+  if (!confirm('把各镜的最新版本按顺序拼成一条成片？有台词的会自动烧字幕。')) return;
+  flash('正在合成…');
+  try {
+    const r = await api(`/api/projects/${encodeURIComponent(PROJECT)}/assemble`, {method:'POST'});
+    $('#bar-msg').innerHTML = `✓ 合成完成：<a href="${r.url}" target="_blank" style="color:var(--accent)">播放 / 下载成片</a>（${r.shots} 镜${r.subtitles ? ' · 已烧字幕' : ''}）`;
+    window.open(r.url, '_blank');
+  } catch (e) { flash('合成失败：' + e.message); }
+}
+
+async function adoptTake(shotId) {
+  try {
+    await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots/${encodeURIComponent(shotId)}/adopt`, {method:'POST'});
+    await openProject();
+    flash(`✓ ${shotId} 的片段已确认为有效（按当前参数）`);
+  } catch (e) { flash('失败：' + e.message); }
+}
+
+async function chainAll() {
+  if (!PROJECT) return;
+  if (!confirm('把第 2 镜起全部改成 chain（每镜首帧接上一镜末帧）？第 1 镜保持 cut。')) return;
+  const shots = SHOTS.map((s, i) => ({
+    shot_id: s.shot_id, scene_id: s.scene_id, cast: s.cast, camera: s.camera,
+    prompt: s.prompt, dialogue: s.dialogue, sound: s.sound,
+    transition: i === 0 ? 'cut' : 'chain',
+    anchor: i === 0 ? s.anchor : '', duration: s.duration}));
+  await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots`,
+            {method:'PUT', headers:{'content-type':'application/json'},
+             body: JSON.stringify({shots})});
+  await openProject();
+  flash('已把 s02 起的镜头全部接成 chain');
+}
+
+async function applyBatch() {
+  if (!SELECTED.size) return flash('先勾选镜头');
+  const set = {};
+  const sc = $('#batch-scene').value;
+  const tr = $('#batch-trans').value;
+  if (sc) set.scene_id = sc;
+  if (tr) set.transition = tr;
+  if (!sc && !tr) return flash('选择要批量改的字段');
+  try {
+    const r = await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots/batch`,
+      {method:'POST', headers:{'content-type':'application/json'},
+       body: JSON.stringify({shot_ids: [...SELECTED], set})});
+    await openProject();
+    flash(`已更新 ${r.count} 个镜头`);
+  } catch (e) { flash('批量失败：' + e.message); }
+}
+
+async function showVersions(kind, id) {
+  const url = kind === 'scene'
+    ? `/api/projects/${encodeURIComponent(PROJECT)}/scenes/${encodeURIComponent(id)}/versions`
+    : `/api/characters/${encodeURIComponent(id)}/versions`;
+  const r = await api(url);
+  $('#ver-title').textContent = `${kind === 'scene' ? '场景' : '角色'} ${id} · 版本历史`;
+  $('#ver-body').innerHTML = (r.versions || []).length
+    ? (r.versions || []).map(v => `
+        <div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)">
+          <div style="flex:1"><b>v${v.version}</b> · ${esc(v.created_at)} · ${Math.round((v.sha || '').length ? 1 : 0)}
+            <div class="s" style="color:var(--dim);font-size:12px">${esc(v.path)}</div></div>
+          ${kind === 'scene' ? `<button class="ghost" style="font-size:12px" onclick="restoreVersion('${esc(id)}',${v.version})">恢复</button>` : ''}
+        </div>`).join('')
+    : '<div style="color:var(--dim)">还没有历史版本（替换一次就会产生）</div>';
+  $('#ver-modal').classList.add('on');
+}
+
+async function restoreVersion(sceneId, version) {
+  try {
+    await api(`/api/projects/${encodeURIComponent(PROJECT)}/scenes/${encodeURIComponent(sceneId)}/restore`,
+      {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({version})});
+    $('#ver-modal').classList.remove('on');
+    await openProject();
+    flash(`已恢复到 v${version}（相关镜头会失效，需要重渲）`);
+  } catch (e) { flash('恢复失败：' + e.message); }
+}
+
+async function toggleLock(kind, id, locked) {
+  const url = kind === 'scene'
+    ? `/api/projects/${encodeURIComponent(PROJECT)}/scenes/${encodeURIComponent(id)}/lock`
+    : `/api/characters/${encodeURIComponent(id)}/lock`;
+  await api(url, {method:'POST', headers:{'content-type':'application/json'},
+                  body: JSON.stringify({locked})});
+  await openProject();
+  flash(`${kind === 'scene' ? '场景' : '角色'} ${id} 已${locked ? '锁定' : '解锁'}`);
+}
+
+async function renderOne() {
+  if (!CURRENT) return;
+  if (!CURRENT.first_frame && CURRENT.chain_from && !CURRENT.chain_from.ready) {
+    return flash(`不能渲：${CURRENT.shot_id} 要接上一镜，但上一镜还没有片段。先渲 ${CURRENT.chain_from.shot_id || '上一个镜头'}`);
+  }
+  if (!confirm(`生成 ${CURRENT.shot_id} 将占用 GPU 约 ${$('#draft').checked ? 5 : 8.5} 分钟。确认？`)) return;
+  try {
+    const p = await api(`/api/projects/${encodeURIComponent(PROJECT)}/plan`,
+      {method:'POST', headers:{'content-type':'application/json'},
+       body: JSON.stringify({shot_ids: [CURRENT.shot_id], draft: $('#draft').checked})});
+    if (p.blocking.length) return flash('阻断：' + p.blocking[0].msg);
+    const r = await api(`/api/projects/${encodeURIComponent(PROJECT)}/confirm`,
+      {method:'POST', headers:{'content-type':'application/json'},
+       body: JSON.stringify({plan_id: p.plan_id, draft: $('#draft').checked})});
+    flash(r.executor ? '已排队，执行器开始渲染这一镜' : '已排队（执行器关闭，不会真的渲染）');
+    await openProject();
+  } catch (e) { flash('失败：' + e.message); }
+}
+
+async function makePlan() {
+  const ids = SELECTED.size ? [...SELECTED] : SHOTS.map(s => s.shot_id);
+  const p = await api(`/api/projects/${encodeURIComponent(PROJECT)}/plan`,
+    {method:'POST', headers:{'content-type':'application/json'},
+     body: JSON.stringify({shot_ids: ids, draft: $('#draft').checked})});
+  PLAN = p;
+  const rows = p.shots.map(s => `<tr><td>${esc(s.shot_id)}</td><td>${STLABEL[s.state]}</td></tr>`).join('');
+  $('#plan-body').innerHTML = `
+    <p>将渲染 <b>${p.count}</b> 个镜头，预计 <b>${p.est_minutes}</b> 分钟，约 <b>${p.est_finish}</b> 完成。</p>
+    <p style="color:var(--dim);margin-top:-6px">最坏情况（含重试）约 <b>${p.worst_minutes}</b> 分钟。</p>
+    <table><tr><th>镜头</th><th>当前状态</th></tr>${rows}</table>
+    ${p.warnings.map(w => `<div class="warn ${w.level === 'error' ? 'err' : ''}">${esc(w.shot_id)}：${esc(w.msg)}</div>`).join('')}
+  `;
+  $('#btn-go').disabled = p.blocking.length > 0 || p.count === 0;
+  $('#plan-msg').textContent = p.blocking.length ? '存在阻断问题，先修再跑' : '';
+  $('#modal').classList.add('on');
+}
+
+async function doConfirm() {
+  try {
+    const r = await api(`/api/projects/${encodeURIComponent(PROJECT)}/confirm`,
+      {method:'POST', headers:{'content-type':'application/json'},
+       body: JSON.stringify({plan_id: PLAN.plan_id, draft: $('#draft').checked,
+                             pause_after_one: $('#pause1').checked})});
+    $('#plan-msg').className = 'msg ok';
+    $('#plan-msg').textContent = r.executor
+      ? `已排队 ${r.count} 个任务，按顺序一镜一镜渲；每镜可单独停止`
+      : '已排队，但执行器关闭（需 STUDIO_ALLOW_RENDER=1 才会真正渲染）';
+    setTimeout(() => { closeModal(); openProject(); }, 1400);
+  } catch (e) {
+    $('#plan-msg').className = 'msg err';
+    $('#plan-msg').textContent = e.message;
+  }
+}
+
+function closeModal() { $('#modal').classList.remove('on'); }
+
+async function addScene() {
+  const sid = $('#sc-id').value.trim();
+  if (!sid) return flash('场景 ID 必填');
+  await api(`/api/projects/${encodeURIComponent(PROJECT)}/scenes`, {method:'POST',
+    headers:{'content-type':'application/json'},
+    body: JSON.stringify({scene_id: sid, name: $('#sc-name').value})});
+  const f = $('#sc-file').files[0];
+  if (f) {
+    const fd = new FormData(); fd.append('file', f);
+    await api(`/api/projects/${encodeURIComponent(PROJECT)}/scenes/${encodeURIComponent(sid)}/plate`,
+              {method:'POST', body: fd});
+  }
+  await openProject();
+  flash(f ? '场景与母版已保存' : '场景已保存（没有母版，计划会阻断）');
+}
+
+async function addCharacter() {
+  const cid = $('#ch-id').value.trim();
+  if (!cid) return flash('角色 ID 必填');
+  await api('/api/characters', {method:'POST', headers:{'content-type':'application/json'},
+    body: JSON.stringify({character_id: cid, name: $('#ch-name').value || cid, refs: []})});
+  const f = $('#ch-file').files[0];
+  if (f) {
+    const fd = new FormData(); fd.append('file', f);
+    await api(`/api/characters/${encodeURIComponent(cid)}/ref`, {method:'POST', body: fd});
+  }
+  const cs = await api('/api/characters'); CHARS = cs.characters || [];
+  renderAssets();
+  flash('角色已保存');
+}
+
+function openImport() { $('#imp-modal').classList.add('on'); }
+function closeImport() { $('#imp-modal').classList.remove('on'); }
+
+let IMP_PENDING = null;
+
+async function doImport() {
+  const pid = $('#imp-pid').value.trim();
+  const text = $('#imp-text').value;
+  if (!pid || !text.trim()) {
+    $('#imp-msg').className = 'msg err';
+    $('#imp-msg').textContent = '需要项目 ID 和剧本正文';
+    return;
+  }
+  try {
+    if (!IMP_PENDING) {
+      const p = await api('/api/import/preview', {method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({project_id: pid, markdown: text})});
+      const loss = (p.changed || []).length + (p.removed || []).length;
+      if (loss > 0) {
+        IMP_PENDING = text;
+        $('#imp-msg').className = 'msg warn';
+        $('#imp-msg').textContent =
+          `注意：这次导入会让 ${p.changed.length} 个镜头失效、删除 ${p.removed.length} 个，` +
+          `保留 ${p.kept.length} 个已通过。再点一次「导入并建项目」确认。`;
+        return;
+      }
+    }
+    const r = await api('/api/import', {method:'POST', headers:{'content-type':'application/json'},
+      body: JSON.stringify({project_id: pid, markdown: text})});
+    IMP_PENDING = null;
+    $('#imp-msg').className = 'msg ok';
+    $('#imp-msg').textContent = `已导入：${r.shots.length} 镜 · ${r.scenes.length} 场景 · ${r.characters.length} 角色`;
+    await refreshProjectList();
+    $('#proj').value = pid;
+    await openProject();
+    setTimeout(closeImport, 1200);
+  } catch (e) {
+    $('#imp-msg').className = 'msg err';
+    $('#imp-msg').textContent = '导入失败：' + e.message;
+  }
+}
+
+async function refreshProjectList() {
+  const ps = await api('/api/projects');
+  $('#proj').innerHTML = '<option value="">— 选择项目 —</option>' +
+    ps.projects.map(p => `<option value="${esc(p.id)}">${esc(p.title)}</option>`).join('');
+}
+
+async function importShots() {  const raw = prompt('粘贴镜头 JSON 数组（[{shot_id, scene_id, cast, camera, prompt, dialogue, transition}]）');
+  if (!raw) return;
+  try {
+    const shots = JSON.parse(raw);
+    await api(`/api/projects/${encodeURIComponent(PROJECT)}/shots`, {method:'PUT',
+      headers:{'content-type':'application/json'}, body: JSON.stringify({shots})});
+    await openProject();
+  } catch (e) { flash('导入失败：' + e.message); }
+}
+
+function flash(msg) { $('#bar-msg').textContent = msg; }
+
+$('#draft').addEventListener('change', renderBudget);
+boot();
+setInterval(() => { if (PROJECT) openProject(); }, 15000);
+</script>
+</body>
+</html>

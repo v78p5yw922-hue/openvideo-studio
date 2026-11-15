@@ -1,0 +1,76 @@
+{
+  "$comment": "模型清单。安装器只做三件事：找到它、验证大小、告诉 ComfyUI 在哪。默认不下载。",
+  "$howto": [
+    "1) 如果你已有 ComfyUI：把 models/ 目录指给安装器（ov install --models-dir /path/to/ComfyUI/models）",
+    "2) 如果你已经有这些文件：放到任意目录，用 OV_MODELS_DIR 或 --models-dir 指定，安装器会按文件名+大小匹配",
+    "3) 需要下载：ov fetch-models（默认关闭，需显式触发，可断点续传）"
+  ],
+  "models": [
+    {
+      "id": "h3-diffusion-int8",
+      "kind": "diffusion_models",
+      "filename": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+      "size_bytes": 21474836480,
+      "required": true,
+      "role": "主模型（H3 视频生成，int8 量化，24 GB 显存可跑 1344x768）",
+      "sources": []
+    },
+    {
+      "id": "h3-text-encoder",
+      "kind": "text_encoders",
+      "filename": "qwen3vl_32b_minimax_h3_int8_convrot.safetensors",
+      "size_bytes": 27917287424,
+      "required": true,
+      "role": "文本/视觉编码器（提示词与参考图都走它）",
+      "sources": []
+    },
+    {
+      "id": "h3-video-vae-fp16",
+      "kind": "vae",
+      "filename": "minimax_h3_video_vae_fp16.safetensors",
+      "size_bytes": 5261334938,
+      "required": false,
+      "any_of": "h3-video-vae-int8",
+      "role": "视频 VAE（画质优先）",
+      "sources": []
+    },
+    {
+      "id": "h3-video-vae-int8",
+      "kind": "vae",
+      "filename": "minimax_h3_video_vae_int8_convrot.safetensors",
+      "size_bytes": 2811065184,
+      "required": false,
+      "any_of": "h3-video-vae-fp16",
+      "role": "视频 VAE（省显存版）",
+      "sources": []
+    },
+    {
+      "id": "h3-audio-vae",
+      "kind": "vae",
+      "filename": "minimax_h3_audio_vae_fp32.safetensors",
+      "size_bytes": 605254808,
+      "required": false,
+      "role": "音频 VAE（工作流会加载；H3 出片无配音，仅部分节点需要）",
+      "sources": []
+    },
+    {
+      "id": "h3-lora-regen",
+      "kind": "loras",
+      "filename": "open_h3_regenerate_2k_r256pp_bf16.safetensors",
+      "size_bytes": 3865470566,
+      "required": false,
+      "role": "2K 重绘 LoRA（超分链路用；不用超分可以不装）",
+      "sources": []
+    },
+    {
+      "id": "h3-latent-upscale",
+      "kind": "latent_upscale_models",
+      "filename": "minimax_h3_latent_upscaler_2d_conv_v1_bf16.safetensors",
+      "size_bytes": 364309288,
+      "required": false,
+      "role": "潜空间超分模型（2K 链路）",
+      "sources": []
+    }
+  ],
+  "note": "sources 故意留空：H3 权重能否公开再分发尚未确认。请从你获得授权的渠道下载，然后用 --models-dir 指向它。"
+}

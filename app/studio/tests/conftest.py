@@ -1,0 +1,15 @@
+"""Session-wide test env: one temp data dir, executor off.
+
+Must run before any test module imports `studio.core.db`, because DB_PATH is
+computed at import time. Individual modules still set their own env for other
+flags, but the data dir is fixed here.
+"""
+
+from __future__ import annotations
+
+import os
+import tempfile
+
+os.environ["STUDIO_DATA"] = tempfile.mkdtemp(prefix="studio-tests-")
+os.environ["STUDIO_DISABLE_EXECUTOR"] = "1"
+os.environ["STUDIO_ALLOW_RENDER"] = "0"
