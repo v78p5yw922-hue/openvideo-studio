@@ -12,7 +12,7 @@ import pytest
 TMP = tempfile.mkdtemp(prefix="studio-import-")
 os.environ["STUDIO_DATA"] = TMP
 os.environ["STUDIO_ALLOW_RENDER"] = "0"
-sys.path.insert(0, str(Path.home() / "openvideo/video-agent"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))   # app/
 
 from studio.core import db, script_import  # noqa: E402
 

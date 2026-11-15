@@ -32,6 +32,24 @@ state.json
 .pytest_cache/
 .coverage
 
+# 大体积媒体（示例成片放 GitHub Releases，不进仓库）
+*.mp4
+*.mov
+*.mkv
+!examples/frames/*
+
+# 敏感信息（即使误放也不入库）
+.env
+.env.*
+*.pem
+*.key
+*_rsa
+*_ed25519
+id_*
+.secrets
+credentials*
+*token*.json
+
 # 编辑器
 .vscode/
 .idea/

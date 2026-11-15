@@ -12,7 +12,7 @@ import pytest
 TMP = tempfile.mkdtemp(prefix="studio-refs-")
 os.environ.setdefault("STUDIO_DATA", TMP)
 os.environ["STUDIO_DISABLE_EXECUTOR"] = "1"
-sys.path.insert(0, str(Path.home() / "openvideo/video-agent"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))   # app/
 
 from fastapi.testclient import TestClient  # noqa: E402
 
@@ -87,10 +87,10 @@ def test_workflow_uses_every_reference_and_sets_max_views():
     shot = script["shots"][0]
     assert shot["characters_present"] == ["甲"]
 
-    sys.path.insert(0, str(Path.home() / "openvideo/video-agent/scripts"))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
     import importlib.util
     spec = importlib.util.spec_from_file_location(
-        "rd2", Path.home() / "openvideo/video-agent/scripts/render_drama.py")
+        "rd2", Path(__file__).resolve().parents[2] / "scripts" / "render_drama.py")
     rd = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(rd)
     chars = {"甲": {"name": "甲", "description": "", "reference_images": [str(a), str(b), str(c)]}}

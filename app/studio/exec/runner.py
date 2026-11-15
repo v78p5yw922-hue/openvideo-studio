@@ -331,7 +331,7 @@ def _comfy_log() -> Path:
     if env:
         return Path(env).expanduser()
     for cand in (Path.home() / ".openvideo" / "logs" / "comfyui-8188.log",
-                 Path.home() / "openvideo/video-agent/.cache/comfyui-8188.log"):
+                 Path.home() / "openvideo" / "ComfyUI" / "comfyui.log"):
         if cand.is_file():
             return cand
     return Path.home() / ".openvideo" / "logs" / "comfyui-8188.log"

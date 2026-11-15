@@ -21,7 +21,7 @@ TMP = tempfile.mkdtemp(prefix="studio-e2e-")
 os.environ["STUDIO_DATA"] = TMP
 os.environ["STUDIO_ALLOW_RENDER"] = "1"
 os.environ["STUDIO_DISABLE_EXECUTOR"] = "1"
-sys.path.insert(0, str(Path.home() / "openvideo/video-agent"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))   # app/
 
 HERE = Path(__file__).resolve().parent
 os.environ["STUDIO_RENDER_CMD"] = str(HERE / "fake_render.py")
@@ -157,7 +157,7 @@ def test_full_pipeline():
     dest = Path(TMP) / "backups"
     import subprocess
     cp = subprocess.run([sys.executable, "-m", "studio.backup", "--dest", str(dest)],
-                        cwd=str(Path.home() / "openvideo/video-agent"),
+                        cwd=str(Path(__file__).resolve().parents[2]),
                         capture_output=True, text=True,
                         env={**os.environ, "STUDIO_DATA": str(db.DATA_DIR)})
     assert cp.returncode == 0, cp.stdout + cp.stderr

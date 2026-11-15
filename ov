@@ -87,7 +87,7 @@ def find_comfyui(state: dict) -> Path | None:
         state.get("config", {}).get("comfyui_dir"),
         os.environ.get("OV_COMFYUI_DIR"),
         str(HERE / "engine" / "ComfyUI"),
-        str(Path.home() / "openvideo" / "video-agent" / "ComfyUI"),
+        str(Path.home() / "openvideo" / "ComfyUI"),
         str(Path.home() / "ComfyUI"),
         "/opt/ComfyUI",
     ]

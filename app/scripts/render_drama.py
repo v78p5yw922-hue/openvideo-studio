@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -394,7 +395,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--upscale", dest="upscale", action="store_true", default=True)
     ap.add_argument("--no-upscale", dest="upscale", action="store_false")
     ap.add_argument("--upscale-server", default="http://127.0.0.1:8288")
-    ap.add_argument("--upscale-comfy-dir", default=str(Path.home() / "openvideo" / "ComfyUI-up"))
+    ap.add_argument("--upscale-comfy-dir", default=os.environ.get("OV_COMFYUI_UP_DIR"))
     ap.add_argument("--megapixels", type=float, default=2.0)
     ap.add_argument("--port", type=int, default=8188)
     ap.add_argument("--engine-flags", default="--cache-none")
@@ -636,12 +637,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.upscale:
         up_dir = out_dir.parent / f"{out_dir.name}_2k"
         log(f"detail pass → {up_dir}")
-        cp = subprocess.run([str(REPO / ".venv/bin/python"), "scripts/upscale_segments.py",
-                             "--segments", str(out_dir), "--out", str(up_dir),
-                             "--server", args.upscale_server,
-                             "--comfy-dir", args.upscale_comfy_dir,
-                             "--megapixels", str(args.megapixels)],
-                            cwd=str(REPO), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        up_cmd = [sys.executable, "scripts/upscale_segments.py",
+                  "--segments", str(out_dir), "--out", str(up_dir),
+                  "--server", args.upscale_server,
+                  "--megapixels", str(args.megapixels)]
+        if args.upscale_comfy_dir:
+            up_cmd += ["--comfy-dir", args.upscale_comfy_dir]
+        cp = subprocess.run(up_cmd, cwd=str(REPO), stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, text=True)
         print(cp.stdout)
         if cp.returncode != 0:
             log("detail pass FAILED — refusing to merge a half-upscaled film (use --no-upscale)")

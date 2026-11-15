@@ -12,7 +12,7 @@ import pytest
 TMP = tempfile.mkdtemp(prefix="studio-link-")
 os.environ.setdefault("STUDIO_DATA", TMP)
 os.environ["STUDIO_DISABLE_EXECUTOR"] = "1"
-sys.path.insert(0, str(Path.home() / "openvideo/video-agent"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))   # app/
 
 from fastapi.testclient import TestClient  # noqa: E402
 
