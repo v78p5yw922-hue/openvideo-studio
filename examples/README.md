@@ -15,9 +15,8 @@
 
 **文件放在 GitHub Releases 的 `v0.1.0` 附件里**（4.3 MB），仓库本身不含视频，避免克隆变慢：
 
-```
-https://github.com/<你的用户名>/openvideo-studio/releases
-```
+- 直接下载：https://github.com/v78p5yw922-hue/openvideo-studio/releases/download/v0.1.0/sample-720p.mp4
+- Release 页：https://github.com/v78p5yw922-hue/openvideo-studio/releases/tag/v0.1.0
 
 - 意图：证明整条链路真的能出片，而不是只跑通接口
 - **注意**：这是"能讲清故事"的水平，不是"能卖"的水平；角色一致性、动作幅度都还是有明显缺陷
