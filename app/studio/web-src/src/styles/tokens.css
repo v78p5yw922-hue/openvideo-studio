@@ -1,0 +1,300 @@
+/**
+ * 设计令牌 —— 两套主题，data-theme 切换。
+ * 默认 `:root` 跟随系统 `prefers-color-scheme`。
+ * 换皮肤只改这里；其他 .css 用 var()，禁止写死 rgba/# 颜色值。
+ */
+
+/* ===== 无属性默认：跟随系统 ===== */
+:root { color-scheme: light dark; }
+
+/* ===== 深色主题（默认）—— 中性近黑，低饱和，靠层次而不是描边 ===== */
+:root[data-theme="dark"] {
+  --bg: #171717;
+  --panel: #1d1d1d;
+  --panel2: #232323;
+  --pop: #262626;
+  --line: rgba(255, 255, 255, 0.1);
+  --line-soft: rgba(255, 255, 255, 0.07);
+  --fg: #ededf2;
+  --dim: #a3a3ac;
+  --empty: #7a7a83;
+  --hover: rgba(255, 255, 255, 0.06);
+  --hover-strong: rgba(255, 255, 255, 0.11);
+  --field-bg: #1f1f1f;
+  --btn-primary-bg: #f2f3f6;
+  --btn-primary-fg: #101014;
+  --btn-ghost-bg: #262626;
+  --btn-ghost-bg-hover: #313131;
+  --check-border: rgba(255, 255, 255, 0.34);
+
+  --accent: #6ea8ff;
+  --accent-soft: rgba(110, 168, 255, 0.14);
+  --ring: rgba(255, 255, 255, 0.62);
+  --select-ring: rgba(255, 255, 255, 0.55);
+  --accent-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04);
+
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 2px 10px rgba(0, 0, 0, 0.3);
+  --shadow-pop: 0 16px 44px rgba(0, 0, 0, 0.62), 0 2px 8px rgba(0, 0, 0, 0.42);
+
+  --queued: #d6a53a;
+  --running: #5b9cff;
+  --review: #a884ff;
+  --passed: #45c07a;
+  --rejected: #f0736f;
+  --stale: #d98040;
+  --failed: #f0736f;
+
+  --warn: #d6a53a;
+  --danger: #f0736f;
+  --err: #f0736f;
+
+  --danger-soft: rgba(240, 115, 111, 0.12);
+  --compile-zh: #79c98d;
+  --compile-en: #e5a55d;
+  --compile-meta: #8b8b95;
+  --danger-border: rgba(240, 115, 111, 0.32);
+  --danger-border-strong: rgba(240, 115, 111, 0.45);
+  --warn-soft: rgba(214, 165, 58, 0.08);
+  --warn-soft-strong: rgba(201, 106, 43, 0.28);
+  --warn-border: rgba(214, 165, 58, 0.32);
+  --warn-border-strong: rgba(214, 165, 58, 0.45);
+  --accent-soft-strong: rgba(110, 168, 255, 0.22);
+  --overlay: rgba(4, 4, 6, 0.6);
+  --scroll-thumb: rgba(255, 255, 255, 0.16);
+  --bg-glass: rgba(23, 23, 23, 0.84);
+  --bg-glass-soft: rgba(23, 23, 23, 0.6);
+  --line-divider: rgba(255, 255, 255, 0.07);
+  --line-light: rgba(255, 255, 255, 0.4);
+  --char-inner-bg: rgba(255, 255, 255, 0.07);
+  --popover-shadow: 0 16px 44px rgba(0, 0, 0, 0.62), 0 2px 8px rgba(0, 0, 0, 0.42);
+  --lightbox-shadow: 0 20px 60px rgba(0, 0, 0, 0.66);
+}
+
+/* ===== 浅色主题 ===== */
+:root[data-theme="light"] {
+  --bg: #f7f7f9;
+  --panel: #ffffff;
+  --panel2: #f2f2f5;
+  --pop: #ffffff;
+  --line: rgba(0, 0, 0, 0.09);
+  --line-soft: rgba(0, 0, 0, 0.055);
+  --fg: #17171b;
+  --dim: #6a6a73;
+  --empty: #9a9aa2;
+  --hover: rgba(0, 0, 0, 0.045);
+  --hover-strong: rgba(0, 0, 0, 0.08);
+  --field-bg: #fbfbfd;
+  --btn-primary-bg: #e9e9ee;
+  --btn-primary-fg: #17171b;
+  --btn-ghost-bg: #efeff3;
+  --btn-ghost-bg-hover: #e2e2ea;
+  --check-border: rgba(0, 0, 0, 0.26);
+
+  --accent: #2f6fe4;
+  --accent-soft: rgba(47, 111, 228, 0.1);
+  --ring: rgba(0, 0, 0, 0.6);
+  --select-ring: #6ea8ff;
+  --accent-shadow: 0 0 0 1px rgba(0, 0, 0, 0.03);
+
+  --shadow-card: 0 1px 0 rgba(0, 0, 0, 0.02) inset, 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-pop: 0 16px 40px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.06);
+
+  --queued: #b47c1a;
+  --running: #2772d6;
+  --review: #7c4bd0;
+  --passed: #2f8a55;
+  --rejected: #c04545;
+  --stale: #a0501c;
+  --failed: #c04545;
+
+  --warn: #b4571f;
+  --danger: #c04545;
+  --err: #c04545;
+
+  --danger-soft: rgba(192, 69, 69, 0.09);
+  --compile-zh: #247a41;
+  --compile-en: #a2561a;
+  --compile-meta: #6b7482;
+  --danger-border: rgba(192, 69, 69, 0.32);
+  --danger-border-strong: rgba(192, 69, 69, 0.45);
+  --warn-soft: rgba(180, 87, 31, 0.08);
+  --warn-soft-strong: rgba(180, 87, 31, 0.22);
+  --warn-border: rgba(180, 87, 31, 0.32);
+  --warn-border-strong: rgba(180, 87, 31, 0.45);
+  --accent-soft-strong: rgba(47, 111, 228, 0.2);
+  --overlay: rgba(18, 18, 24, 0.28);
+  --scroll-thumb: rgba(0, 0, 0, 0.18);
+  --bg-glass: rgba(247, 247, 249, 0.88);
+  --bg-glass-soft: rgba(247, 247, 249, 0.72);
+  --line-divider: rgba(0, 0, 0, 0.09);
+  --line-light: rgba(0, 0, 0, 0.2);
+  --char-inner-bg: rgba(0, 0, 0, 0.04);
+  --popover-shadow: 0 16px 40px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --lightbox-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+}
+
+/* ===== 以下是两套共用的令牌（不变的） ===== */
+:root {
+  /* 间距 / 圆角 / 字体 */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --r-1: 6px;
+  --r-2: 10px;
+  --r-3: 14px;
+
+  --font: -apple-system, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------------------------------------------------------- 按钮三级 */
+
+button {
+  font: inherit;
+  color: var(--fg);
+  background: var(--btn-ghost-bg);
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease, filter 120ms ease;
+}
+button:hover:not(:disabled) { background: var(--btn-ghost-bg-hover); border-color: var(--line); }
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Primary：一屏只留一个主操作（深色下是浅底黑字，商用感更强） */
+button.primary {
+  background: var(--btn-primary-bg);
+  border-color: transparent;
+  color: var(--btn-primary-fg);
+  font-weight: 600;
+  box-shadow: none;
+}
+button.primary:hover:not(:disabled) {
+  background: var(--btn-primary-bg);
+  filter: brightness(0.93);
+}
+button.primary:disabled { box-shadow: none; }
+
+/* Ghost：默认就有浅底，一眼能看出来能点；悬浮略加重 */
+button.ghost {
+  background: var(--btn-ghost-bg);
+  border-color: var(--line-soft);
+  color: var(--fg);
+}
+button.ghost:hover:not(:disabled) {
+  background: var(--btn-ghost-bg-hover);
+  border-color: var(--line);
+  color: var(--fg);
+}
+/* Link：纯文字链，靠下划线提示可点，不套按钮底色 */
+button.link {
+  background: transparent;
+  border-color: transparent;
+  color: var(--dim);
+  padding: 2px 4px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+button.link:hover:not(:disabled) {
+  background: transparent;
+  color: var(--fg);
+}
+
+button.danger { color: var(--danger); }
+button.danger:hover:not(:disabled) { border-color: var(--danger); }
+
+/* 危险主操作：删除等不可逆动作 */
+button.danger-solid {
+  background: var(--danger);
+  border-color: transparent;
+  color: #fff;
+}
+button.danger-solid:hover:not(:disabled) { filter: brightness(1.08); }
+button.ghost.danger:hover:not(:disabled) {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* ---------------------------------------------------------------- 表单 */
+
+input, select, textarea {
+  font: inherit;
+  color: var(--fg);
+  background: var(--field-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 10px;
+  width: 100%;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+input::placeholder, textarea::placeholder { color: var(--empty); }
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+select {
+  appearance: none;
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.6 4.6 L6 8 L9.4 4.6' fill='none' stroke='%239a9aa3' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: right 10px center;
+  background-size: 12px 12px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+/* 勾选框不参与 100% 宽度（否则文字会被挤到右边） */
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  padding: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* 状态徽标：镜头卡和审核页共用 */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+.state-empty { color: var(--empty); }
+.state-queued { color: var(--queued); }
+.state-running { color: var(--running); }
+.state-review { color: var(--review); }
+.state-passed { color: var(--passed); }
+.state-rejected { color: var(--rejected); }
+.state-stale { color: var(--stale); }
+.state-failed { color: var(--failed); }

@@ -16,10 +16,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
+
+# 想在字幕里保留"谁说的"，把这个环境变量设为 1
+SPEAKER_IN_SUBS = os.environ.get("SUBTITLE_SPEAKER", "") == "1"
 
 DIALOGUE_RE = re.compile(r"<d>\s*([^：:<>\n]{1,20})\s*[：:]\s*([^<>\n]{1,200}?)\s*</d>")
 SRT_TIME = "{:02d}:{:02d}:{:02d},{:03d}"
@@ -82,7 +86,11 @@ def collect_cues(script: dict,
             each = dur / len(found)
             for k, (speaker, line) in enumerate(found):
                 s = t + k * each
-                cues.append((s, s + each, f"{speaker}：{line}"))
+                # 字幕只放台词：`<d>小石头→妈妈：台词</d>` 里的"谁说的"是给模型看的，
+                # 烧进画面会变成"小石头→ 妈妈：…"，观众不需要。
+                who = (speaker or "").split("→")[0].strip()
+                text = line if not SPEAKER_IN_SUBS else f"{who}：{line}"
+                cues.append((s, s + each, text))
         t += dur
     return cues
 

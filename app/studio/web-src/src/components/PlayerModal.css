@@ -1,0 +1,22 @@
+.player-wrap { width: 100%; }
+.player {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1344 / 768;
+  background: #000;
+  border-radius: var(--r-2);
+  display: block;
+}
+
+.player-download {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: var(--panel2);
+  color: var(--fg);
+  text-decoration: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.player-download:hover { border-color: var(--accent); background: var(--panel); }

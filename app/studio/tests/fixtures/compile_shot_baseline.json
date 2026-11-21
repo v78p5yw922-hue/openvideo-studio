@@ -1,0 +1,2529 @@
+[
+  {
+    "key": "project/p_127ieae/s01",
+    "input": {
+      "shot": {
+        "shot_id": "s01",
+        "scene_id": "temple_fair",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶一恒",
+          "林婉儿"
+        ],
+        "camera": "景别=中景；高度=平视；角度=过肩；运镜=缓推；距离=1.2",
+        "visual_prompt": "【机位】景别=中景；高度=平视；角度=过肩；运镜=缓推；距离=1.2\n【人物】\n- 叶一恒：位置=左前；层级=前景；朝向=背对镜头；视线=看对方；对象=林婉儿；占比=42\n- 林婉儿：位置=右；层级=中景；朝向=右3-4侧；视线=看对方；对象=叶一恒；占比=50\n【关系】面对面\n【节奏】0.0 叶一恒肩线绷紧、扇子垂在身侧，林婉儿微仰下巴、眉心拧起 | 1.5 叶一恒左脚前迈半步、上身前倾，林婉儿肩膀一僵、后退重心未动 | 3.0 叶一恒下颌微收，林婉儿睫毛急促颤动、嘴唇抿紧、胸口起伏加快 | 4.2 两人鼻尖相距不足一拳，林婉儿屏住呼吸、鼻翼张合、脸颊浮起薄红\n【场景】左红灯笼架、中青石路、右糖画摊；暖日光从右前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "",
+        "soundscape": "庙会人声底噪，脚步踏在青石上",
+        "music": "古筝+笛子，速度缓慢，挑音轻落",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "Tang dynasty temple street, warm daylight 3200K, underground stone palace 2800K, 35mm film grain, shallow depth of field, romantic comedy",
+      "cast_names": [
+        "叶一恒",
+        "林婉儿"
+      ],
+      "scene": {
+        "scene_id": "temple_fair",
+        "location": "庙会街",
+        "time_of_day": "",
+        "atmosphere": "右前上方 / 暖色约3200K / 明亮",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/p_127ieae/scenes/temple_fair_20261117T102249.jpg",
+          "/home/agent/openvideo/studio-data/projects/p_127ieae/scenes/temple_fair_alt_20261117T101423_0.png"
+        ],
+        "camera": "中景平视固定，距人物 3 米 / 高度 1.5 米 / 朝街面",
+        "props": "左红灯笼架、中青石路、右糖画摊",
+        "light": "右前上方 / 暖色约3200K / 明亮"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture.",
+        "林婉儿": "Female, 22, round-oval face with clear dark eyes, a small old scar on the right cheek, long black hair worn loose and flowing past the waist, half-tied at the crown with a pale jade hairpin and small white flower ornaments, soft fringe framing the face. Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes. Slender build, graceful posture, calm and watchful expression."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] Tang dynasty temple street，warm daylight 3200K，underground stone palace 2800K，35mm film grain，shallow depth of field，romantic comedy。medium shot, eye level, over-the-shoulder, slow push-in, 1.2 meters from the subject. 叶一恒 (front-left of frame, foreground, back to camera, looking at 林婉儿, occupies 42% of frame height); 林婉儿 (right of frame, midground, three-quarter turn to the right, looking at 叶一恒, occupies 50% of frame height). the two face each other, their eye lines meet。左红灯笼架、中青石路、右糖画摊，暖日光从右前上方来。开场：叶一恒肩线绷紧、扇子垂在身侧，林婉儿微仰下巴、眉心拧起。At 00:01.500, 叶一恒左脚前迈半步、上身前倾，林婉儿肩膀一僵、后退重心未动。At 00:03.000, 叶一恒下颌微收，林婉儿睫毛急促颤动、嘴唇抿紧、胸口起伏加快。At 00:04.200, 两人鼻尖相距不足一拳，林婉儿屏住呼吸、鼻翼张合、脸颊浮起薄红。画面里的主体就是这 2 位：叶一恒、林婉儿。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots；林婉儿：Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 庙会人声底噪，脚步踏在青石上；本镜只有环境声，无人声\n\nnon_diegetic_music: 古筝+笛子，速度缓慢，挑音轻落"
+  },
+  {
+    "key": "project/p_127ieae/s02",
+    "input": {
+      "shot": {
+        "shot_id": "s02",
+        "scene_id": "temple_fair",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶一恒",
+          "林婉儿"
+        ],
+        "camera": "景别=近景；高度=略俯；角度=正面；运镜=缓推；距离=0.7",
+        "visual_prompt": "【机位】景别=近景；高度=略俯；角度=正面；运镜=缓推；距离=0.7\n【人物】\n- 叶一恒：位置=左；层级=前景；朝向=右3-4侧；视线=看对方；对象=林婉儿；占比=55\n- 林婉儿：位置=右；层级=中景；朝向=左3-4侧；视线=看对方；对象=叶一恒；占比=58\n【关系】面对面\n【开口】1.0\n【节奏】0.0 两人鼻尖几乎相抵，林婉儿瞳孔骤缩、眼睫僵直 | 1.5 林婉儿胸腔猛地一鼓一塌、粗重喘息从唇间漏出，叶一恒睫毛颤了一下 | 3.0 林婉儿耳根烧红、呼吸又急又乱、肩膀跟着起伏 | 4.2 林婉儿嘴唇微张、视线躲闪又被他目光拽回、手按向刀柄\n【场景】左红灯笼架、中青石路、右糖画摊；暖日光从右前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "<d>林婉儿→叶一恒：你想干什么</d>",
+        "soundscape": "庙会人声渐远，心跳与粗重呼吸",
+        "music": "古筝单音，速度缓慢",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": true
+      },
+      "style": "Tang dynasty temple street, warm daylight 3200K, underground stone palace 2800K, 35mm film grain, shallow depth of field, romantic comedy",
+      "cast_names": [
+        "叶一恒",
+        "林婉儿"
+      ],
+      "scene": {
+        "scene_id": "temple_fair",
+        "location": "庙会街",
+        "time_of_day": "",
+        "atmosphere": "右前上方 / 暖色约3200K / 明亮",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/p_127ieae/scenes/temple_fair_20261117T102249.jpg",
+          "/home/agent/openvideo/studio-data/projects/p_127ieae/scenes/temple_fair_alt_20261117T101423_0.png"
+        ],
+        "camera": "中景平视固定，距人物 3 米 / 高度 1.5 米 / 朝街面",
+        "props": "左红灯笼架、中青石路、右糖画摊",
+        "light": "右前上方 / 暖色约3200K / 明亮"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture.",
+        "林婉儿": "Female, 22, round-oval face with clear dark eyes, a small old scar on the right cheek, long black hair worn loose and flowing past the waist, half-tied at the crown with a pale jade hairpin and small white flower ornaments, soft fringe framing the face. Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes. Slender build, graceful posture, calm and watchful expression."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] Tang dynasty temple street，warm daylight 3200K，underground stone palace 2800K，35mm film grain，shallow depth of field，romantic comedy。medium close-up, slightly high angle, frontal, slow push-in, 0.7 meters from the subject. 叶一恒 (left of frame, foreground, three-quarter turn to the right, looking at 林婉儿, occupies 55% of frame height); 林婉儿 (right of frame, midground, three-quarter turn to the left, looking at 叶一恒, occupies 58% of frame height). the two face each other, their eye lines meet。左红灯笼架、中青石路、右糖画摊，暖日光从右前上方来。开场：两人鼻尖几乎相抵，林婉儿瞳孔骤缩、眼睫僵直。At 00:01.000, 林婉儿 对 叶一恒 (S1) 开口说：<d>[中文] 你想干什么。</d>At 00:01.500, 林婉儿胸腔猛地一鼓一塌、粗重喘息从唇间漏出，叶一恒睫毛颤了一下。At 00:03.000, 林婉儿耳根烧红、呼吸又急又乱、肩膀跟着起伏。At 00:04.200, 林婉儿嘴唇微张、视线躲闪又被他目光拽回、手按向刀柄。画面里的主体就是这 2 位：叶一恒、林婉儿。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots；林婉儿：Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 庙会人声渐远，心跳与粗重呼吸；人声只有上面这一句台词\n\nnon_diegetic_music: 古筝单音，速度缓慢"
+  },
+  {
+    "key": "project/p_127ieae/s03",
+    "input": {
+      "shot": {
+        "shot_id": "s03",
+        "scene_id": "temple_fair",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶一恒",
+          "林婉儿"
+        ],
+        "camera": "景别=中景；高度=平视；角度=侧对；运镜=固定；距离=1.5",
+        "visual_prompt": "【机位】景别=中景；高度=平视；角度=侧对；运镜=固定；距离=1.5\n【人物】\n- 叶一恒：位置=左；层级=中景；朝向=纯右侧；视线=看对方；对象=林婉儿；占比=48\n- 林婉儿：位置=右；层级=中景；朝向=纯左侧；视线=看对方；对象=叶一恒；占比=52\n【关系】面对面\n【开口】1.2\n【节奏】0.0 两人侧身相对、林婉儿胸口剧烈起伏 | 1.2 林婉儿抬眼瞪向叶一恒、抬脚重跺青石板 | 2.0 林婉儿扭腰向右转、红发带甩起、身体向画外奔出 | 3.5 叶一恒脚步未动、视线追向画面右、扇子垂在身侧\n【场景】左红灯笼架、中青石路、右糖画摊；暖日光从右前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "",
+        "soundscape": "鞋底跺地一声，衣料摩擦与奔跑脚步",
+        "music": "古筝+笛子，速度缓慢，尾音收束",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": true
+      },
+      "style": "Tang dynasty temple street, warm daylight 3200K, underground stone palace 2800K, 35mm film grain, shallow depth of field, romantic comedy",
+      "cast_names": [
+        "叶一恒",
+        "林婉儿"
+      ],
+      "scene": {
+        "scene_id": "temple_fair",
+        "location": "庙会街",
+        "time_of_day": "",
+        "atmosphere": "右前上方 / 暖色约3200K / 明亮",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/p_127ieae/scenes/temple_fair_20261117T102249.jpg",
+          "/home/agent/openvideo/studio-data/projects/p_127ieae/scenes/temple_fair_alt_20261117T101423_0.png"
+        ],
+        "camera": "中景平视固定，距人物 3 米 / 高度 1.5 米 / 朝街面",
+        "props": "左红灯笼架、中青石路、右糖画摊",
+        "light": "右前上方 / 暖色约3200K / 明亮"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture.",
+        "林婉儿": "Female, 22, round-oval face with clear dark eyes, a small old scar on the right cheek, long black hair worn loose and flowing past the waist, half-tied at the crown with a pale jade hairpin and small white flower ornaments, soft fringe framing the face. Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes. Slender build, graceful posture, calm and watchful expression."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] Tang dynasty temple street，warm daylight 3200K，underground stone palace 2800K，35mm film grain，shallow depth of field，romantic comedy。medium shot, eye level, profile, static camera, 1.5 meters from the subject. 叶一恒 (left of frame, midground, right profile, looking at 林婉儿, occupies 48% of frame height); 林婉儿 (right of frame, midground, left profile, looking at 叶一恒, occupies 52% of frame height). the two face each other, their eye lines meet。左红灯笼架、中青石路、右糖画摊，暖日光从右前上方来。开场：两人侧身相对、林婉儿胸口剧烈起伏。At 00:01.200, 林婉儿抬眼瞪向叶一恒、抬脚重跺青石板。At 00:02.000, 林婉儿扭腰向右转、红发带甩起、身体向画外奔出。At 00:03.500, 叶一恒脚步未动、视线追向画面右、扇子垂在身侧。画面里的主体就是这 2 位：叶一恒、林婉儿。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots；林婉儿：Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 鞋底跺地一声，衣料摩擦与奔跑脚步；本镜只有环境声，无人声\n\nnon_diegetic_music: 古筝+笛子，速度缓慢，尾音收束"
+  },
+  {
+    "key": "project/p_127ieae/s04",
+    "input": {
+      "shot": {
+        "shot_id": "s04",
+        "scene_id": "temple_fair",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶一恒"
+        ],
+        "camera": "景别=中景；高度=平视；角度=背拍；运镜=缓推；距离=2.0",
+        "visual_prompt": "【机位】景别=中景；高度=平视；角度=背拍；运镜=缓推；距离=2.0\n【人物】\n- 叶一恒：位置=中；层级=中景；朝向=背对镜头；视线=看画外；占比=60\n【开口】1.5\n【节奏】0.0 叶一恒望向画面左远处、扇子垂在身侧、下颌收紧 | 1.5 垂眸、嘴唇动了动说出那句话 | 3.0 右手猛地一握、扇骨被攥紧、肩背绷起 | 4.2 身形淡成一缕金色气运向上散开，原地空气微微一荡、袍角落回静止\n【场景】左红灯笼架、中青石路、右糖画摊；暖日光从右前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "<d>叶一恒：看你能坚持到什么时候</d>",
+        "soundscape": "扇骨合拢一声，衣袍破风",
+        "music": "古筝单音，速度极慢",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": true
+      },
+      "style": "Tang dynasty temple street, warm daylight 3200K, underground stone palace 2800K, 35mm film grain, shallow depth of field, romantic comedy",
+      "cast_names": [
+        "叶一恒"
+      ],
+      "scene": {
+        "scene_id": "temple_fair",
+        "location": "庙会街",
+        "time_of_day": "",
+        "atmosphere": "右前上方 / 暖色约3200K / 明亮",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/p_127ieae/scenes/temple_fair_20261117T102249.jpg",
+          "/home/agent/openvideo/studio-data/projects/p_127ieae/scenes/temple_fair_alt_20261117T101423_0.png"
+        ],
+        "camera": "中景平视固定，距人物 3 米 / 高度 1.5 米 / 朝街面",
+        "props": "左红灯笼架、中青石路、右糖画摊",
+        "light": "右前上方 / 暖色约3200K / 明亮"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] Tang dynasty temple street，warm daylight 3200K，underground stone palace 2800K，35mm film grain，shallow depth of field，romantic comedy。medium shot, eye level, from behind, slow push-in, 2.0 meters from the subject. 叶一恒 (center of frame, midground, back to camera, looking off-screen, occupies 60% of frame height)。左红灯笼架、中青石路、右糖画摊，暖日光从右前上方来。开场：叶一恒望向画面左远处、扇子垂在身侧、下颌收紧。At 00:01.500, 叶一恒 (S1) says in an off-screen voiceover：<d>[中文] 看你能坚持到什么时候。</d>（画外音：the on-screen character's lips remain completely closed）。At 00:01.500, 垂眸、嘴唇动了动说出那句话。At 00:03.000, 右手猛地一握、扇骨被攥紧、肩背绷起。At 00:04.200, 身形淡成一缕金色气运向上散开，原地空气微微一荡、袍角落回静止。画面里的主体只有一位：叶一恒。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 扇骨合拢一声，衣袍破风；人声只有上面这一句台词\n\nnon_diegetic_music: 古筝单音，速度极慢"
+  },
+  {
+    "key": "project/p_127ieae/s05",
+    "input": {
+      "shot": {
+        "shot_id": "s05",
+        "scene_id": "underground_palace",
+        "duration_sec": 7.0,
+        "characters_present": [
+          "黑衣死士甲",
+          "黑衣死士乙",
+          "叶一恒"
+        ],
+        "camera": "景别=中景；高度=平视；角度=正面；运镜=缓推；距离=2.8",
+        "visual_prompt": "【机位】景别=中景；高度=平视；角度=正面；运镜=缓推；距离=2.8\n【人物】\n- 黑衣死士甲：位置=左；层级=中景；朝向=面向镜头；视线=看对方；对象=叶一恒；占比=45\n- 黑衣死士乙：位置=右；层级=中景；朝向=面向镜头；视线=看对方；对象=叶一恒；占比=45\n- 叶一恒：位置=中；层级=前景；朝向=背对镜头；视线=看画外；占比=55\n【关系】并肩\n【节奏】0.0 两名死士并肩而立、双手垂在身侧、神情警觉 | 1.5 两人身前空气猛地一荡、空气波扩散，两名死士抬头、脚下后错半步 | 3.5 波心浮出笔直背影、袍角轻晃，背影侧转露出叶一恒侧脸 | 5.5 叶一恒转正站定、目光扫过两人、抬了抬下巴\n【场景】左石柱、中石阶、右火把架；暖火光从左前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "",
+        "soundscape": "火把噼啪底噪，空气震鸣与袍角落地",
+        "music": "大鼓+低音弦，速度中等，下行重音",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": true
+      },
+      "style": "Tang dynasty temple street, warm daylight 3200K, underground stone palace 2800K, 35mm film grain, shallow depth of field, romantic comedy",
+      "cast_names": [
+        "黑衣死士甲",
+        "黑衣死士乙",
+        "叶一恒"
+      ],
+      "scene": {
+        "scene_id": "underground_palace",
+        "location": "地下宫殿",
+        "time_of_day": "",
+        "atmosphere": "左前上方 / 暖色约2800K / 昏暗",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/p_127ieae/scenes/underground_palace_20261116T213039.jpg"
+        ],
+        "camera": "中景平视固定，距人物 3 米 / 高度 1.5 米 / 正对石壁",
+        "props": "左石柱、中石阶、右火把架",
+        "light": "左前上方 / 暖色约2800K / 昏暗"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "黑衣死士甲": "Male, 30, narrow angular face, thin lips, black hair tied in a tight low knot, wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, lean wiry build, weathered skin, expressionless eyes, scar across the left eyebrow, straight formal stance, matte fabric, no ornament.",
+        "黑衣死士乙": "Male, 28, square face with a broad jaw, flat brows, black hair in a tight low knot, wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, broad sturdy build, tanned skin, calm neutral expression, thin scar on the chin, arms held at sides, matte fabric, no ornament.",
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] Tang dynasty temple street，warm daylight 3200K，underground stone palace 2800K，35mm film grain，shallow depth of field，romantic comedy。medium shot, eye level, frontal, slow push-in, 2.8 meters from the subject. 黑衣死士甲 (left of frame, midground, facing the camera, looking at 叶一恒, occupies 45% of frame height); 黑衣死士乙 (right of frame, midground, facing the camera, looking at 叶一恒, occupies 45% of frame height); 叶一恒 (center of frame, foreground, back to camera, looking off-screen, occupies 55% of frame height). standing side by side, both facing the same direction。左石柱、中石阶、右火把架，暖火光从左前上方来。开场：两名死士并肩而立、双手垂在身侧、神情警觉。At 00:01.500, 两人身前空气猛地一荡、空气波扩散，两名死士抬头、脚下后错半步。At 00:03.500, 波心浮出笔直背影、袍角轻晃，背影侧转露出叶一恒侧脸。At 00:05.500, 叶一恒转正站定、目光扫过两人、抬了抬下巴。画面里的主体就是这 3 位：黑衣死士甲、黑衣死士乙、叶一恒。服装锁定 —— 黑衣死士甲：wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, lean wiry build, weathered skin, expressionless eyes, scar across the left eyebrow, straight formal stance, matte fabric, no ornament；黑衣死士乙：wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, broad sturdy build, tanned skin, calm neutral expression, thin scar on the chin, arms held at sides, matte fabric, no ornament；叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 火把噼啪底噪，空气震鸣与袍角落地；本镜只有环境声，无人声\n\nnon_diegetic_music: 大鼓+低音弦，速度中等，下行重音"
+  },
+  {
+    "key": "project/p_127ieae/s06",
+    "input": {
+      "shot": {
+        "shot_id": "s06",
+        "scene_id": "underground_palace",
+        "duration_sec": 7.0,
+        "characters_present": [
+          "叶一恒",
+          "黑衣死士甲",
+          "黑衣死士乙"
+        ],
+        "camera": "景别=中景；高度=平视；角度=过肩；运镜=横移；距离=2.6",
+        "visual_prompt": "【机位】景别=中景；高度=平视；角度=过肩；运镜=横移；距离=2.6\n【人物】\n- 叶一恒：位置=中；层级=前景；朝向=背对镜头；视线=看画外；占比=50\n- 黑衣死士甲：位置=左；层级=中景；朝向=右3-4侧；视线=看对方；对象=叶一恒；占比=40\n- 黑衣死士乙：位置=右；层级=中景；朝向=左3-4侧；视线=看对方；对象=叶一恒；占比=40\n【关系】面对面\n【节奏】0.0 叶一恒收扇站定、火光映脸，眉眼间笑意尽褪 | 1.8 双手负于身后、下巴微抬、肩线绷直 | 3.5 死士甲死士乙同时垂首、双手收拢贴身 | 5.5 叶一恒目光扫向画面左、靴跟在地面碾了半下\n【场景】左石柱、中石阶、右火把架；暖火光从左前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "",
+        "soundscape": "火把噼啪，石阶上靴跟轻碾",
+        "music": "大鼓+低音弦，速度中等，持续低鸣",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": true
+      },
+      "style": "Tang dynasty temple street, warm daylight 3200K, underground stone palace 2800K, 35mm film grain, shallow depth of field, romantic comedy",
+      "cast_names": [
+        "叶一恒",
+        "黑衣死士甲",
+        "黑衣死士乙"
+      ],
+      "scene": {
+        "scene_id": "underground_palace",
+        "location": "地下宫殿",
+        "time_of_day": "",
+        "atmosphere": "左前上方 / 暖色约2800K / 昏暗",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/p_127ieae/scenes/underground_palace_20261116T213039.jpg"
+        ],
+        "camera": "中景平视固定，距人物 3 米 / 高度 1.5 米 / 正对石壁",
+        "props": "左石柱、中石阶、右火把架",
+        "light": "左前上方 / 暖色约2800K / 昏暗"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture.",
+        "黑衣死士甲": "Male, 30, narrow angular face, thin lips, black hair tied in a tight low knot, wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, lean wiry build, weathered skin, expressionless eyes, scar across the left eyebrow, straight formal stance, matte fabric, no ornament.",
+        "黑衣死士乙": "Male, 28, square face with a broad jaw, flat brows, black hair in a tight low knot, wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, broad sturdy build, tanned skin, calm neutral expression, thin scar on the chin, arms held at sides, matte fabric, no ornament."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] Tang dynasty temple street，warm daylight 3200K，underground stone palace 2800K，35mm film grain，shallow depth of field，romantic comedy。medium shot, eye level, over-the-shoulder, lateral track, 2.6 meters from the subject. 叶一恒 (center of frame, foreground, back to camera, looking off-screen, occupies 50% of frame height); 黑衣死士甲 (left of frame, midground, three-quarter turn to the right, looking at 叶一恒, occupies 40% of frame height); 黑衣死士乙 (right of frame, midground, three-quarter turn to the left, looking at 叶一恒, occupies 40% of frame height). 叶一恒 and 黑衣死士甲 face each other; 黑衣死士乙 stay beside them。左石柱、中石阶、右火把架，暖火光从左前上方来。开场：叶一恒收扇站定、火光映脸，眉眼间笑意尽褪。At 00:01.800, 双手负于身后、下巴微抬、肩线绷直。At 00:03.500, 死士甲死士乙同时垂首、双手收拢贴身。At 00:05.500, 叶一恒目光扫向画面左、靴跟在地面碾了半下。画面里的主体就是这 3 位：叶一恒、黑衣死士甲、黑衣死士乙。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots；黑衣死士甲：wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, lean wiry build, weathered skin, expressionless eyes, scar across the left eyebrow, straight formal stance, matte fabric, no ornament；黑衣死士乙：wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, broad sturdy build, tanned skin, calm neutral expression, thin scar on the chin, arms held at sides, matte fabric, no ornament。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 火把噼啪，石阶上靴跟轻碾；本镜只有环境声，无人声\n\nnon_diegetic_music: 大鼓+低音弦，速度中等，持续低鸣"
+  },
+  {
+    "key": "project/p_127ieae/s07",
+    "input": {
+      "shot": {
+        "shot_id": "s07",
+        "scene_id": "underground_palace",
+        "duration_sec": 7.0,
+        "characters_present": [
+          "叶一恒",
+          "黑衣死士甲"
+        ],
+        "camera": "景别=近景；高度=略俯；角度=反打；运镜=缓推；距离=1.3",
+        "visual_prompt": "【机位】景别=近景；高度=略俯；角度=反打；运镜=缓推；距离=1.3\n【人物】\n- 叶一恒：位置=右；层级=前景；朝向=左3-4侧；视线=看对方；对象=黑衣死士甲；占比=55\n- 黑衣死士甲：位置=左；层级=中景；朝向=右3-4侧；视线=看对方；对象=叶一恒；占比=60\n【关系】面对面\n【开口】2.5\n【节奏】0.0 黑衣死士甲双手抱拳、下颌紧绷 | 1.5 左膝屈下、身体沉稳下沉、脊背笔直 | 3.5 单膝触地、低头、声音压低 | 5.5 保持跪姿不动，叶一恒垂眼看他\n【场景】左石柱、中石阶、右火把架；暖火光从左前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "<d>黑衣死士甲→叶一恒：主上，请吩咐</d>",
+        "soundscape": "火把噼啪，衣甲摩擦与膝触石面",
+        "music": "大鼓+低音弦，速度中等，单记重击收尾",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "Tang dynasty temple street, warm daylight 3200K, underground stone palace 2800K, 35mm film grain, shallow depth of field, romantic comedy",
+      "cast_names": [
+        "叶一恒",
+        "黑衣死士甲"
+      ],
+      "scene": {
+        "scene_id": "underground_palace",
+        "location": "地下宫殿",
+        "time_of_day": "",
+        "atmosphere": "左前上方 / 暖色约2800K / 昏暗",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/p_127ieae/scenes/underground_palace_20261116T213039.jpg"
+        ],
+        "camera": "中景平视固定，距人物 3 米 / 高度 1.5 米 / 正对石壁",
+        "props": "左石柱、中石阶、右火把架",
+        "light": "左前上方 / 暖色约2800K / 昏暗"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture.",
+        "黑衣死士甲": "Male, 30, narrow angular face, thin lips, black hair tied in a tight low knot, wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, lean wiry build, weathered skin, expressionless eyes, scar across the left eyebrow, straight formal stance, matte fabric, no ornament."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] Tang dynasty temple street，warm daylight 3200K，underground stone palace 2800K，35mm film grain，shallow depth of field，romantic comedy。medium close-up, slightly high angle, reverse angle, slow push-in, 1.3 meters from the subject. 叶一恒 (right of frame, foreground, three-quarter turn to the left, looking at 黑衣死士甲, occupies 55% of frame height); 黑衣死士甲 (left of frame, midground, three-quarter turn to the right, looking at 叶一恒, occupies 60% of frame height). the two face each other, their eye lines meet。左石柱、中石阶、右火把架，暖火光从左前上方来。开场：黑衣死士甲双手抱拳、下颌紧绷。At 00:01.500, 左膝屈下、身体沉稳下沉、脊背笔直。At 00:02.500, 黑衣死士甲 对 叶一恒 (S1) 开口说：<d>[中文] 主上，请吩咐。</d>At 00:03.500, 单膝触地、低头、声音压低。At 00:05.500, 保持跪姿不动，叶一恒垂眼看他。画面里的主体就是这 2 位：叶一恒、黑衣死士甲。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots；黑衣死士甲：wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, lean wiry build, weathered skin, expressionless eyes, scar across the left eyebrow, straight formal stance, matte fabric, no ornament。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 火把噼啪，衣甲摩擦与膝触石面；人声只有上面这一句台词\n\nnon_diegetic_music: 大鼓+低音弦，速度中等，单记重击收尾"
+  },
+  {
+    "key": "project/p_v3demo/s01",
+    "input": {
+      "shot": {
+        "shot_id": "s01",
+        "scene_id": "underground_palace",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "林婉儿",
+          "死士甲",
+          "死士乙"
+        ],
+        "camera": "全景+略仰+正面+缓推，3.0米",
+        "visual_prompt": "【机位】景别=全景；高度=略仰；角度=正面；运镜=缓推；距离=3.0\n【人物】\n- 林婉儿：位置=中；层级=中景；朝向=面向镜头；视线=看画外；占比=55\n- 死士甲：位置=左前；层级=前景；朝向=右3-4侧；视线=看对方；对象=林婉儿；占比=40\n- 死士乙：位置=右前；层级=前景；朝向=左3-4侧；视线=看对方；对象=林婉儿；占比=38\n【关系】并肩\n【节奏】0.0 死士押着林婉儿站定在石阶上层 | 1.4 林婉儿下颌抬起、脚步开始下移 | 3.0 死士甲手臂收紧、腕上绳索一沉\n【场景】左石阶栏杆、中青石阶、右石壁浮雕；左侧壁火盆暖光\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "",
+        "soundscape": "地宫石阶回声与水滴滴落底噪，铁链拖地与衣料摩擦声",
+        "music": "低音鼓单击，速度中慢，四拍一循环",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "Underground stone palace, torchlight amber glow, cold blue rim light, 35mm film, shallow depth of field",
+      "cast_names": [
+        "林婉儿",
+        "死士甲",
+        "死士乙"
+      ],
+      "scene": {
+        "scene_id": "underground_palace",
+        "location": "地下宫殿",
+        "time_of_day": "",
+        "atmosphere": "左侧壁火盆暖光 2800K",
+        "reference_image": null,
+        "images": [],
+        "camera": "略仰 3.0 米",
+        "props": "左石阶栏杆、中青石阶、右石壁浮雕",
+        "light": "左侧壁火盆暖光 2800K"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "林婉儿": "Female, 22, round-oval face with clear dark eyes, a small old scar on the right cheek, long black hair worn loose and flowing past the waist, half-tied at the crown with a pale jade hairpin and small white flower ornaments, soft fringe framing the face. Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes. Slender build, graceful posture, calm and watchful expression.",
+        "死士甲": "A 30-year-old Chinese man in a black fitted night-raid suit with black cloth wraps on forearms, black hood covering the hairline, a black half-mask over the mouth and nose, black boots.",
+        "死士乙": "A 28-year-old Chinese man in a black fitted night-raid suit with black cloth wraps on forearms, black hood covering the hairline, black boots, a dagger sheath at the waist."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] Underground stone palace，torchlight amber glow，cold blue rim light，35mm film，shallow depth of field。full shot, slightly low angle, frontal, slow push-in, 3.0 meters from the subject. 林婉儿 (center of frame, midground, facing the camera, looking off-screen, occupies 55% of frame height); 死士甲 (front-left of frame, foreground, three-quarter turn to the right, looking at 林婉儿, occupies 40% of frame height); 死士乙 (front-right of frame, foreground, three-quarter turn to the left, looking at 林婉儿, occupies 38% of frame height). standing side by side, both facing the same direction。左石阶栏杆、中青石阶、右石壁浮雕，左侧壁火盆暖光。开场：死士押着林婉儿站定在石阶上层。At 00:01.400, 林婉儿下颌抬起、脚步开始下移。At 00:03.000, 死士甲手臂收紧、腕上绳索一沉。画面里的主体就是这 3 位：林婉儿、死士甲、死士乙。服装锁定 —— 林婉儿：Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 地宫石阶回声与水滴滴落底噪，铁链拖地与衣料摩擦声；本镜只有环境声，无人声\n\nnon_diegetic_music: 低音鼓单击，速度中慢，四拍一循环"
+  },
+  {
+    "key": "project/p_v3demo/s02",
+    "input": {
+      "shot": {
+        "shot_id": "s02",
+        "scene_id": "underground_palace",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "林婉儿",
+          "叶一恒"
+        ],
+        "camera": "中景+略仰+侧对+固定，1.8米",
+        "visual_prompt": "【机位】景别=中景；高度=略仰；角度=侧对；运镜=固定；距离=1.8\n【人物】\n- 林婉儿：位置=左；层级=中景；朝向=纯右侧；视线=看对方；对象=叶一恒；占比=50\n- 叶一恒：位置=右；层级=前景；朝向=纯左侧；视线=看对方；对象=林婉儿；占比=52\n【关系】面对面\n【开口】1.6\n【节奏】0.0 两人隔石阶对峙、衣摆止住 | 1.4 林婉儿下巴抬起、视线锁进他眼里 | 3.0 叶一恒手腕一压、扇骨合拢\n【场景】左石阶底、中青铜灯柱、右石壁浮雕；左侧壁火盆暖光\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "<d>林婉儿→叶一恒：你拦不住我</d>",
+        "soundscape": "地宫空旷混响底噪，扇骨合拢一声脆响",
+        "music": "古琴单音拨弦，速度缓慢，句尾留一拍空拍",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "Underground stone palace, torchlight amber glow, cold blue rim light, 35mm film, shallow depth of field",
+      "cast_names": [
+        "林婉儿",
+        "叶一恒"
+      ],
+      "scene": {
+        "scene_id": "underground_palace",
+        "location": "地下宫殿",
+        "time_of_day": "",
+        "atmosphere": "左侧壁火盆暖光 2800K",
+        "reference_image": null,
+        "images": [],
+        "camera": "略仰 3.0 米",
+        "props": "左石阶栏杆、中青石阶、右石壁浮雕",
+        "light": "左侧壁火盆暖光 2800K"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "林婉儿": "Female, 22, round-oval face with clear dark eyes, a small old scar on the right cheek, long black hair worn loose and flowing past the waist, half-tied at the crown with a pale jade hairpin and small white flower ornaments, soft fringe framing the face. Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes. Slender build, graceful posture, calm and watchful expression.",
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] Underground stone palace，torchlight amber glow，cold blue rim light，35mm film，shallow depth of field。medium shot, slightly low angle, profile, static camera, 1.8 meters from the subject. 林婉儿 (left of frame, midground, right profile, looking at 叶一恒, occupies 50% of frame height); 叶一恒 (right of frame, foreground, left profile, looking at 林婉儿, occupies 52% of frame height). the two face each other, their eye lines meet。左石阶底、中青铜灯柱、右石壁浮雕，左侧壁火盆暖光。开场：两人隔石阶对峙、衣摆止住。At 00:01.400, 林婉儿下巴抬起、视线锁进他眼里。At 00:01.600, 林婉儿 对 叶一恒 (S1) 开口说：<d>[中文] 你拦不住我。</d>At 00:03.000, 叶一恒手腕一压、扇骨合拢。画面里的主体就是这 2 位：林婉儿、叶一恒。服装锁定 —— 林婉儿：Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes；叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 地宫空旷混响底噪，扇骨合拢一声脆响；人声只有上面这一句台词\n\nnon_diegetic_music: 古琴单音拨弦，速度缓慢，句尾留一拍空拍"
+  },
+  {
+    "key": "project/p_13tb77l/s01",
+    "input": {
+      "shot": {
+        "shot_id": "s01",
+        "scene_id": "temple_fair",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶一恒"
+        ],
+        "camera": "中景平视固定",
+        "visual_prompt": "【机位】中景双人平视固定，与两人眼高齐平，距人物 1.2 米\n【人物】叶一恒 | 画面中 | 占画幅高度 60% | 背对镜头\n【节奏】0.0 背对镜头，肩线绷紧 | 1.7 猛然转身，衣摆带风 | 3.4 合扇，抬下巴，直视对面\n【场景】左红灯笼架、中青石路、右糖画摊；暖日光从右前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "<d>叶一恒：三天之内，我娶你回家</d>",
+        "soundscape": "折扇合拢，衣料摩擦",
+        "music": "低音提琴长音，速度缓慢",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "warm temple fair, Tang-style street, soft daylight, 35mm film, shallow depth of field, natural skin texture",
+      "cast_names": [
+        "叶一恒"
+      ],
+      "scene": {
+        "scene_id": "temple_fair",
+        "location": "庙会街",
+        "time_of_day": "",
+        "atmosphere": "暖日光，从右前上方来",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/p_13tb77l/scenes/temple_fair_20261116T140351.jpg"
+        ],
+        "camera": "平视 3 米",
+        "props": "左红灯笼架、中青石路、右糖画摊",
+        "light": "暖日光，从右前上方来"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] warm temple fair，Tang-style street，soft daylight，35mm film，shallow depth of field，natural skin texture。中景双人平视固定，与两人眼高齐平，距人物 1.2 米。叶一恒，画面中，占画幅高度 60%，背对镜头。左红灯笼架、中青石路、右糖画摊，暖日光从右前上方来。开场：背对镜头，肩线绷紧。At 00:00.800, 叶一恒 (S1) 开口说：<d>[中文] 三天之内，我娶你回家。</d>At 00:01.700, 猛然转身，衣摆带风。At 00:03.400, 合扇，抬下巴，直视对面。画面里的主体只有一位：叶一恒。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 折扇合拢，衣料摩擦；人声只有上面这一句台词\n\nnon_diegetic_music: 低音提琴长音，速度缓慢"
+  },
+  {
+    "key": "project/p_13tb77l/s02",
+    "input": {
+      "shot": {
+        "shot_id": "s02",
+        "scene_id": "temple_fair",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "林婉儿"
+        ],
+        "camera": "近景平视固定",
+        "visual_prompt": "【机位】中景双人平视固定，与两人眼高齐平，距人物 1.2 米\n【人物】林婉儿 | 画面中偏左 | 占画幅高度 65% | 朝右\n【节奏】0.0 人物已在画面中，垂眼站着，手指绞着袖口 | 1.6 抬眼看向画面右侧 | 3.4 视线下移，下颌绷紧\n【场景】左红灯笼架、中青石路、右糖画摊；暖日光从右前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "",
+        "soundscape": "呼吸声，远处叫卖",
+        "music": "低音提琴延续，速度缓慢",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "warm temple fair, Tang-style street, soft daylight, 35mm film, shallow depth of field, natural skin texture",
+      "cast_names": [
+        "林婉儿"
+      ],
+      "scene": {
+        "scene_id": "temple_fair",
+        "location": "庙会街",
+        "time_of_day": "",
+        "atmosphere": "暖日光，从右前上方来",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/p_13tb77l/scenes/temple_fair_20261116T140351.jpg"
+        ],
+        "camera": "平视 3 米",
+        "props": "左红灯笼架、中青石路、右糖画摊",
+        "light": "暖日光，从右前上方来"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "林婉儿": "Female, 22, round-oval face with clear dark eyes, a small old scar on the right cheek, long black hair worn loose and flowing past the waist, half-tied at the crown with a pale jade hairpin and small white flower ornaments, soft fringe framing the face. Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes. Slender build, graceful posture, calm and watchful expression."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] warm temple fair，Tang-style street，soft daylight，35mm film，shallow depth of field，natural skin texture。中景双人平视固定，与两人眼高齐平，距人物 1.2 米。林婉儿，画面中偏左，占画幅高度 65%，朝右。左红灯笼架、中青石路、右糖画摊，暖日光从右前上方来。开场：人物已在画面中，垂眼站着，手指绞着袖口。At 00:01.600, 抬眼看向画面右侧。At 00:03.400, 视线下移，下颌绷紧。画面里的主体只有一位：林婉儿。服装锁定 —— 林婉儿：Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 呼吸声，远处叫卖；本镜只有环境声，无人声\n\nnon_diegetic_music: 低音提琴延续，速度缓慢"
+  },
+  {
+    "key": "project/p_13tb77l/s03",
+    "input": {
+      "shot": {
+        "shot_id": "s03",
+        "scene_id": "temple_fair",
+        "duration_sec": 6.0,
+        "characters_present": [
+          "叶一恒",
+          "林婉儿"
+        ],
+        "camera": "中景双人平视固定，与两人眼高齐平，距人物 1.2 米",
+        "visual_prompt": "【机位】中景双人平视固定，与两人眼高齐平，距人物 1.2 米\n【人物】叶一恒 | 画面左 | 占画幅 50% | 朝右；林婉儿 | 画面右 | 占画幅 50% | 朝左\n【开口】1.0\n【节奏】0.0 两人面对面站立，胸口相距约一米，视线相接 | 2.2 叶一恒伸出右手 | 3.6 林婉儿肩膀微微一僵\n【场景】左红灯笼架、中青石路、右糖画摊；暖日光从右前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "<d>叶一恒→林婉儿：跟我走</d>",
+        "soundscape": "脚步，衣袖摩擦",
+        "music": "弦乐渐强，速度中速",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "warm temple fair, Tang-style street, soft daylight, 35mm film, shallow depth of field, natural skin texture",
+      "cast_names": [
+        "叶一恒",
+        "林婉儿"
+      ],
+      "scene": {
+        "scene_id": "temple_fair",
+        "location": "庙会街",
+        "time_of_day": "",
+        "atmosphere": "暖日光，从右前上方来",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/p_13tb77l/scenes/temple_fair_20261116T140351.jpg"
+        ],
+        "camera": "平视 3 米",
+        "props": "左红灯笼架、中青石路、右糖画摊",
+        "light": "暖日光，从右前上方来"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture.",
+        "林婉儿": "Female, 22, round-oval face with clear dark eyes, a small old scar on the right cheek, long black hair worn loose and flowing past the waist, half-tied at the crown with a pale jade hairpin and small white flower ornaments, soft fringe framing the face. Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes. Slender build, graceful posture, calm and watchful expression."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] warm temple fair，Tang-style street，soft daylight，35mm film，shallow depth of field，natural skin texture。中景双人平视固定，与两人眼高齐平，距人物 1.2 米。叶一恒，画面左，占画幅 50%，朝右，林婉儿，画面右，占画幅 50%，朝左。左红灯笼架、中青石路、右糖画摊，暖日光从右前上方来。开场：两人面对面站立，胸口相距约一米，视线相接。At 00:01.000, 叶一恒 对 林婉儿 (S1) 开口说：<d>[中文] 跟我走。</d>At 00:02.200, 叶一恒伸出右手。At 00:03.600, 林婉儿肩膀微微一僵。画面里的主体就是这 2 位：叶一恒、林婉儿。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots；林婉儿：Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 脚步，衣袖摩擦；人声只有上面这一句台词\n\nnon_diegetic_music: 弦乐渐强，速度中速"
+  },
+  {
+    "key": "project/p_13tb77l/s04",
+    "input": {
+      "shot": {
+        "shot_id": "s04",
+        "scene_id": "temple_fair",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "林婉儿"
+        ],
+        "camera": "近景平视固定，与人物眼高齐平，距人物 1.0 米",
+        "visual_prompt": "【机位】近景平视固定，与人物眼高齐平，距人物 1.0 米\n【人物】林婉儿 | 画面中偏右 | 占画幅高度 80% | 朝左\n【开口】1.0\n【节奏】0.0 直视前方，眼神不躲 | 2.4 切近特写，后退半步 | 3.8 抬下巴，嘴角绷紧\n【场景】左红灯笼架虚化、中青石路；暖日光从右前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "<d>林婉儿：你凭什么</d>",
+        "soundscape": "后退的脚步声，灯笼晃动",
+        "music": "弦乐骤停",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "warm temple fair, Tang-style street, soft daylight, 35mm film, shallow depth of field, natural skin texture",
+      "cast_names": [
+        "林婉儿"
+      ],
+      "scene": {
+        "scene_id": "temple_fair",
+        "location": "庙会街",
+        "time_of_day": "",
+        "atmosphere": "暖日光，从右前上方来",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/p_13tb77l/scenes/temple_fair_20261116T140351.jpg"
+        ],
+        "camera": "平视 3 米",
+        "props": "左红灯笼架、中青石路、右糖画摊",
+        "light": "暖日光，从右前上方来"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "林婉儿": "Female, 22, round-oval face with clear dark eyes, a small old scar on the right cheek, long black hair worn loose and flowing past the waist, half-tied at the crown with a pale jade hairpin and small white flower ornaments, soft fringe framing the face. Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes. Slender build, graceful posture, calm and watchful expression."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] warm temple fair，Tang-style street，soft daylight，35mm film，shallow depth of field，natural skin texture。近景平视固定，与人物眼高齐平，距人物 1.0 米。林婉儿，画面中偏右，占画幅高度 80%，朝左。左红灯笼架虚化、中青石路，暖日光从右前上方来。开场：直视前方，眼神不躲。At 00:01.000, 林婉儿 (S1) 开口说：<d>[中文] 你凭什么。</d>At 00:02.400, the camera cuts to 近特写，后退半步。At 00:03.800, 抬下巴，嘴角绷紧。画面里的主体只有一位：林婉儿。服装锁定 —— 林婉儿：Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 后退的脚步声，灯笼晃动；人声只有上面这一句台词\n\nnon_diegetic_music: 弦乐骤停"
+  },
+  {
+    "key": "project/santian_2/s01",
+    "input": {
+      "shot": {
+        "shot_id": "s01",
+        "scene_id": "temple_fair",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶一恒",
+          "林婉儿"
+        ],
+        "camera": "中景双人平视固定，距人物 1.2 米",
+        "visual_prompt": "【机位】中景双人平视固定 | 1.2米 | 固定\n【人物】叶一恒 | 画面左 | 55% | 朝右前；林婉儿 | 画面右 | 50% | 朝左前\n【节奏】0.0 起始 | 1.8 前迈半步 | 3.6 收尾\n【场景】左红灯笼架、中青石路、右糖画摊；暖日光从右前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "",
+        "soundscape": "脚步声",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "ancient Chinese Tang Dynasty, warm daylight, soft film grain, 35mm cinematic texture, romantic comedy",
+      "cast_names": [
+        "叶一恒",
+        "林婉儿"
+      ],
+      "scene": {
+        "scene_id": "temple_fair",
+        "location": "庙会街",
+        "time_of_day": "",
+        "atmosphere": "右前上方 / 暖色约3200K / 明亮",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/santian_2/scenes/temple_fair_20261116T203852.jpg"
+        ],
+        "camera": "中景平视固定，距人物 3 米 / 高度 1.5 米 / 朝街面",
+        "props": "左红灯笼架、中青石路、右糖画摊",
+        "light": "右前上方 / 暖色约3200K / 明亮"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture.",
+        "林婉儿": "Female, 22, round-oval face with clear dark eyes, a small old scar on the right cheek, long black hair worn loose and flowing past the waist, half-tied at the crown with a pale jade hairpin and small white flower ornaments, soft fringe framing the face. Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes. Slender build, graceful posture, calm and watchful expression."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] ancient Chinese Tang Dynasty，warm daylight，soft film grain，35mm cinematic texture，romantic comedy。中景双人平视固定，1.2米，固定。叶一恒，画面左，55%，朝右前，林婉儿，画面右，50%，朝左前。左红灯笼架、中青石路、右糖画摊，暖日光从右前上方来。开场：起始。At 00:01.800, 前迈半步。At 00:03.600, 收尾。画面里的主体就是这 2 位：叶一恒、林婉儿。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots；林婉儿：Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 脚步声；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/santian_2/s02",
+    "input": {
+      "shot": {
+        "shot_id": "s02",
+        "scene_id": "temple_fair",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶一恒",
+          "林婉儿"
+        ],
+        "camera": "近景双人平视固定，距人物 0.8 米",
+        "visual_prompt": "【机位】近景双人平视固定 | 0.8米 | 固定\n【人物】叶一恒 | 画面左 | 60% | 朝右；林婉儿 | 画面右 | 58% | 朝左\n【开口】1.0\n【节奏】0.0 起始 | 1.6 后退半步 | 3.2 收尾\n【场景】左红灯笼架、中青石路、右糖画摊；暖日光从右前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "<d>林婉儿：你想干什么</d>",
+        "soundscape": "心跳声",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "ancient Chinese Tang Dynasty, warm daylight, soft film grain, 35mm cinematic texture, romantic comedy",
+      "cast_names": [
+        "叶一恒",
+        "林婉儿"
+      ],
+      "scene": {
+        "scene_id": "temple_fair",
+        "location": "庙会街",
+        "time_of_day": "",
+        "atmosphere": "右前上方 / 暖色约3200K / 明亮",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/santian_2/scenes/temple_fair_20261116T203852.jpg"
+        ],
+        "camera": "中景平视固定，距人物 3 米 / 高度 1.5 米 / 朝街面",
+        "props": "左红灯笼架、中青石路、右糖画摊",
+        "light": "右前上方 / 暖色约3200K / 明亮"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture.",
+        "林婉儿": "Female, 22, round-oval face with clear dark eyes, a small old scar on the right cheek, long black hair worn loose and flowing past the waist, half-tied at the crown with a pale jade hairpin and small white flower ornaments, soft fringe framing the face. Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes. Slender build, graceful posture, calm and watchful expression."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] ancient Chinese Tang Dynasty，warm daylight，soft film grain，35mm cinematic texture，romantic comedy。近景双人平视固定，0.8米，固定。叶一恒，画面左，60%，朝右，林婉儿，画面右，58%，朝左。左红灯笼架、中青石路、右糖画摊，暖日光从右前上方来。开场：起始。At 00:01.000, 林婉儿 (S1) 开口说：<d>[中文] 你想干什么。</d>At 00:01.600, 后退半步。At 00:03.200, 收尾。画面里的主体就是这 2 位：叶一恒、林婉儿。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots；林婉儿：Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 心跳声；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/santian_2/s03",
+    "input": {
+      "shot": {
+        "shot_id": "s03",
+        "scene_id": "temple_fair",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "林婉儿"
+        ],
+        "camera": "中景平视固定，距人物 2 米",
+        "visual_prompt": "【机位】中景平视固定 | 2米 | 固定\n【人物】林婉儿 | 画面中 | 60% | 朝左后\n【开口】0.5\n【节奏】0.0 起始 | 1.5 转身 | 3.5 收尾\n【场景】左红灯笼架、中青石路、右糖画摊；暖日光从右前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "",
+        "soundscape": "奔跑脚步声",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "ancient Chinese Tang Dynasty, warm daylight, soft film grain, 35mm cinematic texture, romantic comedy",
+      "cast_names": [
+        "林婉儿"
+      ],
+      "scene": {
+        "scene_id": "temple_fair",
+        "location": "庙会街",
+        "time_of_day": "",
+        "atmosphere": "右前上方 / 暖色约3200K / 明亮",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/santian_2/scenes/temple_fair_20261116T203852.jpg"
+        ],
+        "camera": "中景平视固定，距人物 3 米 / 高度 1.5 米 / 朝街面",
+        "props": "左红灯笼架、中青石路、右糖画摊",
+        "light": "右前上方 / 暖色约3200K / 明亮"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "林婉儿": "Female, 22, round-oval face with clear dark eyes, a small old scar on the right cheek, long black hair worn loose and flowing past the waist, half-tied at the crown with a pale jade hairpin and small white flower ornaments, soft fringe framing the face. Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes. Slender build, graceful posture, calm and watchful expression."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] ancient Chinese Tang Dynasty，warm daylight，soft film grain，35mm cinematic texture，romantic comedy。中景平视固定，2米，固定。林婉儿，画面中，60%，朝左后。左红灯笼架、中青石路、右糖画摊，暖日光从右前上方来。开场：起始。At 00:01.500, 转身。At 00:03.500, 收尾。画面里的主体只有一位：林婉儿。服装锁定 —— 林婉儿：Wearing a layered ivory-and-celadon hanfu long dress with a pale green gauze outer robe, wide flowing sleeves, a jade pendant at the waist, white cloth shoes。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 奔跑脚步声；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/santian_2/s04",
+    "input": {
+      "shot": {
+        "shot_id": "s04",
+        "scene_id": "temple_fair",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶一恒"
+        ],
+        "camera": "中景平视固定，距人物 2.5 米",
+        "visual_prompt": "【机位】中景平视固定 | 2.5米 | 固定\n【人物】叶一恒 | 画面中 | 60% | 朝左前\n【开口】1.0\n【节奏】0.0 起始 | 1.8 开口 | 3.8 收尾\n【场景】左红灯笼架、中青石路、右糖画摊；暖日光从右前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "<d>叶一恒：看你能坚持到什么时候</d>",
+        "soundscape": "折扇合拢声",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "ancient Chinese Tang Dynasty, warm daylight, soft film grain, 35mm cinematic texture, romantic comedy",
+      "cast_names": [
+        "叶一恒"
+      ],
+      "scene": {
+        "scene_id": "temple_fair",
+        "location": "庙会街",
+        "time_of_day": "",
+        "atmosphere": "右前上方 / 暖色约3200K / 明亮",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/santian_2/scenes/temple_fair_20261116T203852.jpg"
+        ],
+        "camera": "中景平视固定，距人物 3 米 / 高度 1.5 米 / 朝街面",
+        "props": "左红灯笼架、中青石路、右糖画摊",
+        "light": "右前上方 / 暖色约3200K / 明亮"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] ancient Chinese Tang Dynasty，warm daylight，soft film grain，35mm cinematic texture，romantic comedy。中景平视固定，2.5米，固定。叶一恒，画面中，60%，朝左前。左红灯笼架、中青石路、右糖画摊，暖日光从右前上方来。开场：起始。At 00:01.000, 叶一恒 (S1) 开口说：<d>[中文] 看你能坚持到什么时候。</d>At 00:01.800, 开口。At 00:03.800, 收尾。画面里的主体只有一位：叶一恒。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 折扇合拢声；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/santian_2/s05",
+    "input": {
+      "shot": {
+        "shot_id": "s05",
+        "scene_id": "underground_palace",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶一恒",
+          "黑衣死士甲",
+          "黑衣死士乙"
+        ],
+        "camera": "中景平视固定，距人物 3 米",
+        "visual_prompt": "【机位】中景平视固定 | 3米 | 固定\n【人物】叶一恒 | 画面中 | 55% | 朝前；黑衣死士甲 | 画面左后 | 40% | 朝前；黑衣死士乙 | 画面右后 | 40% | 朝前\n【节奏】0.0 起始 | 1.8 负手 | 3.6 收尾\n【场景】左石柱、中石阶、右火把架；暖火光从左前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "",
+        "soundscape": "火把噼啪声",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "ancient Chinese Tang Dynasty, warm daylight, soft film grain, 35mm cinematic texture, romantic comedy",
+      "cast_names": [
+        "叶一恒",
+        "黑衣死士甲",
+        "黑衣死士乙"
+      ],
+      "scene": {
+        "scene_id": "underground_palace",
+        "location": "地下宫殿",
+        "time_of_day": "",
+        "atmosphere": "左前上方 / 暖色约2800K / 昏暗",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/santian_2/scenes/underground_palace_20261116T203921.jpg"
+        ],
+        "camera": "中景平视固定，距人物 3 米 / 高度 1.5 米 / 正对石壁",
+        "props": "左石柱、中石阶、右火把架",
+        "light": "左前上方 / 暖色约2800K / 昏暗"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture.",
+        "黑衣死士甲": "Male, 30, narrow angular face, thin lips, black hair tied in a tight low knot, wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, lean wiry build, weathered skin, expressionless eyes, scar across the left eyebrow, straight formal stance, matte fabric, no ornament.",
+        "黑衣死士乙": "Male, 28, square face with a broad jaw, flat brows, black hair in a tight low knot, wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, broad sturdy build, tanned skin, calm neutral expression, thin scar on the chin, arms held at sides, matte fabric, no ornament."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] ancient Chinese Tang Dynasty，warm daylight，soft film grain，35mm cinematic texture，romantic comedy。中景平视固定，3米，固定。叶一恒，画面中，55%，朝前，黑衣死士甲，画面左后，40%，朝前，黑衣死士乙，画面右后，40%，朝前。左石柱、中石阶、右火把架，暖火光从左前上方来。开场：起始。At 00:01.800, 负手。At 00:03.600, 收尾。画面里的主体就是这 3 位：叶一恒、黑衣死士甲、黑衣死士乙。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots；黑衣死士甲：wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, lean wiry build, weathered skin, expressionless eyes, scar across the left eyebrow, straight formal stance, matte fabric, no ornament；黑衣死士乙：wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, broad sturdy build, tanned skin, calm neutral expression, thin scar on the chin, arms held at sides, matte fabric, no ornament。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 火把噼啪声；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/santian_2/s06",
+    "input": {
+      "shot": {
+        "shot_id": "s06",
+        "scene_id": "underground_maze",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶一恒",
+          "黑衣死士甲"
+        ],
+        "camera": "近景平视固定，距人物 1.5 米",
+        "visual_prompt": "【机位】近景平视固定 | 1.5米 | 固定\n【人物】叶一恒 | 画面右 | 55% | 朝左；黑衣死士甲 | 画面左 | 60% | 朝右\n【开口】1.2\n【节奏】0.0 起始 | 1.5 单膝跪地 | 3.5 收尾\n【场景】左石柱、中石阶、右火把架；暖火光从左前上方来\n【画质】35mm 胶片质感，浅景深，真实皮肤纹理",
+        "dialogue": "<d>黑衣死士甲→叶一恒：主上，请吩咐</d>",
+        "soundscape": "衣甲摩擦声",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "ancient Chinese Tang Dynasty, warm daylight, soft film grain, 35mm cinematic texture, romantic comedy",
+      "cast_names": [
+        "叶一恒",
+        "黑衣死士甲"
+      ],
+      "scene": {
+        "scene_id": "underground_maze",
+        "location": "地下宫殿",
+        "time_of_day": "",
+        "atmosphere": "左前上方 / 暖色约2800K / 昏暗",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/santian_2/scenes/underground_maze_20261116T203909.jpg"
+        ],
+        "camera": "中景平视固定，距人物 3 米 / 高度 1.5 米 / 正对石壁",
+        "props": "左石柱、中石阶、右火把架",
+        "light": "左前上方 / 暖色约2800K / 昏暗"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture.",
+        "黑衣死士甲": "Male, 30, narrow angular face, thin lips, black hair tied in a tight low knot, wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, lean wiry build, weathered skin, expressionless eyes, scar across the left eyebrow, straight formal stance, matte fabric, no ornament."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] ancient Chinese Tang Dynasty，warm daylight，soft film grain，35mm cinematic texture，romantic comedy。近景平视固定，1.5米，固定。叶一恒，画面右，55%，朝左，黑衣死士甲，画面左，60%，朝右。左石柱、中石阶、右火把架，暖火光从左前上方来。开场：起始。At 00:01.200, 黑衣死士甲 对 叶一恒 (S1) 开口说：<d>[中文] 主上，请吩咐。</d>At 00:01.500, 单膝跪地。At 00:03.500, 收尾。画面里的主体就是这 2 位：叶一恒、黑衣死士甲。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots；黑衣死士甲：wearing a black close-fitting martial robe with dark leather bracers, black waist belt, black boots, lean wiry build, weathered skin, expressionless eyes, scar across the left eyebrow, straight formal stance, matte fabric, no ornament。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 衣甲摩擦声；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/yeyiheng_test/s01",
+    "input": {
+      "shot": {
+        "shot_id": "s01",
+        "scene_id": "library",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶一恒"
+        ],
+        "camera": "中景平视固定",
+        "visual_prompt": "【场景锚点】横屏 16:9，中式书房，机位平视。画面左侧是木格窗透进的暖光，中间是深色长桌，右侧是书架。【角色】叶一恒，白色立领亚麻外套、灰色高领毛衣、灰色长裤，黑色短发。【动作】他站在窗边，缓缓抬眼看向镜头。【光线】窗侧自然光，暖调逆光勾边。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, soft daylight, 35mm film grain",
+      "cast_names": [
+        "叶一恒"
+      ],
+      "scene": {
+        "scene_id": "library",
+        "location": "书房",
+        "time_of_day": "",
+        "atmosphere": "窗侧自然光，暖调",
+        "reference_image": null,
+        "images": [],
+        "camera": "平视，中景",
+        "props": "木格窗、书架、长桌",
+        "light": "窗侧自然光，暖调"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，soft daylight，35mm film grain。中景平视固定。【场景锚点】横屏 16:9，中式书房，机位平视。画面左侧是木格窗透进的暖光，中间是深色长桌，右侧是书架。【角色】叶一恒，白色立领亚麻外套、灰色高领毛衣、灰色长裤，黑色短发。【动作】他站在窗边，缓缓抬眼看向镜头。【光线】窗侧自然光，暖调逆光勾边。【画质】35mm 胶片质感，浅景深。他站在窗边，缓缓抬眼看向镜头。画面里的主体只有一位：叶一恒。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/yeyiheng_test/s02",
+    "input": {
+      "shot": {
+        "shot_id": "s02",
+        "scene_id": "library",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶一恒"
+        ],
+        "camera": "近景平视，轻微前推",
+        "visual_prompt": "【场景锚点】横屏 16:9，中式书房近景，机位平视。画面左侧是木格窗的暖光，背景是虚化的书架，人物居画面中偏左，占画面高度约七成。【角色】叶一恒，白色立领亚麻外套、灰色高领毛衣、黑色短发，五官清秀。【动作】他缓缓抬眼，看向镜头，表情平静。【光线】窗侧自然光，脸部半明半暗。【画质】35mm 胶片质感，浅景深，真实皮肤纹理。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, soft daylight, 35mm film grain",
+      "cast_names": [
+        "叶一恒"
+      ],
+      "scene": {
+        "scene_id": "library",
+        "location": "书房",
+        "time_of_day": "",
+        "atmosphere": "窗侧自然光，暖调",
+        "reference_image": null,
+        "images": [],
+        "camera": "平视，中景",
+        "props": "木格窗、书架、长桌",
+        "light": "窗侧自然光，暖调"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶一恒": "A 20-year-old Chinese young man, fair skin, gentle and quiet expression. Black hair gathered into a neat topknot with a simple dark jade pin, no fringe over the forehead, temple hair combed back. Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots. Slim build, upright posture."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，soft daylight，35mm film grain。近景平视，轻微前推。【场景锚点】横屏 16:9，中式书房近景，机位平视。画面左侧是木格窗的暖光，背景是虚化的书架，人物居画面中偏左，占画面高度约七成。【角色】叶一恒，白色立领亚麻外套、灰色高领毛衣、黑色短发，五官清秀。【动作】他缓缓抬眼，看向镜头，表情平静。【光线】窗侧自然光，脸部半明半暗。【画质】35mm 胶片质感，浅景深，真实皮肤纹理。他缓缓抬眼，看向镜头，表情平静。画面里的主体只有一位：叶一恒。服装锁定 —— 叶一恒：Wearing a white cross-collar changshan (交领长衫) with wide sleeves and grey bamboo embroidery, a grey cloth sash at the waist, grey inner collar, black cloth boots。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/uicap/s01",
+    "input": {
+      "shot": {
+        "shot_id": "s01",
+        "scene_id": "sc1",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "中景平视固定",
+        "visual_prompt": "【场景锚点】横屏 16:9，客机头等舱过道，机位平视朝前，画面左侧舷窗透入冷光。【角色】无人。【动作】过道地毯上的光缓慢移动。【光线】顶部冷白。【画质】35mm 胶片质感。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "sc1",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "冷白",
+        "reference_image": null,
+        "images": [],
+        "camera": "过道平视",
+        "props": "座椅、舷窗",
+        "light": "冷白"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] 中景平视固定。【场景锚点】横屏 16:9，客机头等舱过道，机位平视朝前，画面左侧舷窗透入冷光。【角色】无人。【动作】过道地毯上的光缓慢移动。【光线】顶部冷白。【画质】35mm 胶片质感。过道地毯上的光缓慢移动。画面中无人，只有环境与物件。35mm 胶片质感。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/demo/s01",
+    "input": {
+      "shot": {
+        "shot_id": "s01",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "中景平视固定",
+        "visual_prompt": "【场景锚点】横屏 16:9，客机头等舱，机位在过道中段平视朝机舱前方。画面左侧是透入冷光的舷窗，画面右侧是过道，航空座椅在中下部，顶部阅读灯带在上方。【角色】无人。【动作】阅读灯带轻微闪烁，舷窗透进刺眼冷光。【光线】顶部冷白荧光 + 左侧舷窗日光，冷调高对比。【画质】35mm 胶片质感，浅景深，真实质感。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "plate",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。中景平视固定。【场景锚点】横屏 16:9，客机头等舱，机位在过道中段平视朝机舱前方。画面左侧是透入冷光的舷窗，画面右侧是过道，航空座椅在中下部，顶部阅读灯带在上方。【角色】无人。【动作】阅读灯带轻微闪烁，舷窗透进刺眼冷光。【光线】顶部冷白荧光 + 左侧舷窗日光，冷调高对比。【画质】35mm 胶片质感，浅景深，真实质感。阅读灯带轻微闪烁，舷窗透进刺眼冷光。画面中无人，只有环境与物件。35mm 胶片质感，浅景深，真实质感。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/demo/s02",
+    "input": {
+      "shot": {
+        "shot_id": "s02",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶谦"
+        ],
+        "camera": "中景平视固定",
+        "visual_prompt": "【场景锚点】同一机舱，机位在过道中段平视。画面左侧舷窗，画面右侧过道，航空座椅在中下部。【角色】叶谦，寸头、脸颊浅疤、发白灰T恤、迷彩裤。【动作】叶谦坐在靠窗座位，拉下黑色眼罩靠向椅背。【光线】顶部冷白荧光，左侧舷窗冷光打亮侧脸。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "叶谦"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶谦": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。中景平视固定。【场景锚点】同一机舱，机位在过道中段平视。画面左侧舷窗，画面右侧过道，航空座椅在中下部。【角色】叶谦，寸头、脸颊浅疤、发白灰T恤、迷彩裤。【动作】叶谦坐在靠窗座位，拉下黑色眼罩靠向椅背。【光线】顶部冷白荧光，左侧舷窗冷光打亮侧脸。【画质】35mm 胶片质感，浅景深。叶谦坐在靠窗座位，拉下黑色眼罩靠向椅背。画面里的主体只有一位：叶谦。服装锁定 —— 叶谦：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/demo/s03",
+    "input": {
+      "shot": {
+        "shot_id": "s03",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "劫匪首领",
+          "西装中年人"
+        ],
+        "camera": "中景微推",
+        "visual_prompt": "【场景锚点】同一机舱，机位在过道中段微推。画面左侧过道站着人，画面右侧座椅上坐着人，背景是后方客舱。【角色】劫匪首领，光头、深色战术背心、手持 AK-47；西装中年人，黑色西装、白衬衫、粗金项链、大背头。【动作】劫匪首领站在左侧过道，将枪管抵在右侧座位上西装中年人的额头。【光线】冷光侧面打亮光头与枪管。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "<d>劫匪首领：值钱的都交出来！</d>",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "劫匪首领",
+        "西装中年人"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "劫匪首领": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead.",
+        "西装中年人": "A 40-year-old Chinese businessman, slicked-back hair, wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch. Arrogant expression, sweating heavily, mouth slightly open showing a gold tooth."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。中景微推。【场景锚点】同一机舱，机位在过道中段微推。画面左侧过道站着人，画面右侧座椅上坐着人，背景是后方客舱。【角色】劫匪首领，光头、深色战术背心、手持 AK-47；西装中年人，黑色西装、白衬衫、粗金项链、大背头。【动作】劫匪首领站在左侧过道，将枪管抵在右侧座位上西装中年人的额头。【光线】冷光侧面打亮光头与枪管。【画质】35mm 胶片质感，浅景深。劫匪首领站在左侧过道，将枪管抵在右侧座位上西装中年人的额头。At 00:00.800, 劫匪首领 (S1) 开口说：<d>[中文] 值钱的都交出来！</d>画面里的主体就是这 2 位：劫匪首领、西装中年人。服装锁定 —— 劫匪首领：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants；西装中年人：wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/demo/s04",
+    "input": {
+      "shot": {
+        "shot_id": "s04",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶谦",
+          "西装中年人"
+        ],
+        "camera": "近景平视",
+        "visual_prompt": "【场景锚点】同一机舱，近景平视。画面左侧前景是叶谦的侧脸，画面右侧背景是虚化的西装中年人。【角色】叶谦，寸头、脸颊浅疤、发白灰T恤；西装中年人，黑色西装、粗金项链。【动作】叶谦拉下眼罩，抬起右手食指指向右侧。【光线】叶谦脸部半明半暗。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "<d>叶谦：他嘴里还有颗金牙。</d>",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "叶谦",
+        "西装中年人"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶谦": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still.",
+        "西装中年人": "A 40-year-old Chinese businessman, slicked-back hair, wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch. Arrogant expression, sweating heavily, mouth slightly open showing a gold tooth."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。近景平视。【场景锚点】同一机舱，近景平视。画面左侧前景是叶谦的侧脸，画面右侧背景是虚化的西装中年人。【角色】叶谦，寸头、脸颊浅疤、发白灰T恤；西装中年人，黑色西装、粗金项链。【动作】叶谦拉下眼罩，抬起右手食指指向右侧。【光线】叶谦脸部半明半暗。【画质】35mm 胶片质感，浅景深。叶谦拉下眼罩，抬起右手食指指向右侧。At 00:00.800, 叶谦 (S1) 开口说：<d>[中文] 他嘴里还有颗金牙。</d>画面里的主体就是这 2 位：叶谦、西装中年人。服装锁定 —— 叶谦：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots；西装中年人：wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/demo/s05",
+    "input": {
+      "shot": {
+        "shot_id": "s05",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "劫匪首领",
+          "西装中年人"
+        ],
+        "camera": "近景侧拍",
+        "visual_prompt": "【场景锚点】同一机舱，近景侧拍。画面左侧是劫匪首领持枪的手臂，画面右侧是西装中年人的头部。【角色】劫匪首领，光头、战术背心；西装中年人，黑色西装、金项链、大背头。【动作】劫匪首领挥动枪托砸在右侧西装中年人侧脸。【光线】动作瞬间高光闪过面部。【画质】35mm 胶片质感，浅景深，轻微动态模糊。",
+        "dialogue": "<d>西装中年人：啊！</d>",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "劫匪首领",
+        "西装中年人"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "劫匪首领": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead.",
+        "西装中年人": "A 40-year-old Chinese businessman, slicked-back hair, wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch. Arrogant expression, sweating heavily, mouth slightly open showing a gold tooth."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。近景侧拍。【场景锚点】同一机舱，近景侧拍。画面左侧是劫匪首领持枪的手臂，画面右侧是西装中年人的头部。【角色】劫匪首领，光头、战术背心；西装中年人，黑色西装、金项链、大背头。【动作】劫匪首领挥动枪托砸在右侧西装中年人侧脸。【光线】动作瞬间高光闪过面部。【画质】35mm 胶片质感，浅景深，轻微动态模糊。劫匪首领挥动枪托砸在右侧西装中年人侧脸。At 00:00.800, 西装中年人 (S1) 开口说：<d>[中文] 啊！</d>画面里的主体就是这 2 位：劫匪首领、西装中年人。服装锁定 —— 劫匪首领：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants；西装中年人：wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，轻微动态模糊。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/demo/s06",
+    "input": {
+      "shot": {
+        "shot_id": "s06",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶谦",
+          "劫匪首领"
+        ],
+        "camera": "特写俯拍",
+        "visual_prompt": "【场景锚点】同一机舱，特写俯拍。画面下方是叶谦的胸口位置，画面上方是劫匪首领的枪管。【角色】叶谦，发白灰T恤；劫匪首领，战术背心、AK-47。【动作】劫匪首领将枪口顶在叶谦胸口，叶谦面无表情地举起双手。【光线】枪管金属反光刺眼。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "<d>叶谦：我衣服里没钱，自己搜。</d>",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "叶谦",
+        "劫匪首领"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶谦": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still.",
+        "劫匪首领": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。特写俯拍。【场景锚点】同一机舱，特写俯拍。画面下方是叶谦的胸口位置，画面上方是劫匪首领的枪管。【角色】叶谦，发白灰T恤；劫匪首领，战术背心、AK-47。【动作】劫匪首领将枪口顶在叶谦胸口，叶谦面无表情地举起双手。【光线】枪管金属反光刺眼。【画质】35mm 胶片质感，浅景深。劫匪首领将枪口顶在叶谦胸口，叶谦面无表情地举起双手。At 00:00.800, 叶谦 (S1) 开口说：<d>[中文] 我衣服里没钱，自己搜。</d>画面里的主体就是这 2 位：叶谦、劫匪首领。服装锁定 —— 叶谦：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots；劫匪首领：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/demo/s07",
+    "input": {
+      "shot": {
+        "shot_id": "s07",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶谦",
+          "劫匪首领"
+        ],
+        "camera": "近景仰拍",
+        "visual_prompt": "【场景锚点】同一机舱，近景仰拍。画面下方是坐着的叶谦，画面上方是弯下腰的劫匪首领。【角色】叶谦，寸头、发白灰T恤；劫匪首领，光头、战术背心。【动作】劫匪首领低头伸手去摸叶谦的靴子，叶谦低垂的眼神瞬间变得极度冷酷。【光线】叶谦眼部完全处于阴影中。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "叶谦",
+        "劫匪首领"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶谦": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still.",
+        "劫匪首领": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。近景仰拍。【场景锚点】同一机舱，近景仰拍。画面下方是坐着的叶谦，画面上方是弯下腰的劫匪首领。【角色】叶谦，寸头、发白灰T恤；劫匪首领，光头、战术背心。【动作】劫匪首领低头伸手去摸叶谦的靴子，叶谦低垂的眼神瞬间变得极度冷酷。【光线】叶谦眼部完全处于阴影中。【画质】35mm 胶片质感，浅景深。劫匪首领低头伸手去摸叶谦的靴子，叶谦低垂的眼神瞬间变得极度冷酷。画面里的主体就是这 2 位：叶谦、劫匪首领。服装锁定 —— 叶谦：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots；劫匪首领：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/demo/s08",
+    "input": {
+      "shot": {
+        "shot_id": "s08",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶谦",
+          "劫匪首领"
+        ],
+        "camera": "中景侧移",
+        "visual_prompt": "【场景锚点】同一机舱，中景侧移。画面左侧是叶谦的侧面，画面右侧是劫匪首领的侧面。【角色】叶谦，寸头、发白灰T恤；劫匪首领，光头、战术背心。【动作】叶谦猛地从靴筒抽出匕首，由下至上精准刺入右侧劫匪首领的胸口。【光线】鲜血溅出，画面闪过一抹暗红。【画质】35mm 胶片质感，浅景深，动作锐利。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "叶谦",
+        "劫匪首领"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶谦": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still.",
+        "劫匪首领": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。中景侧移。【场景锚点】同一机舱，中景侧移。画面左侧是叶谦的侧面，画面右侧是劫匪首领的侧面。【角色】叶谦，寸头、发白灰T恤；劫匪首领，光头、战术背心。【动作】叶谦猛地从靴筒抽出匕首，由下至上精准刺入右侧劫匪首领的胸口。【光线】鲜血溅出，画面闪过一抹暗红。【画质】35mm 胶片质感，浅景深，动作锐利。叶谦猛地从靴筒抽出匕首，由下至上精准刺入右侧劫匪首领的胸口。画面里的主体就是这 2 位：叶谦、劫匪首领。服装锁定 —— 叶谦：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots；劫匪首领：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，动作锐利。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/hijack_8/s01",
+    "input": {
+      "shot": {
+        "shot_id": "s01",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "中景平视固定",
+        "visual_prompt": "【场景锚点】横屏 16:9，客机头等舱，机位在过道中段平视朝机舱前方。画面左侧是透入冷光的舷窗，画面右侧是过道，航空座椅在中下部，顶部阅读灯带在上方。【角色】无人。【动作】阅读灯带轻微闪烁，舷窗透进刺眼冷光。【光线】顶部冷白荧光 + 左侧舷窗日光，冷调高对比。【画质】35mm 胶片质感，浅景深，真实质感。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "plate",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/hijack_8/scenes/plate.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。中景平视固定。【场景锚点】横屏 16:9，客机头等舱，机位在过道中段平视朝机舱前方。画面左侧是透入冷光的舷窗，画面右侧是过道，航空座椅在中下部，顶部阅读灯带在上方。【角色】无人。【动作】阅读灯带轻微闪烁，舷窗透进刺眼冷光。【光线】顶部冷白荧光 + 左侧舷窗日光，冷调高对比。【画质】35mm 胶片质感，浅景深，真实质感。阅读灯带轻微闪烁，舷窗透进刺眼冷光。画面中无人，只有环境与物件。35mm 胶片质感，浅景深，真实质感。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/hijack_8/s02",
+    "input": {
+      "shot": {
+        "shot_id": "s02",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶谦"
+        ],
+        "camera": "中景平视固定",
+        "visual_prompt": "【场景锚点】同一机舱，机位在过道中段平视。画面左侧舷窗，画面右侧过道，航空座椅在中下部。【角色】叶谦，寸头、脸颊浅疤、发白灰T恤、迷彩裤。【动作】叶谦坐在靠窗座位，拉下黑色眼罩靠向椅背。【光线】顶部冷白荧光，左侧舷窗冷光打亮侧脸。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "叶谦"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/hijack_8/scenes/plate.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶谦": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。中景平视固定。【场景锚点】同一机舱，机位在过道中段平视。画面左侧舷窗，画面右侧过道，航空座椅在中下部。【角色】叶谦，寸头、脸颊浅疤、发白灰T恤、迷彩裤。【动作】叶谦坐在靠窗座位，拉下黑色眼罩靠向椅背。【光线】顶部冷白荧光，左侧舷窗冷光打亮侧脸。【画质】35mm 胶片质感，浅景深。叶谦坐在靠窗座位，拉下黑色眼罩靠向椅背。画面里的主体只有一位：叶谦。服装锁定 —— 叶谦：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/hijack_8/s03",
+    "input": {
+      "shot": {
+        "shot_id": "s03",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "劫匪首领",
+          "西装中年人"
+        ],
+        "camera": "中景微推",
+        "visual_prompt": "【场景锚点】同一机舱，机位在过道中段微推。画面左侧过道站着人，画面右侧座椅上坐着人，背景是后方客舱。【角色】劫匪首领，光头、深色战术背心、手持 AK-47；西装中年人，黑色西装、白衬衫、粗金项链、大背头。【动作】劫匪首领站在左侧过道，将枪管抵在右侧座位上西装中年人的额头。【光线】冷光侧面打亮光头与枪管。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "<d>劫匪首领：值钱的都交出来！</d>",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "劫匪首领",
+        "西装中年人"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/hijack_8/scenes/plate.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "劫匪首领": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead.",
+        "西装中年人": "A 40-year-old Chinese businessman, slicked-back hair, wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch. Arrogant expression, sweating heavily, mouth slightly open showing a gold tooth."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。中景微推。【场景锚点】同一机舱，机位在过道中段微推。画面左侧过道站着人，画面右侧座椅上坐着人，背景是后方客舱。【角色】劫匪首领，光头、深色战术背心、手持 AK-47；西装中年人，黑色西装、白衬衫、粗金项链、大背头。【动作】劫匪首领站在左侧过道，将枪管抵在右侧座位上西装中年人的额头。【光线】冷光侧面打亮光头与枪管。【画质】35mm 胶片质感，浅景深。劫匪首领站在左侧过道，将枪管抵在右侧座位上西装中年人的额头。At 00:00.800, 劫匪首领 (S1) 开口说：<d>[中文] 值钱的都交出来！</d>画面里的主体就是这 2 位：劫匪首领、西装中年人。服装锁定 —— 劫匪首领：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants；西装中年人：wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/hijack_8/s04",
+    "input": {
+      "shot": {
+        "shot_id": "s04",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶谦",
+          "西装中年人"
+        ],
+        "camera": "近景平视",
+        "visual_prompt": "【场景锚点】同一机舱，近景平视。画面左侧前景是叶谦的侧脸，画面右侧背景是虚化的西装中年人。【角色】叶谦，寸头、脸颊浅疤、发白灰T恤；西装中年人，黑色西装、粗金项链。【动作】叶谦拉下眼罩，抬起右手食指指向右侧。【光线】叶谦脸部半明半暗。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "<d>叶谦：他嘴里还有颗金牙。</d>",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "叶谦",
+        "西装中年人"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/hijack_8/scenes/plate.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶谦": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still.",
+        "西装中年人": "A 40-year-old Chinese businessman, slicked-back hair, wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch. Arrogant expression, sweating heavily, mouth slightly open showing a gold tooth."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。近景平视。【场景锚点】同一机舱，近景平视。画面左侧前景是叶谦的侧脸，画面右侧背景是虚化的西装中年人。【角色】叶谦，寸头、脸颊浅疤、发白灰T恤；西装中年人，黑色西装、粗金项链。【动作】叶谦拉下眼罩，抬起右手食指指向右侧。【光线】叶谦脸部半明半暗。【画质】35mm 胶片质感，浅景深。叶谦拉下眼罩，抬起右手食指指向右侧。At 00:00.800, 叶谦 (S1) 开口说：<d>[中文] 他嘴里还有颗金牙。</d>画面里的主体就是这 2 位：叶谦、西装中年人。服装锁定 —— 叶谦：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots；西装中年人：wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/hijack_8/s05",
+    "input": {
+      "shot": {
+        "shot_id": "s05",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "劫匪首领",
+          "西装中年人"
+        ],
+        "camera": "近景侧拍",
+        "visual_prompt": "【场景锚点】同一机舱，近景侧拍。画面左侧是劫匪首领持枪的手臂，画面右侧是西装中年人的头部。【角色】劫匪首领，光头、战术背心；西装中年人，黑色西装、金项链、大背头。【动作】劫匪首领挥动枪托砸在右侧西装中年人侧脸。【光线】动作瞬间高光闪过面部。【画质】35mm 胶片质感，浅景深，轻微动态模糊。",
+        "dialogue": "<d>西装中年人：啊！</d>",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "劫匪首领",
+        "西装中年人"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/hijack_8/scenes/plate.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "劫匪首领": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead.",
+        "西装中年人": "A 40-year-old Chinese businessman, slicked-back hair, wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch. Arrogant expression, sweating heavily, mouth slightly open showing a gold tooth."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。近景侧拍。【场景锚点】同一机舱，近景侧拍。画面左侧是劫匪首领持枪的手臂，画面右侧是西装中年人的头部。【角色】劫匪首领，光头、战术背心；西装中年人，黑色西装、金项链、大背头。【动作】劫匪首领挥动枪托砸在右侧西装中年人侧脸。【光线】动作瞬间高光闪过面部。【画质】35mm 胶片质感，浅景深，轻微动态模糊。劫匪首领挥动枪托砸在右侧西装中年人侧脸。At 00:00.800, 西装中年人 (S1) 开口说：<d>[中文] 啊！</d>画面里的主体就是这 2 位：劫匪首领、西装中年人。服装锁定 —— 劫匪首领：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants；西装中年人：wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，轻微动态模糊。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/hijack_8/s06",
+    "input": {
+      "shot": {
+        "shot_id": "s06",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶谦",
+          "劫匪首领"
+        ],
+        "camera": "特写俯拍",
+        "visual_prompt": "【场景锚点】同一机舱，特写俯拍。画面下方是叶谦的胸口位置，画面上方是劫匪首领的枪管。【角色】叶谦，发白灰T恤；劫匪首领，战术背心、AK-47。【动作】劫匪首领将枪口顶在叶谦胸口，叶谦面无表情地举起双手。【光线】枪管金属反光刺眼。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "<d>叶谦：我衣服里没钱，自己搜。</d>",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "叶谦",
+        "劫匪首领"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/hijack_8/scenes/plate.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶谦": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still.",
+        "劫匪首领": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。特写俯拍。【场景锚点】同一机舱，特写俯拍。画面下方是叶谦的胸口位置，画面上方是劫匪首领的枪管。【角色】叶谦，发白灰T恤；劫匪首领，战术背心、AK-47。【动作】劫匪首领将枪口顶在叶谦胸口，叶谦面无表情地举起双手。【光线】枪管金属反光刺眼。【画质】35mm 胶片质感，浅景深。劫匪首领将枪口顶在叶谦胸口，叶谦面无表情地举起双手。At 00:00.800, 叶谦 (S1) 开口说：<d>[中文] 我衣服里没钱，自己搜。</d>画面里的主体就是这 2 位：叶谦、劫匪首领。服装锁定 —— 叶谦：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots；劫匪首领：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/hijack_8/s07",
+    "input": {
+      "shot": {
+        "shot_id": "s07",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶谦",
+          "劫匪首领"
+        ],
+        "camera": "近景仰拍",
+        "visual_prompt": "【场景锚点】同一机舱，近景仰拍。画面下方是坐着的叶谦，画面上方是弯下腰的劫匪首领。【角色】叶谦，寸头、发白灰T恤；劫匪首领，光头、战术背心。【动作】劫匪首领低头伸手去摸叶谦的靴子，叶谦低垂的眼神瞬间变得极度冷酷。【光线】叶谦眼部完全处于阴影中。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "叶谦",
+        "劫匪首领"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/hijack_8/scenes/plate.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶谦": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still.",
+        "劫匪首领": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。近景仰拍。【场景锚点】同一机舱，近景仰拍。画面下方是坐着的叶谦，画面上方是弯下腰的劫匪首领。【角色】叶谦，寸头、发白灰T恤；劫匪首领，光头、战术背心。【动作】劫匪首领低头伸手去摸叶谦的靴子，叶谦低垂的眼神瞬间变得极度冷酷。【光线】叶谦眼部完全处于阴影中。【画质】35mm 胶片质感，浅景深。劫匪首领低头伸手去摸叶谦的靴子，叶谦低垂的眼神瞬间变得极度冷酷。画面里的主体就是这 2 位：叶谦、劫匪首领。服装锁定 —— 叶谦：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots；劫匪首领：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/hijack_8/s08",
+    "input": {
+      "shot": {
+        "shot_id": "s08",
+        "scene_id": "scene_8ac7ba",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "叶谦",
+          "劫匪首领"
+        ],
+        "camera": "中景侧移",
+        "visual_prompt": "【场景锚点】同一机舱，中景侧移。画面左侧是叶谦的侧面，画面右侧是劫匪首领的侧面。【角色】叶谦，寸头、发白灰T恤；劫匪首领，光头、战术背心。【动作】叶谦猛地从靴筒抽出匕首，由下至上精准刺入右侧劫匪首领的胸口。【光线】鲜血溅出，画面闪过一抹暗红。【画质】35mm 胶片质感，浅景深，动作锐利。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "叶谦",
+        "劫匪首领"
+      ],
+      "scene": {
+        "scene_id": "scene_8ac7ba",
+        "location": "头等舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/hijack_8/scenes/plate.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "叶谦": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still.",
+        "劫匪首领": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。中景侧移。【场景锚点】同一机舱，中景侧移。画面左侧是叶谦的侧面，画面右侧是劫匪首领的侧面。【角色】叶谦，寸头、发白灰T恤；劫匪首领，光头、战术背心。【动作】叶谦猛地从靴筒抽出匕首，由下至上精准刺入右侧劫匪首领的胸口。【光线】鲜血溅出，画面闪过一抹暗红。【画质】35mm 胶片质感，浅景深，动作锐利。叶谦猛地从靴筒抽出匕首，由下至上精准刺入右侧劫匪首领的胸口。画面里的主体就是这 2 位：叶谦、劫匪首领。服装锁定 —— 叶谦：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots；劫匪首领：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，动作锐利。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/TheWolfKing: Hijack/s01",
+    "input": {
+      "shot": {
+        "shot_id": "s01",
+        "scene_id": "scene_first_class_cabin",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "Ye Qian（叶谦）"
+        ],
+        "camera": "中景平视固定",
+        "visual_prompt": "【场景锚点】横屏 16:9，First Class Cabin（客机头等舱），机位在过道平视。画面左侧是透入冷光的舷窗，画面右侧是过道。航空座椅在画面中下部，顶部阅读灯带在画面上方。【角色】Ye Qian（叶谦），寸头、脸颊浅疤、发白灰T恤、迷彩裤。【动作】Ye Qian（叶谦）坐在靠窗座位上，拉下黑色眼罩靠在椅背上。【光线】顶部冷白荧光为主，左侧舷窗透入刺眼日光，冷调高对比。【画质】35mm 胶片质感，浅景深，真实皮肤纹理。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "plate",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "Ye Qian（叶谦）"
+      ],
+      "scene": {
+        "scene_id": "scene_first_class_cabin",
+        "location": "First Class Cabin（客机头等舱）",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/TheWolfKing: Hijack/scenes/scene_first_class_cabin_20261114T224818.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "Ye Qian（叶谦）": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。中景平视固定。【场景锚点】横屏 16:9，First Class Cabin（客机头等舱），机位在过道平视。画面左侧是透入冷光的舷窗，画面右侧是过道。航空座椅在画面中下部，顶部阅读灯带在画面上方。【角色】Ye Qian（叶谦），寸头、脸颊浅疤、发白灰T恤、迷彩裤。【动作】Ye Qian（叶谦）坐在靠窗座位上，拉下黑色眼罩靠在椅背上。【光线】顶部冷白荧光为主，左侧舷窗透入刺眼日光，冷调高对比。【画质】35mm 胶片质感，浅景深，真实皮肤纹理。Ye Qian（叶谦）坐在靠窗座位上，拉下黑色眼罩靠在椅背上。画面里的主体只有一位：Ye Qian（叶谦）。服装锁定 —— Ye Qian（叶谦）：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，真实皮肤纹理。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/TheWolfKing: Hijack/s03",
+    "input": {
+      "shot": {
+        "shot_id": "s03",
+        "scene_id": "scene_first_class_cabin",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "Ye Qian（叶谦）",
+          "Businessman（西装中年人）"
+        ],
+        "camera": "近景平视",
+        "visual_prompt": "【场景锚点】同一机舱，近景平视。画面左侧前景是Ye Qian（叶谦）的侧脸，画面右侧背景是虚化的Businessman（西装中年人）。【角色】Ye Qian（叶谦），寸头、脸颊浅疤、发白灰T恤；Businessman（西装中年人），西装革履、金项链。【动作】Ye Qian（叶谦）拉下眼罩，抬起右手食指指向右侧的Businessman（西装中年人）。【光线】同上，Ye Qian（叶谦）脸部半明半暗。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "<d>Ye Qian（叶谦）：他嘴里还有颗金牙。</d>",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "Ye Qian（叶谦）",
+        "Businessman（西装中年人）"
+      ],
+      "scene": {
+        "scene_id": "scene_first_class_cabin",
+        "location": "First Class Cabin（客机头等舱）",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/TheWolfKing: Hijack/scenes/scene_first_class_cabin_20261114T224818.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "Ye Qian（叶谦）": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still.",
+        "Businessman（西装中年人）": "A 40-year-old Chinese businessman, slicked-back hair, wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch. Arrogant expression, sweating heavily, mouth slightly open showing a gold tooth."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。近景平视。【场景锚点】同一机舱，近景平视。画面左侧前景是Ye Qian（叶谦）的侧脸，画面右侧背景是虚化的Businessman（西装中年人）。【角色】Ye Qian（叶谦），寸头、脸颊浅疤、发白灰T恤；Businessman（西装中年人），西装革履、金项链。【动作】Ye Qian（叶谦）拉下眼罩，抬起右手食指指向右侧的Businessman（西装中年人）。【光线】同上，Ye Qian（叶谦）脸部半明半暗。【画质】35mm 胶片质感，浅景深。Ye Qian（叶谦）拉下眼罩，抬起右手食指指向右侧的Businessman（西装中年人）。At 00:00.800, Ye Qian（叶谦） (S1) 开口说：<d>[中文] 他嘴里还有颗金牙。</d>画面里的主体就是这 2 位：Ye Qian（叶谦）、Businessman（西装中年人）。服装锁定 —— Ye Qian（叶谦）：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots；Businessman（西装中年人）：wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/TheWolfKing: Hijack/s04",
+    "input": {
+      "shot": {
+        "shot_id": "s04",
+        "scene_id": "scene_first_class_cabin",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "Hijacker Leader（劫匪首领）",
+          "Businessman（西装中年人）"
+        ],
+        "camera": "近景侧拍",
+        "visual_prompt": "【场景锚点】同一机舱，近景侧拍。画面左侧是Hijacker Leader（劫匪首领）持枪的手臂，画面右侧是Businessman（西装中年人）的头部。【角色】Hijacker Leader（劫匪首领），光头、战术背心；Businessman（西装中年人），西装革履、金项链。【动作】Hijacker Leader（劫匪首领）挥动枪托，重重砸在右侧Businessman（西装中年人）的侧脸上，金牙飞出。【光线】同上，动作瞬间高光闪过面部。【画质】35mm 胶片质感，浅景深，轻微动态模糊。",
+        "dialogue": "<d>Businessman（西装中年人）：啊！</d>",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "Hijacker Leader（劫匪首领）",
+        "Businessman（西装中年人）"
+      ],
+      "scene": {
+        "scene_id": "scene_first_class_cabin",
+        "location": "First Class Cabin（客机头等舱）",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/TheWolfKing: Hijack/scenes/scene_first_class_cabin_20261114T224818.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "Hijacker Leader（劫匪首领）": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead.",
+        "Businessman（西装中年人）": "A 40-year-old Chinese businessman, slicked-back hair, wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch. Arrogant expression, sweating heavily, mouth slightly open showing a gold tooth."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。近景侧拍。【场景锚点】同一机舱，近景侧拍。画面左侧是Hijacker Leader（劫匪首领）持枪的手臂，画面右侧是Businessman（西装中年人）的头部。【角色】Hijacker Leader（劫匪首领），光头、战术背心；Businessman（西装中年人），西装革履、金项链。【动作】Hijacker Leader（劫匪首领）挥动枪托，重重砸在右侧Businessman（西装中年人）的侧脸上，金牙飞出。【光线】同上，动作瞬间高光闪过面部。【画质】35mm 胶片质感，浅景深，轻微动态模糊。Hijacker Leader（劫匪首领）挥动枪托，重重砸在右侧Businessman（西装中年人）的侧脸上，金牙飞出。At 00:00.800, (S1) 开口说：<d>[中文] Businessman（西装中年人）：啊！</d>画面里的主体就是这 2 位：Hijacker Leader（劫匪首领）、Businessman（西装中年人）。服装锁定 —— Hijacker Leader（劫匪首领）：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants；Businessman（西装中年人）：wearing an expensive black suit with a white shirt, a thick gold necklace, and a flashy watch。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，轻微动态模糊。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/TheWolfKing: Hijack/s05",
+    "input": {
+      "shot": {
+        "shot_id": "s05",
+        "scene_id": "scene_first_class_cabin",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "Ye Qian（叶谦）",
+          "Hijacker Leader（劫匪首领）"
+        ],
+        "camera": "特写俯拍",
+        "visual_prompt": "【场景锚点】同一机舱，特写俯拍。画面下方是Ye Qian（叶谦）的胸口位置，画面上方是Hijacker Leader（劫匪首领）的枪管。【角色】Ye Qian（叶谦），发白灰T恤；Hijacker Leader（劫匪首领），战术背心、AK-47。【动作】Hijacker Leader（劫匪首领）将枪口死死顶在Ye Qian（叶谦）胸口，Ye Qian（叶谦）面无表情地举起双手。【光线】同上，枪管金属反光刺眼。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "<d>Ye Qian（叶谦）：我衣服里没钱，自己搜。</d>",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "Ye Qian（叶谦）",
+        "Hijacker Leader（劫匪首领）"
+      ],
+      "scene": {
+        "scene_id": "scene_first_class_cabin",
+        "location": "First Class Cabin（客机头等舱）",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/TheWolfKing: Hijack/scenes/scene_first_class_cabin_20261114T224818.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "Ye Qian（叶谦）": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still.",
+        "Hijacker Leader（劫匪首领）": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。特写俯拍。【场景锚点】同一机舱，特写俯拍。画面下方是Ye Qian（叶谦）的胸口位置，画面上方是Hijacker Leader（劫匪首领）的枪管。【角色】Ye Qian（叶谦），发白灰T恤；Hijacker Leader（劫匪首领），战术背心、AK-47。【动作】Hijacker Leader（劫匪首领）将枪口死死顶在Ye Qian（叶谦）胸口，Ye Qian（叶谦）面无表情地举起双手。【光线】同上，枪管金属反光刺眼。【画质】35mm 胶片质感，浅景深。Hijacker Leader（劫匪首领）将枪口死死顶在Ye Qian（叶谦）胸口，Ye Qian（叶谦）面无表情地举起双手。At 00:00.800, Ye Qian（叶谦） (S1) 开口说：<d>[中文] 我衣服里没钱，自己搜。</d>画面里的主体就是这 2 位：Ye Qian（叶谦）、Hijacker Leader（劫匪首领）。服装锁定 —— Ye Qian（叶谦）：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots；Hijacker Leader（劫匪首领）：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/TheWolfKing: Hijack/s06",
+    "input": {
+      "shot": {
+        "shot_id": "s06",
+        "scene_id": "scene_first_class_cabin",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "Ye Qian（叶谦）",
+          "Hijacker Leader（劫匪首领）"
+        ],
+        "camera": "近景仰拍",
+        "visual_prompt": "【场景锚点】同一机舱，近景仰拍。画面下方是坐着的Ye Qian（叶谦），画面上方是弯下腰的Hijacker Leader（劫匪首领）。【角色】Ye Qian（叶谦），寸头、发白灰T恤；Hijacker Leader（劫匪首领），光头、战术背心。【动作】Hijacker Leader（劫匪首领）低头伸手去摸Ye Qian（叶谦）的靴子，Ye Qian（叶谦）低垂的眼神瞬间变得极其冷酷。【光线】同上，Ye Qian（叶谦）眼部完全处于阴影中。【画质】35mm 胶片质感，浅景深。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "Ye Qian（叶谦）",
+        "Hijacker Leader（劫匪首领）"
+      ],
+      "scene": {
+        "scene_id": "scene_first_class_cabin",
+        "location": "First Class Cabin（客机头等舱）",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/TheWolfKing: Hijack/scenes/scene_first_class_cabin_20261114T224818.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "Ye Qian（叶谦）": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still.",
+        "Hijacker Leader（劫匪首领）": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。近景仰拍。【场景锚点】同一机舱，近景仰拍。画面下方是坐着的Ye Qian（叶谦），画面上方是弯下腰的Hijacker Leader（劫匪首领）。【角色】Ye Qian（叶谦），寸头、发白灰T恤；Hijacker Leader（劫匪首领），光头、战术背心。【动作】Hijacker Leader（劫匪首领）低头伸手去摸Ye Qian（叶谦）的靴子，Ye Qian（叶谦）低垂的眼神瞬间变得极其冷酷。【光线】同上，Ye Qian（叶谦）眼部完全处于阴影中。【画质】35mm 胶片质感，浅景深。Hijacker Leader（劫匪首领）低头伸手去摸Ye Qian（叶谦）的靴子，Ye Qian（叶谦）低垂的眼神瞬间变得极其冷酷。画面里的主体就是这 2 位：Ye Qian（叶谦）、Hijacker Leader（劫匪首领）。服装锁定 —— Ye Qian（叶谦）：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots；Hijacker Leader（劫匪首领）：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/TheWolfKing: Hijack/s07",
+    "input": {
+      "shot": {
+        "shot_id": "s07",
+        "scene_id": "scene_first_class_cabin",
+        "duration_sec": 5.0,
+        "characters_present": [
+          "Ye Qian（叶谦）",
+          "Hijacker Leader（劫匪首领）"
+        ],
+        "camera": "中景侧移",
+        "visual_prompt": "【场景锚点】同一机舱，中景侧移。画面左侧是Ye Qian（叶谦）的侧面，画面右侧是Hijacker Leader（劫匪首领）的侧面。【角色】Ye Qian（叶谦），寸头、发白灰T恤；Hijacker Leader（劫匪首领），光头、战术背心。【动作】Ye Qian（叶谦）猛地从靴筒抽出匕首，由下至上精准刺入右侧Hijacker Leader（劫匪首领）的心脏。【光线】同上，鲜血溅出，画面闪过一抹暗红。【画质】35mm 胶片质感，浅景深，动作锐利。\n```",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, high tension, confined space, cold steel blue, harsh practical lighting, 35mm film grain, realistic skin texture",
+      "cast_names": [
+        "Ye Qian（叶谦）",
+        "Hijacker Leader（劫匪首领）"
+      ],
+      "scene": {
+        "scene_id": "scene_first_class_cabin",
+        "location": "First Class Cabin（客机头等舱）",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/TheWolfKing: Hijack/scenes/scene_first_class_cabin_20261114T224818.jpg"
+        ],
+        "camera": "机舱过道中段，平视朝机舱前方（驾驶室方向），中景为主",
+        "props": "航空座椅（过道两侧并列排布）、左侧舷窗（透入冷光）、顶部冷白阅读灯带、过道地毯",
+        "light": "顶部冷白荧光灯 + 左侧舷窗刺眼日光，冷调，高对比度"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {
+        "Ye Qian（叶谦）": "A 28-year-old Chinese man, military buzz cut, a thin pale scar on his cheek, calm and unreadable eyes. Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots. Lean and muscular, sitting completely still.",
+        "Hijacker Leader（劫匪首领）": "A 35-year-old man, shaved head, wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants. Holding an AK-47 assault rifle. Fierce and nervous expression, sweat on his forehead."
+      }
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，high tension，confined space，cold steel blue，harsh practical lighting，35mm film grain，realistic skin texture。中景侧移。【场景锚点】同一机舱，中景侧移。画面左侧是Ye Qian（叶谦）的侧面，画面右侧是Hijacker Leader（劫匪首领）的侧面。【角色】Ye Qian（叶谦），寸头、发白灰T恤；Hijacker Leader（劫匪首领），光头、战术背心。【动作】Ye Qian（叶谦）猛地从靴筒抽出匕首，由下至上精准刺入右侧Hijacker Leader（劫匪首领）的心脏。【光线】同上，鲜血溅出，画面闪过一抹暗红。【画质】35mm 胶片质感，浅景深，动作锐利。\n```Ye Qian（叶谦）猛地从靴筒抽出匕首，由下至上精准刺入右侧Hijacker Leader（劫匪首领）的心脏。画面里的主体就是这 2 位：Ye Qian（叶谦）、Hijacker Leader（劫匪首领）。服装锁定 —— Ye Qian（叶谦）：Wearing a washed-out light grey t-shirt, camouflage cargo pants, and dusty black combat boots；Hijacker Leader（劫匪首领）：wearing a dark tactical vest over a black long-sleeve shirt, dark cargo pants。（每个人物在整部片子里保持同一套服装）。35mm 胶片质感，浅景深，动作锐利。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；本镜只有环境声，无人声\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/guilin/s01",
+    "input": {
+      "shot": {
+        "shot_id": "s01",
+        "scene_id": "scene_e671d1",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "广角，平飞前推",
+        "visual_prompt": "【场景锚点】横屏 16:9，第一人称飞行视角，高度约离江面 60 米，朝峰林纵深。画面中部是一条江面反光，左右各有一座细高的喀斯特石峰，远处三层峰林层层变淡，晨雾在山腰。【角色】无人。【动作】镜头平稳前推，最近的两座石峰在画面里缓慢变大。【光线】清晨侧逆光，左侧峰体被照亮、右侧处于阴影，空气中有薄雾。【画质】aerial POV, 24mm wide, morning haze, soft natural light, 35mm film grain, cinematic。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "plate",
+        "chain_ref": false
+      },
+      "style": "aerial POV, karst peaks, morning haze, 24mm wide, soft natural light, 35mm film grain, cinematic",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_e671d1",
+        "location": "漓江峰林",
+        "time_of_day": "",
+        "atmosphere": "清晨侧逆光，左侧峰体受光、右侧阴影，山腰有薄雾",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/guilin/scenes/scene_e671d1_20261114T172542.jpg"
+        ],
+        "camera": "离江面 40–70 米，朝峰林纵深，第一人称飞行视角",
+        "props": "江面反光（画面中部）、近处两座细高石峰（左、右）、远处三层峰林（画面中央偏上）",
+        "light": "清晨侧逆光，左侧峰体受光、右侧阴影，山腰有薄雾"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] aerial POV，karst peaks，morning haze，24mm wide，soft natural light，35mm film grain，cinematic。广角，平飞前推。【场景锚点】横屏 16:9，第一人称飞行视角，高度约离江面 60 米，朝峰林纵深。画面中部是一条江面反光，左右各有一座细高的喀斯特石峰，远处三层峰林层层变淡，晨雾在山腰。【角色】无人。【动作】镜头平稳前推，最近的两座石峰在画面里缓慢变大。【光线】清晨侧逆光，左侧峰体被照亮、右侧处于阴影，空气中有薄雾。【画质】aerial POV, 24mm wide, morning haze, soft natural light, 35mm film grain, cinematic。镜头平稳前推，最近的两座石峰在画面里缓慢变大。画面中无人，只有环境与物件。aerial POV, 24mm wide, morning haze, soft natural light, 35mm film grain, cinematic。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/guilin/s02",
+    "input": {
+      "shot": {
+        "shot_id": "s02",
+        "scene_id": "scene_e671d1",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "广角，高度略降",
+        "visual_prompt": "【场景锚点】横屏 16:9，第一人称飞行视角，高度略降。两座细高石峰已来到画面左右两侧、占满左右边缘，中间只留一条天空缝隙；缝隙正对着一座更高的山峰，峰顶被日光打亮。【角色】无人。【动作】双峰从画面两侧向后方掠过，中间那座更高的山峰迅速变大。【光线】逆光，缝隙里透出的光在画面中央形成亮区，两侧峰体压暗。【画质】aerial POV, 24mm wide, morning haze, 35mm film grain, cinematic。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "aerial POV, karst peaks, morning haze, 24mm wide, soft natural light, 35mm film grain, cinematic",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_e671d1",
+        "location": "漓江峰林",
+        "time_of_day": "",
+        "atmosphere": "清晨侧逆光，左侧峰体受光、右侧阴影，山腰有薄雾",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/guilin/scenes/scene_e671d1_20261114T172542.jpg"
+        ],
+        "camera": "离江面 40–70 米，朝峰林纵深，第一人称飞行视角",
+        "props": "江面反光（画面中部）、近处两座细高石峰（左、右）、远处三层峰林（画面中央偏上）",
+        "light": "清晨侧逆光，左侧峰体受光、右侧阴影，山腰有薄雾"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] aerial POV，karst peaks，morning haze，24mm wide，soft natural light，35mm film grain，cinematic。广角，高度略降。【场景锚点】横屏 16:9，第一人称飞行视角，高度略降。两座细高石峰已来到画面左右两侧、占满左右边缘，中间只留一条天空缝隙；缝隙正对着一座更高的山峰，峰顶被日光打亮。【角色】无人。【动作】双峰从画面两侧向后方掠过，中间那座更高的山峰迅速变大。【光线】逆光，缝隙里透出的光在画面中央形成亮区，两侧峰体压暗。【画质】aerial POV, 24mm wide, morning haze, 35mm film grain, cinematic。双峰从画面两侧向后方掠过，中间那座更高的山峰迅速变大。画面中无人，只有环境与物件。aerial POV, 24mm wide, morning haze, 35mm film grain, cinematic。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/guilin/s03",
+    "input": {
+      "shot": {
+        "shot_id": "s03",
+        "scene_id": "scene_e671d1",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "广角，机身左倾",
+        "visual_prompt": "【场景锚点】横屏 16:9，第一人称飞行视角。地平线明显右高左低，画面整体向左倾斜；右侧是一座更高的山体，山脊线沿画面右缘向上延伸，下方江面在画面左下角。【角色】无人。【动作】机身继续向左压弯，山脊线缓慢上移，云影从画面左侧掠过。【光线】逆光偏侧，山体边缘有一圈亮边，谷底仍在阴影里。【画质】aerial POV, 24mm wide, morning haze, 35mm film grain, cinematic。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "aerial POV, karst peaks, morning haze, 24mm wide, soft natural light, 35mm film grain, cinematic",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_e671d1",
+        "location": "漓江峰林",
+        "time_of_day": "",
+        "atmosphere": "清晨侧逆光，左侧峰体受光、右侧阴影，山腰有薄雾",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/guilin/scenes/scene_e671d1_20261114T172542.jpg"
+        ],
+        "camera": "离江面 40–70 米，朝峰林纵深，第一人称飞行视角",
+        "props": "江面反光（画面中部）、近处两座细高石峰（左、右）、远处三层峰林（画面中央偏上）",
+        "light": "清晨侧逆光，左侧峰体受光、右侧阴影，山腰有薄雾"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] aerial POV，karst peaks，morning haze，24mm wide，soft natural light，35mm film grain，cinematic。广角，机身左倾。【场景锚点】横屏 16:9，第一人称飞行视角。地平线明显右高左低，画面整体向左倾斜；右侧是一座更高的山体，山脊线沿画面右缘向上延伸，下方江面在画面左下角。【角色】无人。【动作】机身继续向左压弯，山脊线缓慢上移，云影从画面左侧掠过。【光线】逆光偏侧，山体边缘有一圈亮边，谷底仍在阴影里。【画质】aerial POV, 24mm wide, morning haze, 35mm film grain, cinematic。机身继续向左压弯，山脊线缓慢上移，云影从画面左侧掠过。画面中无人，只有环境与物件。aerial POV, 24mm wide, morning haze, 35mm film grain, cinematic。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/guilin/s04",
+    "input": {
+      "shot": {
+        "shot_id": "s04",
+        "scene_id": "scene_e671d1",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "广角，机身回正",
+        "visual_prompt": "【场景锚点】横屏 16:9，第一人称飞行视角，机身已回正。画面下方是江面与河湾，中景两层峰林，远处第三层峰林几乎融进雾里，层次由深到浅。【角色】无人。【动作】远处峰林从画面下方升起并逐渐变大，江面反光带在画面下半部缓慢左移。【光线】顺光，峰体正面受光，雾层发白。【画质】aerial POV, 24mm wide, morning haze, 35mm film grain, cinematic。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "aerial POV, karst peaks, morning haze, 24mm wide, soft natural light, 35mm film grain, cinematic",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_e671d1",
+        "location": "漓江峰林",
+        "time_of_day": "",
+        "atmosphere": "清晨侧逆光，左侧峰体受光、右侧阴影，山腰有薄雾",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/guilin/scenes/scene_e671d1_20261114T172542.jpg"
+        ],
+        "camera": "离江面 40–70 米，朝峰林纵深，第一人称飞行视角",
+        "props": "江面反光（画面中部）、近处两座细高石峰（左、右）、远处三层峰林（画面中央偏上）",
+        "light": "清晨侧逆光，左侧峰体受光、右侧阴影，山腰有薄雾"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] aerial POV，karst peaks，morning haze，24mm wide，soft natural light，35mm film grain，cinematic。广角，机身回正。【场景锚点】横屏 16:9，第一人称飞行视角，机身已回正。画面下方是江面与河湾，中景两层峰林，远处第三层峰林几乎融进雾里，层次由深到浅。【角色】无人。【动作】远处峰林从画面下方升起并逐渐变大，江面反光带在画面下半部缓慢左移。【光线】顺光，峰体正面受光，雾层发白。【画质】aerial POV, 24mm wide, morning haze, 35mm film grain, cinematic。远处峰林从画面下方升起并逐渐变大，江面反光带在画面下半部缓慢左移。画面中无人，只有环境与物件。aerial POV, 24mm wide, morning haze, 35mm film grain, cinematic。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/guilin/s05",
+    "input": {
+      "shot": {
+        "shot_id": "s05",
+        "scene_id": "scene_e671d1",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "广角，机身右倾收尾",
+        "visual_prompt": "【场景锚点】横屏 16:9，第一人称飞行视角。地平线左高右低，画面整体向右倾斜；右下方是江湾的一个回弯，三座小峰立在湾口，远处峰林在画面左上。【角色】无人。【动作】机身向右压弯，江湾滑入画面右下角，画面上缘露出更多天空。【光线】侧光，江面有细碎高光，峰林背面偏暗。【画质】aerial POV, 24mm wide, morning haze, 35mm film grain, cinematic。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "aerial POV, karst peaks, morning haze, 24mm wide, soft natural light, 35mm film grain, cinematic",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_e671d1",
+        "location": "漓江峰林",
+        "time_of_day": "",
+        "atmosphere": "清晨侧逆光，左侧峰体受光、右侧阴影，山腰有薄雾",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/guilin/scenes/scene_e671d1_20261114T172542.jpg"
+        ],
+        "camera": "离江面 40–70 米，朝峰林纵深，第一人称飞行视角",
+        "props": "江面反光（画面中部）、近处两座细高石峰（左、右）、远处三层峰林（画面中央偏上）",
+        "light": "清晨侧逆光，左侧峰体受光、右侧阴影，山腰有薄雾"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] aerial POV，karst peaks，morning haze，24mm wide，soft natural light，35mm film grain，cinematic。广角，机身右倾收尾。【场景锚点】横屏 16:9，第一人称飞行视角。地平线左高右低，画面整体向右倾斜；右下方是江湾的一个回弯，三座小峰立在湾口，远处峰林在画面左上。【角色】无人。【动作】机身向右压弯，江湾滑入画面右下角，画面上缘露出更多天空。【光线】侧光，江面有细碎高光，峰林背面偏暗。【画质】aerial POV, 24mm wide, morning haze, 35mm film grain, cinematic。机身向右压弯，江湾滑入画面右下角，画面上缘露出更多天空。画面中无人，只有环境与物件。aerial POV, 24mm wide, morning haze, 35mm film grain, cinematic。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/demo_land/s01",
+    "input": {
+      "shot": {
+        "shot_id": "s01",
+        "scene_id": "scene_b752dc",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "中景，平视固定",
+        "visual_prompt": "【场景锚点】北京老胡同午后，青砖墙、红漆院门、门槛，晾衣绳横在门前；中景平视，主体占画面 60%。【角色】无人。【动作】晾衣绳上的白衬衫被风吹起，衣角翻动。【光线】午后偏暖侧光，墙面亮、门洞暗，槐树影子落在墙上。【画质】35mm 胶片质感，浅景深，自然光，轻微颗粒。",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_b752dc",
+        "location": "胡同",
+        "time_of_day": "",
+        "atmosphere": "午后侧光",
+        "reference_image": null,
+        "images": [],
+        "camera": "平视，略低",
+        "props": "无",
+        "light": "午后侧光"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] 中景，平视固定。【场景锚点】北京老胡同午后，青砖墙、红漆院门、门槛，晾衣绳横在门前；中景平视，主体占画面 60%。【角色】无人。【动作】晾衣绳上的白衬衫被风吹起，衣角翻动。【光线】午后偏暖侧光，墙面亮、门洞暗，槐树影子落在墙上。【画质】35mm 胶片质感，浅景深，自然光，轻微颗粒。晾衣绳上的白衬衫被风吹起，衣角翻动。画面中无人，只有环境与物件。35mm 胶片质感，浅景深，自然光，轻微颗粒。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/demo_film/s01",
+    "input": {
+      "shot": {
+        "shot_id": "s01",
+        "scene_id": "scene_a",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "中景平视",
+        "visual_prompt": "演示：空镜，无人物",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "plate",
+        "chain_ref": false
+      },
+      "style": "cinematic, 9:16 vertical",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_a",
+        "location": "演示场景A",
+        "time_of_day": "",
+        "atmosphere": "冷白顶光",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/demo_film/scenes/scene_a.jpg"
+        ],
+        "camera": "平视固定",
+        "props": "桌（中）、窗（右）",
+        "light": "冷白顶光"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，9:16 vertical。中景平视。演示：空镜，无人物画面中无人，只有环境与物件。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/demo_film/s02",
+    "input": {
+      "shot": {
+        "shot_id": "s02",
+        "scene_id": "scene_a",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "近景",
+        "visual_prompt": "改一下 s02",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, 9:16 vertical",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_a",
+        "location": "演示场景A",
+        "time_of_day": "",
+        "atmosphere": "冷白顶光",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/demo_film/scenes/scene_a.jpg"
+        ],
+        "camera": "平视固定",
+        "props": "桌（中）、窗（右）",
+        "light": "冷白顶光"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，9:16 vertical。近景。改一下 s02画面中无人，只有环境与物件。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/demo_film/s03",
+    "input": {
+      "shot": {
+        "shot_id": "s03",
+        "scene_id": "scene_a",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "特写",
+        "visual_prompt": "演示：切走的镜头",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "cinematic, 9:16 vertical",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_a",
+        "location": "演示场景A",
+        "time_of_day": "",
+        "atmosphere": "冷白顶光",
+        "reference_image": null,
+        "images": [
+          "/home/agent/openvideo/studio-data/projects/demo_film/scenes/scene_a.jpg"
+        ],
+        "camera": "平视固定",
+        "props": "桌（中）、窗（右）",
+        "light": "冷白顶光"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic，9:16 vertical。特写。演示：切走的镜头画面中无人，只有环境与物件。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/import_demo/s01",
+    "input": {
+      "shot": {
+        "shot_id": "s01",
+        "scene_id": "scene_6bdb9f",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "中景平视",
+        "visual_prompt": "【场景锚点】采样舱空镜，样台中，冷白+冷青【角色】无人【动作】指示灯呼吸",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "plate",
+        "chain_ref": false
+      },
+      "style": "hard sci-fi, brushed metal, cold teal, 35mm film grain",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_6bdb9f",
+        "location": "采样舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白，左侧冷青",
+        "reference_image": null,
+        "images": [],
+        "camera": "样本台后方平视",
+        "props": "样本台（中）、样本柜（左）、舷窗（右）",
+        "light": "顶部冷白，左侧冷青"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] hard sci-fi，brushed metal，cold teal，35mm film grain。中景平视。【场景锚点】采样舱空镜，样台中，冷白+冷青【角色】无人【动作】指示灯呼吸指示灯呼吸。画面中无人，只有环境与物件。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/import_demo/s02",
+    "input": {
+      "shot": {
+        "shot_id": "s02",
+        "scene_id": "scene_6bdb9f",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "近景轻推",
+        "visual_prompt": "【场景锚点】采样舱近景【角色】林澈【动作】俯身触碰夹具",
+        "dialogue": "<d>林澈：矿脉在脉冲。</d>",
+        "soundscape": "",
+        "music": "",
+        "transition": "chain",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "hard sci-fi, brushed metal, cold teal, 35mm film grain",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_6bdb9f",
+        "location": "采样舱",
+        "time_of_day": "",
+        "atmosphere": "顶部冷白，左侧冷青",
+        "reference_image": null,
+        "images": [],
+        "camera": "样本台后方平视",
+        "props": "样本台（中）、样本柜（左）、舷窗（右）",
+        "light": "顶部冷白，左侧冷青"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] hard sci-fi，brushed metal，cold teal，35mm film grain。近景轻推。【场景锚点】采样舱近景【角色】林澈【动作】俯身触碰夹具俯身触碰夹具。At 00:00.800, 林澈 (S1) 开口说：<d>[中文] 矿脉在脉冲。</d>画面中无人，只有环境与物件。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "project/import_demo/s03",
+    "input": {
+      "shot": {
+        "shot_id": "s03",
+        "scene_id": "scene_6cb5c2",
+        "duration_sec": 5.0,
+        "characters_present": [],
+        "camera": "近景",
+        "visual_prompt": "【场景锚点】气闸舱近景【角色】林澈【动作】按住转轮",
+        "dialogue": "<d>林澈：它在回应。</d>",
+        "soundscape": "",
+        "music": "",
+        "transition": "cut",
+        "anchor": "",
+        "chain_ref": false
+      },
+      "style": "hard sci-fi, brushed metal, cold teal, 35mm film grain",
+      "cast_names": [],
+      "scene": {
+        "scene_id": "scene_6cb5c2",
+        "location": "气闸舱",
+        "time_of_day": "",
+        "atmosphere": "顶部应急灯，门缝冷蓝",
+        "reference_image": null,
+        "images": [],
+        "camera": "内侧朝外门",
+        "props": "圆门（中）、转轮（左）、压力表（右）",
+        "light": "顶部应急灯，门缝冷蓝"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] hard sci-fi，brushed metal，cold teal，35mm film grain。近景。【场景锚点】气闸舱近景【角色】林澈【动作】按住转轮按住转轮。At 00:00.800, 林澈 (S1) 开口说：<d>[中文] 它在回应。</d>画面中无人，只有环境与物件。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。；人声只有上面这一句台词\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "edge/edge_structured",
+    "input": {
+      "shot": {
+        "shot_id": "edge_structured",
+        "visual_prompt": "【机位】景别=中景；高度=平视；角度=正面；运镜=固定；距离=1.5\n【人物】甲：位置=左；层级=前景；朝向=面向镜头；视线=看对方；对象=乙；占比=60%\n乙：位置=右；层级=中景；朝向=左3-4侧；视线=看对方；对象=甲；占比=55%\n【关系】面对面\n【动作】这个动作会被节奏替代\n【节奏】0.0 站定 | 2.0 切近景，拱手\n【场景】古庙前殿\n【画质】35mm 胶片质感",
+        "camera": "中景",
+        "dialogue": "<d>甲→乙：请留步。</d>",
+        "soundscape": "檐角风铃轻响",
+        "music": "低音鼓，慢速",
+        "characters_present": [
+          "甲",
+          "乙"
+        ]
+      },
+      "style": "cinematic",
+      "cast_names": [
+        "甲",
+        "乙"
+      ],
+      "scene": {
+        "scene_id": "temple",
+        "location": "古庙前殿"
+      },
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic。medium shot, eye level, frontal, static camera, 1.5 meters from the subject. 甲 (left of frame, foreground, facing the camera, looking at 乙, occupies 60% of frame height); 乙 (right of frame, midground, three-quarter turn to the left, looking at 甲, occupies 55% of frame height). the two face each other, their eye lines meet。古庙前殿。开场：站定。At 00:00.800, 甲 对 乙 (S1) 开口说：<d>[中文] 请留步。</d>At 00:02.000, the camera cuts to 近景，拱手。画面里的主体就是这 2 位：甲、乙。35mm 胶片质感。\n\noverall_soundscape: 檐角风铃轻响；人声只有上面这一句台词\n\nnon_diegetic_music: 低音鼓，慢速"
+  },
+  {
+    "key": "edge/edge_plain",
+    "input": {
+      "shot": {
+        "shot_id": "edge_plain",
+        "visual_prompt": "A empty hall with dust floating in the light.",
+        "camera": "wide shot",
+        "dialogue": "",
+        "soundscape": "",
+        "music": "",
+        "characters_present": []
+      },
+      "style": "cinematic",
+      "cast_names": [],
+      "scene": null,
+      "lang": "中文",
+      "instruction": "",
+      "cast_descriptions": {}
+    },
+    "expected": "integrated_multimodal_description: [Shot 1] cinematic。wide shot。A empty hall with dust floating in the light.画面中无人，只有环境与物件。\n\noverall_soundscape: 环境底噪持续，伴随轻微的动作声与布料摩擦声。\n\nnon_diegetic_music: N/A"
+  },
+  {
+    "key": "edge/edge_lock",
+    "input": {
+      "shot": {
+        "shot_id": "edge_lock",
+        "visual_prompt": "【机位】近景平视\n【人物】甲，位于画面中央\n【动作】抬头\n【场景】木屋\n【画质】浅景深",
+        "camera": "近景平视",
+        "dialogue": "<d>甲：我还没说完……</d>",
+        "soundscape": "木地板轻响",
+        "music": "低音提琴，悲伤，慢速",
+        "characters_present": [
+          "甲"
+        ]
+      },
+      "style": "cinematic",
+      "cast_names": [
+        "甲"
+      ],
+      "scene": {
+        "scene_id": "cabin",
+        "location": "木屋"
+      },
+      "lang": "中文",
+      "instruction": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.",
+      "cast_descriptions": {
+        "甲": "A young woman. Wearing a red robe and black boots."
+      }
+    },
+    "expected": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] cinematic。近景平视。甲，位于画面中央。木屋。抬头。At 00:00.800, 甲 (S1) 开口说：<d>[中文] 我还没说完。</d>画面里的主体只有一位：甲。服装锁定 —— 甲：Wearing a red robe and black boots。（每个人物在整部片子里保持同一套服装）。浅景深。\n\noverall_soundscape: 木地板轻响；人声只有上面这一句台词\n\nnon_diegetic_music: 低音提琴，慢速"
+  }
+]

@@ -56,3 +56,8 @@ credentials*
 *.swp
 .DS_Store
 Thumbs.db
+
+# 本地配置与创作内容（不进仓库）
+config.toml
+content/
+

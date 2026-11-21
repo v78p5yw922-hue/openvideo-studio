@@ -1,0 +1,56 @@
+/** AudioPanel 样式：BGM / 环境声是两条独立音轨，用不同色边框 + 标题色区分。 */
+
+.audio-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 720px) {
+  .audio-grid { grid-template-columns: 1fr; }
+}
+
+.audio-row {
+  border: 1px solid var(--line-light);
+  border-left: 3px solid var(--dim);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--field-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* BGM：靛蓝左边框 + 标题色 */
+.audio-row.kind-bgm { border-left-color: #6366f1; }
+.audio-row.kind-bgm .audio-head b { color: #6366f1; }
+
+/* 环境声：翠绿左边框 + 标题色 */
+.audio-row.kind-ambience { border-left-color: #10b981; }
+.audio-row.kind-ambience .audio-head b { color: #10b981; }
+
+.audio-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.audio-head b { font-size: 13px; }
+.audio-head .badge {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 8px;
+  background: var(--accent-soft-strong);
+}
+.audio-head .badge.ok { background: rgba(16, 185, 129, 0.18); color: #10b981; }
+.audio-head .badge.warn { background: var(--warn-soft-strong); }
+
+.file-btn {
+  cursor: pointer;
+  border: 1px solid var(--line-light);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 14px;
+  display: inline-block;
+}
+
+.audio-row input[type='range'] { width: 140px; }

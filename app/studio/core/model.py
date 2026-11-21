@@ -54,6 +54,7 @@ def shot_fingerprint(
     cast_refs: list[str],
     params: dict | None = None,
     prev_fingerprint: str = "",
+    ref_plan: list | None = None,
 ) -> str:
     p = dict(RENDER_PARAMS_DEFAULT)
     if params:
@@ -79,6 +80,8 @@ def shot_fingerprint(
             "plate_sha": sc.get("plate_sha", ""),
         },
         "cast_refs": sorted(cast_refs),
+    # 槽位计划（用哪几张图、什么顺序）直接决定出片，必须进指纹
+    "ref_plan": ref_plan or [],
         "params": p,
         "chain_from": prev_fingerprint if shot.get("transition") == "chain" else "",
     }
@@ -86,6 +89,8 @@ def shot_fingerprint(
     # shots that never used it (that would invalidate every earlier take)
     if shot.get("first_frame"):
         payload["shot"]["first_frame"] = sha256_file(shot["first_frame"])
+    if shot.get("last_frame"):
+        payload["shot"]["last_frame"] = sha256_file(shot["last_frame"])
     return sha256_text(canonical(payload))
 
 

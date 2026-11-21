@@ -134,3 +134,37 @@ rm -rf ./app ./engine .venv   # 代码与虚拟环境
 ```
 
 模型与 ComfyUI 目录不在本仓库内，不会被删除。
+
+---
+
+## 装完先体检：`studio doctor`
+
+```bash
+cd /home/agent/openvideo/video-agent          # 部署目录
+.venv/bin/python -m studio.doctor             # 人看
+.venv/bin/python -m studio.doctor --json      # 机器看
+```
+
+输出七项：
+
+```
+✅ 配置文件        命中了哪一份 config.toml
+✅ ComfyUI 在线    地址 + 显卡型号/显存
+✅ 节点齐全        15 个必需节点（含 comfy-kitchen 的 H3CastMember/H3CastToVideo）
+✅ 权重文件        7 个文件是否存在、多大
+✅ ffmpeg 可用
+✅ 数据目录可写    路径 + 剩余空间
+✅ GPU 可见        有 nvidia-smi 就报显存
+```
+
+任何一项 `❌` 都会给一句"怎么修"。**studio 启动时也会跑一次**（只打印，不阻止启动），
+可用 `OPEN_VIDEO_SKIP_DOCTOR=1` 关掉。UI 侧对应 `GET /api/doctor`。
+
+### 没登录也能看的健康摘要
+
+```
+GET /api/health/deps
+→ {"ok": true, "summary": "可以开始", "fail": [], "warn": []}
+```
+
+只返回"缺什么"，不返回磁盘路径和显存细节；完整报告要登录后 `GET /api/doctor`。

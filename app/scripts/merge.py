@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Stage 3 — normalise, sync-align, colour-align then concat segments.
 
 Three passes, cheapest first (quality preserved whenever possible):
@@ -255,6 +255,69 @@ def collect(segments_dir: Path, pattern: str = r"^\d{4}\.mp4$") -> list[Path]:
     return sorted(p for p in segments_dir.iterdir() if p.is_file() and rx.match(p.name))
 
 
+def lay_beds(src: Path, bgm: Path | None, ambience: Path | None,
+              bgm_gain: float, amb_gain: float, voice_duck: bool,
+              sr: int, timeout: float) -> Path:
+    """把整集 BGM / 全局 ambience 铺进成片（原地替换）。
+
+    - 两条床按成片时长循环，尾 1.5s 淡出
+    - voice_duck：用台词轨做 sidechain 把 BGM 压下去（不盖对白）
+    - 只有固定的两条床，镜与镜之间不会"重头开始"
+    """
+    dur = (probe(src) or {}).get("duration") or 0.0
+    if dur <= 0:
+        return src
+    out = src.with_name(src.stem + ".mixed" + src.suffix)
+    fmt = "aformat=sample_fmts=fltp:channel_layouts=stereo"
+
+    inputs: list[str] = ["-i", str(src)]
+    # [voice] 既要进 sidechain 又要进最终 amix → 必须 asplit，否则"matches no streams"
+    filt: list[str] = [f"[0:a]{fmt},asplit=2[voice][voice_key]"]
+    idx = 0
+    if ambience:
+        inputs += ["-stream_loop", "-1", "-i", str(ambience)]
+        idx += 1
+        filt.append(f"[{idx}:a]volume={amb_gain}dB,{fmt},atrim=0:{dur:.3f},"
+                    f"afade=t=out:st={max(0.0, dur - 1.5):.3f}:d=1.5[amb]")
+    if bgm:
+        inputs += ["-stream_loop", "-1", "-i", str(bgm)]
+        idx += 1
+        filt.append(f"[{idx}:a]volume={bgm_gain}dB,{fmt},atrim=0:{dur:.3f},"
+                    f"afade=t=out:st={max(0.0, dur - 1.5):.3f}:d=1.5[bgm_raw]")
+
+    duck = bool(bgm and voice_duck)
+    if duck:
+        filt.append("[bgm_raw][voice_key]sidechaincompress=threshold=0.05:ratio=6:"
+                    "attack=20:release=350[bgm]")
+    elif bgm:
+        filt.append("[bgm_raw]anull[bgm]")
+
+    mix_in = ["[voice]"]
+    if ambience:
+        mix_in.append("[amb]")
+    if bgm:
+        mix_in.append("[bgm]")
+    if len(mix_in) == 1:
+        return src
+    # normalize=0：不按输入数衰减（否则整体响度会掉 ~9 dB）
+    filt.append("".join(mix_in) + f"amix=inputs={len(mix_in)}:normalize=0:duration=first:"
+                                  "dropout_transition=0,alimiter=limit=0.95[mix]")
+
+    cp = run(["ffmpeg", "-y", "-v", "error", *inputs,
+              "-filter_complex", ";".join(filt),
+              "-map", "0:v", "-map", "[mix]",
+              "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", str(sr),
+              "-movflags", "+faststart", str(out)], timeout=timeout)
+    if cp.returncode != 0 or not out.is_file():
+        log(f"铺轨失败（保留原片）：{(cp.stdout or '').strip()[-300:]}")
+        out.unlink(missing_ok=True)
+        return src
+    out.replace(src)
+    log(f"已铺音频床：bgm={'有' if bgm else '无'} ambience={'有' if ambience else '无'} "
+        f"台词侧链={'开' if duck else '关'}")
+    return src
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description="Normalise + sync-align + grade then concat H3 segments.",
@@ -280,6 +343,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--timeout", type=float, default=1800.0)
     ap.add_argument("--keep-temp", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--bgm", default="", help="整集 BGM 文件（循环铺满整片）")
+    ap.add_argument("--bgm-gain", type=float, default=-18.0, help="BGM 增益 dB")
+    ap.add_argument("--ambience", default="", help="全局环境声文件（循环铺满整片）")
+    ap.add_argument("--ambience-gain", type=float, default=-26.0, help="环境声增益 dB")
+    ap.add_argument("--voice-duck", action="store_true", help="台词时把 BGM 压低")
     args = ap.parse_args(argv)
 
     if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
@@ -430,6 +498,15 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 tmp.unlink(missing_ok=True)
                 log("WARNING: audio re-mux failed; master left untouched")
+
+    # ---- 整集音频床（模型逐镜不生成配乐，这里统一铺）----
+    if args.bgm or args.ambience:
+        out_path = lay_beds(out_path,
+                            Path(args.bgm).expanduser() if args.bgm else None,
+                            Path(args.ambience).expanduser() if args.ambience else None,
+                            args.bgm_gain, args.ambience_gain, args.voice_duck,
+                            sr, args.timeout)
+        result = probe(out_path) or result
 
     if not args.keep_temp:
         shutil.rmtree(norm_dir, ignore_errors=True)

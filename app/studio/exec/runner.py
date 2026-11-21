@@ -20,12 +20,14 @@ import os
 import re
 import shutil
 import subprocess
+import urllib.request
 import sys
 import threading
 import time
 from pathlib import Path
+import uuid
 
-from ..core import db, service
+from ..core import assets, db, service
 from . import render_adapter
 
 def _app_dir() -> Path:
@@ -66,8 +68,95 @@ PROGRESS: dict[str, dict] = {}
 RUNNING: dict[str, subprocess.Popen] = {}
 
 
+
+
+# 引擎端口：改到 8288 是为了避开浏览器（ComfyUI 原生前端）误操作 8188 的
+# 队列删除 / 中断请求 —— 那些操作会直接把正在渲染的 prompt 干掉。
+_ENGINE_PORT = int(os.environ.get("OPEN_VIDEO_COMFY_PORT", "8288"))
+
+
+def _engine_alive(port: int = _ENGINE_PORT, timeout: float = 3.0) -> bool:
+    """引擎进程在响应就够 —— 忙（在采样）也算活。"""
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/system_stats",
+                                    timeout=timeout) as r:
+            return r.status == 200
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def ensure_engine(port: int = _ENGINE_PORT, timeout_s: int = 45) -> bool:
+    """提交前确认引擎可用；真挂了才去拉起，绝不长时间阻塞队列。
+
+    之前这里是"每 5 秒一次 systemctl start，共 24 轮"：
+    引擎在高负载下 systemctl 会阻塞几秒到几十秒，一轮能拖 30 秒，
+    24 轮 = 十几分钟，单线程执行器整个卡住，排队任务全部静止。
+    现在：先判断进程是否响应（忙也算活），只在 unit 确实不是 active 时才 start，
+    总等待上限 45 秒，超时就放弃（提交失败会走重试，不会把队列钉死）。
+    """
+    deadline = time.time() + max(5, timeout_s)
+    while time.time() < deadline:
+        if _engine_alive(port):
+            return True
+        try:
+            active = subprocess.run(["systemctl", "is-active", "comfyui-8188.service"],
+                                    capture_output=True, text=True, timeout=5).stdout.strip()
+        except Exception:  # noqa: BLE001
+            active = ""
+        if active != "active":
+            print("[executor] 引擎不在运行，尝试拉起", flush=True)
+            try:
+                subprocess.run(["systemctl", "start", "comfyui-8188.service"],
+                               capture_output=True, timeout=20, check=False)
+            except Exception:  # noqa: BLE001
+                pass
+            time.sleep(3)
+        else:
+            # 进程在但不响应（正在加载/采样），给它几秒，不要重复 start
+            time.sleep(3)
+    print("[executor] 引擎未响应，先提交任务（失败会自动重试）", flush=True)
+    return False
+
+
+def kill_orphan_renderers() -> int:
+    """杀掉不属于任何在跑任务的 render_drama 进程。
+
+    systemd 若配成 KillMode=process，重启后子进程会被 init 收养、继续占 GPU，
+    渲出来的帧却没人收集 —— 表现为"新任务在排队、旧进程在空转"。
+    """
+    killed = 0
+    try:
+        out = subprocess.run(["pgrep", "-f", "scripts/(render_drama|gen_image)\\.py"],
+                             capture_output=True, text=True).stdout.split()
+    except Exception:  # noqa: BLE001
+        return 0
+    live_pids = {p.pid for p in RUNNING.values() if p}
+    for pid in out:
+        try:
+            ipid = int(pid)
+        except ValueError:
+            continue
+        if ipid in live_pids:
+            continue
+        try:
+            subprocess.run(["kill", "-9", str(ipid)], check=False)
+            killed += 1
+        except Exception:  # noqa: BLE001
+            pass
+    if killed:
+        print(f"[executor] 清理了 {killed} 个孤儿渲染进程")
+    return killed
+
+
 def kill(job_id: str) -> bool:
     """Terminate the renderer for a job. Returns True if something was killed."""
+    # 记录调用来源：如果 kill 被意外触发，日志里能看出是哪条路径
+    try:
+        import traceback as _tb
+        stack = [f"{f.name}:{f.lineno}" for f in _tb.extract_stack()[-5:-1]]
+        print(f"[executor] kill({job_id}) 调用链: {' <- '.join(reversed(stack))}", flush=True)
+    except Exception:  # noqa: BLE001
+        pass
     proc = RUNNING.get(job_id)
     if not proc:
         return False
@@ -79,13 +168,36 @@ def kill(job_id: str) -> bool:
             proc.kill()
     except Exception:  # noqa: BLE001
         return False
+    # 关键：前端 render_drama 已经死了，但引擎里的 prompt 还在跑 —— 必须显式中断
+    print(f"[executor] kill({job_id}) 已杀进程，准备中断引擎 prompt", flush=True)
+    interrupt()
+    free_vram()
     return True
 
 
 OOM_RE = re.compile(r"out of memory|OutOfMemory|exceed allowed memory", re.IGNORECASE)
 
 
-def free_vram(port: int = 8188) -> bool:
+
+def interrupt(port: int = _ENGINE_PORT) -> bool:
+    """让 ComfyUI 停掉当前正在跑的那个 prompt。
+
+    只杀掉 render_drama 是不够的：引擎里的 prompt 会继续渲完（8 分钟 GPU）。
+    之后重新排队就会变成"同一镜两个 prompt"，看起来像在无限重复渲染。
+    """
+    try:
+        req = urllib.request.Request(f"http://127.0.0.1:{port}/interrupt",
+                                     data=b"{}",
+                                     headers={"content-type": "application/json",
+                                              "x-ov-control": "1"},
+                                     method="POST")
+        with urllib.request.urlopen(req, timeout=15) as r:
+            return r.status == 200
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def free_vram(port: int = _ENGINE_PORT) -> bool:
     """Ask ComfyUI to unload models and release VRAM (used after an OOM)."""
     try:
         req = urllib.request.Request(
@@ -140,6 +252,13 @@ def still_cmd() -> list[str]:
     return [str(VENV_PY), "scripts/render_still.py"]
 
 
+def asset_cmd() -> list[str]:
+    custom = os.environ.get("STUDIO_ASSET_CMD")
+    if custom:
+        return [custom]
+    return [str(VENV_PY), "scripts/gen_image.py"]
+
+
 def start() -> None:
     global _thread
     if os.environ.get("STUDIO_DISABLE_EXECUTOR") == "1":
@@ -182,6 +301,8 @@ def tick() -> dict | None:
         return _run_render(job, already_started=True)
     if job["kind"] == "preview":
         return _run_preview(job, already_started=True)
+    if job["kind"] == "asset":
+        return _run_asset(job, already_started=True)
     _finish(job["id"], "failed", f"未知任务类型 {job['kind']}")
     return None
 
@@ -237,7 +358,43 @@ def _run_render(job: dict, already_started: bool = False) -> dict:
         if pinned and Path(pinned).is_file():
             cmd += ["--first-frame", pinned]
         t0 = time.time()
+        ensure_engine()
+        # 提示词格式：仅影响本任务的子进程环境（执行器单线程，串行执行）
+        # 扩散模型可按任务覆盖：fl2va（默认）/ ref2va（参考图专用）
+        _unet = (payload.get("unet") or "").strip()
+        # 若与上一个任务用的是同一个模型，就不要清显存 —— 让引擎复用已加载的权重，
+        # 下一镜可以直接开始采样（省掉 1–6 分钟的重新加载）。
+        _unet_key = _unet or "fl2va"
+        _prev_unet = ""
+        try:
+            with db.txn() as conn:
+                row = conn.execute(
+                    "SELECT payload FROM jobs WHERE kind='render' AND state='done' "
+                    "AND id<>? ORDER BY finished_at DESC LIMIT 1", (job["id"],)).fetchone()
+            if row:
+                _prev_unet = (json.loads(row["payload"] or "{}").get("unet") or "fl2va")
+        except Exception:  # noqa: BLE001
+            _prev_unet = ""
+        # 实测结论：省掉 /free 会让显存逐镜累积碎片，
+        # 夜批后段从 20 秒/步退化到 45 秒/步（s05 花了 23 分钟）。
+        # 每镜清一次，代价只有几秒的重新加载，换来稳定 20 秒/步。
+        print(f"[executor] {sid} unet={_unet_key} 每镜清显存（稳定 20 秒/步）", flush=True)
+        if _unet:
+            os.environ["H3_UNET"] = (_unet if _unet.endswith(".safetensors")
+                                     else f"minimax_h3_{_unet}_pruned_int8_convrot.safetensors")
+        _pm = (payload.get("prompt_mode") or "").strip().lower()
+        _prev_pm = os.environ.get("H3_PROMPT_MODE")
+        if _pm in ("compile", "concat"):
+            os.environ["H3_PROMPT_MODE"] = _pm
         cp = _run_streaming(cmd, job["id"], sid)
+        if _pm in ("compile", "concat"):
+            if _prev_pm is None:
+                os.environ.pop("H3_PROMPT_MODE", None)
+            else:
+                os.environ["H3_PROMPT_MODE"] = _prev_pm
+        if _unet:
+            os.environ.pop("H3_UNET", None)
+        os.environ.pop("H3_NO_FREE", None)
         if cp["returncode"] != 0 and _is_oom(cp["output"]):
             # ComfyUI unloads its models on OOM but keeps stale allocations;
             # one clean retry after /free usually succeeds
@@ -263,8 +420,15 @@ def _run_render(job: dict, already_started: bool = False) -> dict:
             continue
         take = service.reserve_take(pid, sid)
         shutil.move(str(produced[0]), str(take["path"]))
+        # 取证包：帧数/运镜幅度/响度/静音占比（失败不影响落库）
+        try:
+            from studio.core import metrics as metrics_mod  # noqa: PLC0415
+            mt = metrics_mod.compute(Path(take["path"]))
+        except Exception as e:  # noqa: BLE001
+            mt = {"error": str(e)[:120]}
         service.record_take(pid, sid, take["path"], sh["fingerprint"], elapsed,
-                            _peak(cp["output"]), note="draft" if draft else "executor")
+                            _peak(cp["output"]), note="draft" if draft else "executor",
+                            metrics=mt, dialogue=sh.get("dialogue") or "")
         done.append(sid)
         PROGRESS[job["id"]] = {"shot_id": sid, "pct": 100, "detail": "done",
                                "started": PROGRESS.get(job["id"], {}).get("started", t0)}
@@ -275,6 +439,15 @@ def _run_render(job: dict, already_started: bool = False) -> dict:
         # pause-after-one: put the rest back as a fresh queued job
         service.enqueue_job(pid, "render", {**payload, "shots": remaining})
         state = "paused"
+    # 夜间无人值守：失败的镜头自动重排队，避免早上发现一堆空洞
+    if state == "failed" and not done:
+        left = int(payload.get("retries_left", 0) or 0)
+        failed_ids = [s for s in (payload.get("shots") or []) if s not in done]
+        if left > 0 and failed_ids:
+            print(f"[executor] {failed_ids} 失败，自动重试（剩余 {left} 次）", flush=True)
+            service.enqueue_job(pid, "render",
+                                {**payload, "shots": failed_ids,
+                                 "retries_left": left - 1, "auto_retry": True})
     _finish(job["id"], state, "; ".join(failures))
     return {"job_id": job["id"], "state": state, "done": done, "failures": failures}
 
@@ -311,7 +484,7 @@ def _run_preview(job: dict, already_started: bool = False) -> dict:
                 first = frame
     cmd = still_cmd() + ["--prompt", sh["prompt"] or sh["camera"] or sh["shot_id"],
                          "--out", str(dest), "--duration", "3", "--seed", "42",
-                         "--width", "768", "--height", "432"]
+                         "--width", "768", "--height", "448"]
     if first:
         cmd += ["--first-frame", str(first)]
     cp = subprocess.run(cmd, cwd=str(REPO), stdout=subprocess.PIPE,
@@ -324,23 +497,135 @@ def _run_preview(job: dict, already_started: bool = False) -> dict:
     return {"job_id": job["id"], "state": "done", "preview": str(dest)}
 
 
+# ------------------------------------------------------------------ asset
+
+def _run_asset(job: dict, already_started: bool = False) -> dict:
+    """文生图：一次任务出 1–4 张，产物落到 studio-data/generated/<日期>/。"""
+    payload = json.loads(job["payload"] or "{}")
+    prompt = str(payload.get("prompt") or "").strip()
+    kind = str(payload.get("kind") or "character")
+    width = int(payload.get("width") or 2048)
+    height = int(payload.get("height") or 2048)
+    steps = int(payload.get("steps") or 6)
+    count = max(1, min(4, int(payload.get("count") or 1)))
+    base_seed = int(payload.get("seed", -1))
+    project_id = str(payload.get("project_id") or "")
+    group_id = str(payload.get("group_id") or "")
+    refs = [str(x) for x in (payload.get("refs") or []) if str(x)]
+
+    if not already_started:
+        _mark(job["id"], "running")
+    if not prompt:
+        _finish(job["id"], "failed", "提示词为空")
+        return {"job_id": job["id"], "state": "failed"}
+
+    # 上一个任务也是文生图时不用清显存：模型已在显存里，省掉 1–2 分钟重载
+    prev_kind = ""
+    try:
+        with db.txn() as conn:
+            row = conn.execute(
+                "SELECT kind FROM jobs WHERE state='done' AND id<>? "
+                "ORDER BY finished_at DESC LIMIT 1", (job["id"],)).fetchone()
+        if row:
+            prev_kind = row["kind"]
+    except Exception:  # noqa: BLE001
+        prev_kind = ""
+
+    ensure_engine()
+    day = time.strftime("%Y%m%d")
+    out_dir = db.DATA_DIR / "generated" / day
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    ids: list[str] = []
+    failures: list[str] = []
+    for i in range(count):
+        cand_id = uuid.uuid4().hex[:12]
+        out = out_dir / f"{cand_id}.png"
+        seed = (base_seed + i) if base_seed >= 0 else -1
+        cmd = asset_cmd() + [
+            "--prompt", prompt, "--out", str(out),
+            "--width", str(width), "--height", str(height),
+            "--steps", str(steps), "--seed", str(seed),
+        ]
+        if i > 0 or prev_kind == "asset":
+            cmd.append("--no-free")
+        for ref in refs:
+            cmd += ["--ref", ref]
+        # 批次进度：第几张 + 段内百分比由 _run_streaming 覆盖
+        PROGRESS[job["id"]] = {"shot_id": f"第 {i + 1}/{count} 张", "pct": None,
+                               "stage": "starting", "detail": "已提交，等待引擎接手",
+                               "started": PROGRESS.get(job["id"], {}).get("started") or time.time()}
+        cp = _run_streaming(cmd, job["id"], f"第 {i + 1}/{count} 张")
+        info = _last_json(cp["output"])
+        if cp["returncode"] != 0 or not out.is_file() or out.stat().st_size < 1024:
+            tail = (cp["output"] or "").strip().splitlines()[-1:] or [""]
+            failures.append(f"第 {i + 1} 张失败: {tail[0][:160]}")
+            continue
+        actual_seed = int(info.get("seed", seed))
+        elapsed = float(info.get("elapsed_s") or 0.0)
+        c = assets.create_candidate(
+            kind=kind, prompt=prompt, width=width, height=height,
+            seed=actual_seed, steps=steps, path=str(out),
+            elapsed_s=elapsed, cand_id=cand_id,
+            project_id=project_id, group_id=group_id,
+        )
+        ids.append(c["id"])
+        PROGRESS[job["id"]] = {"shot_id": f"第 {i + 1}/{count} 张", "pct": 100,
+                               "stage": "done", "detail": "已生成",
+                               "started": PROGRESS.get(job["id"], {}).get("started") or time.time()}
+
+    state = "done" if not failures else "failed"
+    _finish(job["id"], state, "; ".join(failures))
+    return {"job_id": job["id"], "state": state, "candidates": ids,
+            "failures": failures}
+
+
+def _last_json(text: str) -> dict:
+    """取子进程输出里最后一个以 { 开头的行（gen_image.py 的终稿 JSON）。"""
+    for line in reversed((text or "").splitlines()):
+        line = line.strip()
+        if line.startswith("{"):
+            try:
+                return json.loads(line)
+            except ValueError:
+                continue
+    return {}
+
+
 # ------------------------------------------------------------------ helpers
 
 def _comfy_log() -> Path:
     env = os.environ.get("STUDIO_COMFY_LOG")
     if env:
         return Path(env).expanduser()
-    for cand in (Path.home() / ".openvideo" / "logs" / "comfyui-8188.log",
+    # 引擎 systemd 单元把 stdout 追加到这个文件；找不到就回落到同一路径，
+    # 这样即使文件还没被创建，后续也会在正确位置出现
+    for cand in (Path.home() / "openvideo" / "ComfyUI-up" / ".cache" / "comfyui-045.log",
+                 Path.home() / "openvideo" / "video-agent" / ".cache" / "comfyui-8188.log",
+                 Path.home() / ".openvideo" / "logs" / "comfyui-8188.log",
                  Path.home() / "openvideo" / "ComfyUI" / "comfyui.log"):
         if cand.is_file():
             return cand
-    return Path.home() / ".openvideo" / "logs" / "comfyui-8188.log"
+    return Path.home() / "openvideo" / "video-agent" / ".cache" / "comfyui-8188.log"
+
+
+LOAD_HINTS = ("Requested to load", "loaded completely", "loaded partially",
+              "model weight dtype", "Using MixedPrecisionOps", "VAE load device",
+              "CLIP/text encoder model load", "got prompt")
 
 
 def _tail_progress(log: Path, job_id: str, shot_id: str, started: float,
                    stop: threading.Event, offset: int = 0) -> None:
-    """Watch the ComfyUI log from `offset` on, so an old job's bar is not reused."""
+    """Watch the ComfyUI log from `offset` on, so an old job's bar is not reused.
+
+    三个阶段分别报告，避免"加载模型那两分钟"看起来像卡死：
+      - loading: 刚提交，正在往显存搬模型（没有百分比，但有 stage）
+      - sampling: 有 n/total 进度条
+      - idle: 超过 90 秒没有任何新日志 → 标记可能卡住
+    """
     pos = offset
+    last_line = ""
+    last_change = time.time()
     while not stop.is_set():
         try:
             if log.is_file():
@@ -350,23 +635,99 @@ def _tail_progress(log: Path, job_id: str, shot_id: str, started: float,
                         fh.seek(pos)
                         chunk = fh.read().decode("utf-8", "ignore")
                     pos = size
+                    last_change = time.time()
+                    cur = PROGRESS.get(job_id) or {}
+                    pct = cur.get("pct")
+                    stage = cur.get("stage") or "loading"
                     for line in reversed(chunk.splitlines()):
-                        pct = parse_progress(line)
-                        if pct is not None:
-                            PROGRESS[job_id] = {"shot_id": shot_id, "pct": pct,
-                                                "detail": line.strip()[-120:],
-                                                "started": started}
+                        # 新的 prompt = 重试或下一镜：进度必须重置，否则会读到上一轮的 100%
+                        if "got prompt" in line:
+                            pct = None
+                            stage = "loading"
+                            last_line = "新任务已提交，正在加载模型"
                             break
+                        got = parse_progress(line)
+                        if got is not None:
+                            # 进度只增不减：引擎会重复打印同一批 bar
+                            pct = max(got, pct or 0)
+                            stage = "sampling" if pct < 100 else "decoding"
+                            last_line = line.strip()[-120:]
+                            break
+                        if any(h in line for h in LOAD_HINTS):
+                            # 只有"采样已经跑完（100%）"之后的加载才是解码；
+                            # 5% 时的加载 = 重试/换模型，绝不能显示成"解码中"
+                            if (pct or 0) >= 100:
+                                stage = "decoding"
+                                last_line = "正在解码成片（写视频文件）"
+                            else:
+                                stage = "loading"
+                                last_line = line.strip()[-120:]
+                            break
+                        # 更细的阶段，避免"两分钟没动静"看起来像卡死
+                        if "MiniMaxH3TEModel_" in line:
+                            if (pct or 0) < 100:
+                                stage = "encoding"
+                                last_line = "正在编码提示词（文本→向量，约 1–2 分钟）"
+                            break
+                        if "Requested to load MiniMaxH3" in line and "TE" not in line:
+                            if (pct or 0) < 100:
+                                stage, last_line = "loading", "正在加载扩散模型到显存"
+                            break
+                    # 已经开始采样后，pct 不再清空（否则进度条会从 95% 掉回 0）
+                    if stage in ("loading", "encoding") and (pct or 0) < 100:
+                        pct = None
+                    # 非 starting 阶段出现 0%，一律视为"还没真正开始"，交给阶段文案描述
+                    if pct == 0 and stage != "starting":
+                        pct = None
+                    PROGRESS[job_id] = {"shot_id": shot_id, "pct": pct,
+                                        "stage": stage, "detail": last_line,
+                                        "started": started}
         except OSError:
             pass
+        # 兜底：tqdm 用 \r 覆写，增量块偶尔抓不到；直接看文件末尾。
+        # 只有本任务已经开始采样后才用，否则会把上一镜残留的 100% 当成这一镜的进度。
+        try:
+            cur_stage = (PROGRESS.get(job_id) or {}).get("stage")
+            if log.is_file() and cur_stage == "sampling":
+                with log.open("rb") as fh:
+                    fh.seek(max(0, log.stat().st_size - 4096))
+                    tail = fh.read().decode("utf-8", "ignore").replace("\r", "\n")
+                for line in reversed(tail.splitlines()):
+                    got = parse_progress(line)
+                    if got is not None:
+                        cur = PROGRESS.get(job_id) or {}
+                        if cur.get("pct") != got:
+                            cur.update({"pct": got, "stage": "sampling",
+                                        "detail": line.strip()[-120:]})
+                            PROGRESS[job_id] = cur
+                            last_change = time.time()
+                        break
+        except OSError:
+            pass
+
+        beat = (PROGRESS.get(job_id) or {}).get("beat") or 0.0
+        silent = time.time() - max(last_change, beat)
+        # 加载模型时本来就没有日志（实测可持续 4–6 分钟），别误报卡住
+        cur_stage = (PROGRESS.get(job_id) or {}).get("stage")
+        # 15 秒镜一步要 60–120 秒，90 秒阈值必然误报；按时长放大
+        limit = 600 if cur_stage in ("loading", "encoding", "decoding") else 90
+        dur = float((PROGRESS.get(job_id) or {}).get("duration") or 0) or 0.0
+        if dur > 0:
+            limit = int(limit * max(1.0, dur / 5.0))
+        if silent > limit:
+            cur = PROGRESS.get(job_id) or {}
+            cur.update({"stage": "stalled", "silent_s": round(silent),
+                        "detail": f"已经 {round(silent)} 秒没有任何引擎输出"})
+            PROGRESS[job_id] = cur
         stop.wait(2.0)
 
 
 def _run_streaming(cmd: list[str], job_id: str, shot_id: str) -> dict:
     """Run a shot, streaming stdout so the UI can show a live percentage."""
     started = PROGRESS.get(job_id, {}).get("started") or time.time()
-    PROGRESS[job_id] = {"shot_id": shot_id, "pct": 0, "detail": "starting",
-                        "started": started}
+    # 一开始不能给 pct=0：前端会先显示 "0%"，几十秒后才变"加载模型…"，看着像卡在 0
+    PROGRESS[job_id] = {"shot_id": shot_id, "pct": None, "stage": "starting",
+                        "detail": "已提交，等待引擎接手", "started": started}
     stop = threading.Event()
     log = _comfy_log()
     offset = log.stat().st_size if log.is_file() else 0
@@ -380,17 +741,38 @@ def _run_streaming(cmd: list[str], job_id: str, shot_id: str) -> dict:
     chunks: list[str] = []
     assert proc.stdout is not None
     try:
-        for line in proc.stdout:
-            chunks.append(line)
-            pct = parse_progress(line)
-            if pct is not None:
-                PROGRESS[job_id] = {"shot_id": shot_id, "pct": pct,
-                                    "detail": line.strip()[:120], "started": started}
+        log_dir = db.DATA_DIR / "logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_path = log_dir / f"{job_id}.log"
+        with log_path.open("w", encoding="utf-8") as logfh:
+            logfh.write(f"# job {job_id} shot {shot_id} cmd {' '.join(cmd)}\n")
+            for line in proc.stdout:
+                chunks.append(line)
+                # 子进程只要有输出就算"活着"（长镜单步慢，不能只靠引擎日志判断）
+                cur = PROGRESS.get(job_id) or {}
+                cur["beat"] = time.time()
+                if not cur.get("stage") or cur.get("stage") == "stalled":
+                    cur["stage"] = "working"
+                    cur["detail"] = line.strip()[-120:] or "引擎在跑"
+                PROGRESS[job_id] = cur
+                logfh.write(line)
+                logfh.flush()
+                pct = parse_progress(line)
+                if pct is not None:
+                    PROGRESS[job_id] = {"shot_id": shot_id, "pct": pct,
+                                        "detail": line.strip()[:120], "started": started}
     finally:
         proc.wait()
         stop.set()
         RUNNING.pop(job_id, None)
-    return {"returncode": proc.returncode, "output": "".join(chunks)}
+    tail = "".join(chunks[-40:])
+    if tail.strip():
+        try:
+            with db.txn() as conn:
+                db.emit(conn, "", shot_id, "job.log_tail", {"job_id": job_id, "tail": tail[-4000:]})
+        except Exception:  # noqa: BLE001
+            pass
+    return {"returncode": proc.returncode, "output": "".join(chunks), "log": str(log_path)}
 
 
 def _peak(text: str) -> int:

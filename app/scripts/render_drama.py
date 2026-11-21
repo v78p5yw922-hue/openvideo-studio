@@ -36,29 +36,21 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from studio.exec.comfy import ComfyClient  # noqa: E402
+
+try:                                   # 引擎地址可被 config.toml 覆盖
+    from studio import config as _cfg
+    _DEFAULT_SERVER = _cfg.get("comfy.url", "http://127.0.0.1:8288")
+except Exception:                      # noqa: BLE001
+    _DEFAULT_SERVER = "http://127.0.0.1:8288"
+
+import prompt_compiler as pc
+
 REPO = Path(__file__).resolve().parent.parent
-
-
-def _find_comfy() -> Path:
-    """ComfyUI 位置：环境变量 > 仓库内 engine/ > 常见位置。
-
-    别人的克隆不会把你的路径写死，所以这里必须是"探测"而不是"假设"。
-    """
-    import os
-    for cand in (os.environ.get("OV_COMFYUI_DIR"),
-                 os.environ.get("COMFYUI_DIR"),
-                 REPO / "engine" / "ComfyUI",
-                 REPO / "ComfyUI",
-                 Path.home() / "ComfyUI",
-                 "/opt/ComfyUI"):
-        if cand and (Path(cand) / "main.py").is_file():
-            return Path(cand)
-    return Path(os.environ.get("OV_COMFYUI_DIR") or (REPO / "engine" / "ComfyUI"))
-
-
-COMFY = _find_comfy()
+COMFY = REPO / "ComfyUI"
 COMFY_INPUT = COMFY / "input"
-DEFAULT_SERVER = "http://127.0.0.1:8188"
+DEFAULT_SERVER = os.environ.get("OPEN_VIDEO_COMFYUI", _DEFAULT_SERVER)
 FPS = 24
 WORKFLOW_BASE = REPO / "backends/h3/workflows/h3_t2v_api.json"
 
@@ -82,13 +74,41 @@ def get_json(url: str, timeout: float = 15) -> dict:
         return json.loads(r.read())
 
 
+REF_MAX_SIDE = int(os.environ.get("OPEN_VIDEO_REF_MAX_SIDE", "1024"))
+
+
 def stage_image(src: Path) -> str:
+    """把参考图放进 ComfyUI 的 input 目录，并缩到长边 REF_MAX_SIDE。
+
+    为什么要缩：每多一张参考图大约多吃 1 GB 显存，UNET 就多卸载 1 GB，
+    每步会从 19 秒涨到 40–60 秒。定妆照/母版常见 1536–2000px，模型编码用不到这么高。
+    """
     COMFY_INPUT.mkdir(parents=True, exist_ok=True)
-    name = "ov_drama_" + re.sub(r"[^A-Za-z0-9._-]+", "_", src.stem)[:40] + src.suffix.lower()
+    # 文件名带上缩放规格：旧的全尺寸缓存图不会被误当成"已经缩过"
+    name = ("ov_drama_" + re.sub(r"[^A-Za-z0-9._-]+", "_", src.stem)[:36]
+            + f"_r{REF_MAX_SIDE}.png")
     dst = COMFY_INPUT / name
-    if not dst.exists() or src.stat().st_mtime > dst.stat().st_mtime:
-        shutil.copy2(src, dst)
-    return name
+    fresh = dst.exists() and dst.stat().st_mtime >= src.stat().st_mtime
+    if fresh:
+        return name
+    try:
+        from PIL import Image
+        with Image.open(src) as im:
+            im = im.convert("RGB")
+            w, h = im.size
+            scale = REF_MAX_SIDE / float(max(w, h))
+            if scale < 1.0:
+                im = im.resize((max(1, int(w * scale)), max(1, int(h * scale))),
+                               Image.LANCZOS)
+            im.save(dst, "PNG")
+        return name
+    except Exception:  # noqa: BLE001
+        # 缩放失败就退回原图，不能因为省显存而渲不了
+        name = "ov_drama_" + re.sub(r"[^A-Za-z0-9._-]+", "_", src.stem)[:40] + src.suffix.lower()
+        dst = COMFY_INPUT / name
+        if not dst.exists() or src.stat().st_mtime > dst.stat().st_mtime:
+            shutil.copy2(src, dst)
+        return name
 
 
 # --------------------------------------------------------------------------- #
@@ -175,7 +195,35 @@ class VramSampler:
 # --------------------------------------------------------------------------- #
 # prompt
 # --------------------------------------------------------------------------- #
-def build_prompt(shot: dict, chars: dict, style: str, scene: dict | None) -> str:
+def build_prompt(shot: dict, chars: dict, style: str, scene: dict | None,
+                 has_lock: bool = False) -> str:
+    """把镜头编译成 H3 原生三字段。
+
+    H3_PROMPT_MODE=concat 时退回到旧的拼接写法（用于 A/B 对比）。
+    """
+    import os
+    # 实验用：直接指定一份提示词文本（六段式 A/B 对比），不写数据库
+    override = os.environ.get("H3_PROMPT_FILE", "").strip()
+    if override:
+        op = Path(override)
+        if op.is_file():
+            print(f"[drama] 使用外部提示词 {op.name}（H3_PROMPT_FILE）")
+            return op.read_text(encoding="utf-8")
+        print(f"[drama] WARNING: H3_PROMPT_FILE 不存在 {op}")
+    mode = os.environ.get("H3_PROMPT_MODE", "compile").lower()
+    if mode != "concat":
+        try:
+            pairs = [(w, chars.get(w) or chars.get(str(w)) or {}) for w in
+                     (shot.get("characters_present") or [])]
+            names = [c.get("name") or w for w, c in pairs]
+            descs = {c.get("name") or w: (c.get("description") or "") for w, c in pairs}
+            instr = pc.i2v_instruction() if has_lock else ""
+            return pc.compile_shot(shot, style or "", names, scene,
+                                   instruction=instr, cast_descriptions=descs)
+        except Exception as e:  # noqa: BLE001
+            print(f"[drama] prompt 编译失败，回退拼接写法：{e}")
+
+    # ---- 旧写法（A/B 对照）----
     parts: list[str] = []
     if style:
         parts.append(f"{style} style.")
@@ -200,26 +248,84 @@ def build_prompt(shot: dict, chars: dict, style: str, scene: dict | None) -> str
     snd = (shot.get("soundscape") or "").strip()
     if snd:
         parts.append(f"Sound: {snd}.")
+    mus = (shot.get("music") or "").strip()
+    if mus:
+        parts.append(f"Music: {mus}.")
     return " ".join(parts)
 
 
-# --------------------------------------------------------------------------- #
-# workflow
-# --------------------------------------------------------------------------- #
 def valid_length(dur: float, fps: int = FPS) -> int:
     """H3 only accepts 17g+5 frame counts; pick the nearest legal one."""
     target = dur * fps
     g = max(1, round((target - 5) / 17))
     return 17 * g + 5
 
+
+def snap32(v: int) -> int:
+    """H3 的 latent 必须能被 32 整除，否则采样器报 shape 错。"""
+    return max(256, int(round(int(v) / 32.0)) * 32)
+
+
+def _plan_refs(shot: dict, present: list[str], chars: dict) -> dict:
+    """把槽位计划整理成 {人物: [图…], 场景: [图…], 末帧: bool}。
+
+    没有计划（老项目）时返回空，调用方退回旧逻辑。
+    """
+    plan = shot.get("ref_plan") or {}
+    slots = plan.get("slots") or []
+    if not slots:
+        return {}
+    by_name: dict[str, list[str]] = {}
+    scene: list[str] = []
+    chain = False
+    for s in slots:
+        kind = s.get("kind")
+        path = str(s.get("path") or "")
+        if kind == "cast":
+            by_name.setdefault(str(s.get("owner") or ""), []).append(path)
+        elif kind == "scene":
+            scene.append(path)
+        elif kind == "frame":
+            chain = True
+    return {"cast": by_name, "scene": scene, "chain": chain}
+
+
 def build_workflow(shot: dict, chars: dict, style: str, scene: dict | None,
                    width: int, height: int, steps: int, seed: int,
                    lock_frame: Path | None = None) -> dict:
     wf = json.loads(WORKFLOW_BASE.read_text(encoding="utf-8"))
+    width, height = snap32(width), snap32(height)
+    # 模型可覆盖：H3_UNET=minimax_h3_ref2va_pruned_int8_convrot.safetensors 走参考图专用权重
+    _unet = os.environ.get("H3_UNET", "").strip()
+    if _unet and "load_unet" in wf:
+        wf["load_unet"]["inputs"]["unet_name"] = _unet
     dur = float(shot.get("duration_sec") or 5)
     length = valid_length(dur)
-    prompt = build_prompt(shot, chars, style, scene)
     prefix = f"ov_drama_{shot.get('shot_id', 'shot')}"
+
+    present = [w for w in (shot.get("characters_present") or [])]
+
+    # 首帧只在"没有人"时使用：i2v 分支会丢掉 cast 参考图，
+    # 有人物时用错首帧会把上一镜的人原样留在画面里（实测：林婉儿的镜头渲出了叶一恒）。
+    # 有人物 + 开了「接上一镜末帧」：H3CastToVideo 没有 first_frame 输入，
+    # 唯一可行的近似是把末帧当成第二张场景参考图传进去（构图/光线/位置会被拉向上一镜）。
+    chain_ref_img = None
+    forced = os.environ.get("H3_CHAIN_FRAME", "").strip()
+    if forced and Path(forced).is_file():
+        # 实验入口：--only 单镜渲染时没有"上一镜"，直接指定引导帧
+        chain_ref_img = Path(forced)
+        log(f"[chain] {shot.get('shot_id')}: 使用指定引导帧 {chain_ref_img.name}")
+    elif present and shot.get("chain_ref") and lock_frame is not None:
+        chain_ref_img = lock_frame
+        log(f"[chain] {shot.get('shot_id')}: 人物镜，末帧作为场景参考图传入")
+
+    if lock_frame is not None and present:
+        log(f"[warn] {shot.get('shot_id')}: 这一镜有人物，忽略首帧锁定，改用角色参考 + 场景参考")
+        lock_frame = None
+
+    # 人物镜的首帧锁已在上面清除，提示词不能声称参考了工作流里不存在的首帧。
+    prompt = build_prompt(shot, chars, style, scene,
+                          has_lock=pc.has_effective_lock(shot, lock_frame))
 
     if lock_frame is not None:
         staged = stage_image(lock_frame)
@@ -228,12 +334,23 @@ def build_workflow(shot: dict, chars: dict, style: str, scene: dict | None,
         node["inputs"].update({"prompt": prompt, "width": int(width), "height": int(height),
                                "length": length, "first_frame": ["lock_img", 0]})
         node["inputs"].pop("last_frame", None)
+        # 末帧：从首帧推到末帧（典型用法：堂屋全景 → 推到钟面，指针时间由末帧决定）
+        last_raw = str(shot.get("last_frame") or "")
+        if last_raw:
+            lp = Path(last_raw)
+            if not lp.is_absolute():
+                lp = (REPO / lp).resolve()
+            if lp.is_file():
+                wf["last_img"] = {"class_type": "LoadImage",
+                                  "inputs": {"image": stage_image(lp)}}
+                node["inputs"]["last_frame"] = ["last_img", 0]
+                log(f"[frames] {shot.get('shot_id')}: 首帧 → 末帧（收到 {lp.name}）")
+            else:
+                log(f"WARNING: 末帧文件不存在 {lp}")
         wf["noise"]["inputs"]["noise_seed"] = int(seed)
         wf["scheduler"]["inputs"]["steps"] = int(steps)
         wf["save_video"]["inputs"]["filename_prefix"] = prefix
         return wf
-
-    present = [w for w in (shot.get("characters_present") or [])]
 
     # --- empty shot (no cast member): plain text-to-video -------------------
     # H3CastToVideo needs at least one member, so an establishing shot with no
@@ -244,12 +361,34 @@ def build_workflow(shot: dict, chars: dict, style: str, scene: dict | None,
                                "height": int(height), "length": length})
         node["inputs"].pop("first_frame", None)
         node["inputs"].pop("last_frame", None)
+        # 首帧/末帧：空镜才用（人物镜走 cast，没有这两个插口）
+        if lock_frame is not None and lock_frame.is_file():
+            wf["first_img"] = {"class_type": "LoadImage",
+                               "inputs": {"image": stage_image(lock_frame)}}
+            node["inputs"]["first_frame"] = ["first_img", 0]
+        last_raw = str(shot.get("last_frame") or "")
+        if last_raw:
+            lp = Path(last_raw)
+            if not lp.is_absolute():
+                lp = (REPO / lp).resolve()
+            if lp.is_file():
+                wf["last_img"] = {"class_type": "LoadImage",
+                                  "inputs": {"image": stage_image(lp)}}
+                node["inputs"]["last_frame"] = ["last_img", 0]
+                log(f"[frames] {shot.get('shot_id')}: 首帧→末帧（推到 {lp.name}）")
         wf["noise"]["inputs"]["noise_seed"] = int(seed)
         wf["scheduler"]["inputs"]["steps"] = int(steps)
         wf["save_video"]["inputs"]["filename_prefix"] = prefix
         return wf
 
     wf.pop("h3_i2v", None)
+    # 槽位计划（人物/场景共 9 槽）：有计划就照它取图，没有就退回旧行为
+    plan_refs = _plan_refs(shot, present, chars)
+    if plan_refs:
+        n_cast = sum(len(v) for v in plan_refs["cast"].values())
+        log(f"[refs] {shot.get('shot_id')}: 人物 {n_cast} 张 · "
+            f"场景 {len(plan_refs['scene'])} 张 · "
+            f"末帧 {'是' if plan_refs['chain'] else '否'}")
     cast_links = []
     idx = 0
     max_views = 1
@@ -267,7 +406,9 @@ def build_workflow(shot: dict, chars: dict, style: str, scene: dict | None,
                   "name": c.get("name") or str(who),
                   "description": c.get("description") or "", "confirm_update": True}
         used = 0
-        for j, ref in enumerate(refs[:4], start=1):
+        planned = (plan_refs or {}).get("cast", {}).get(str(c.get("name") or who))
+        take = planned if planned else refs[:4]
+        for j, ref in enumerate(take, start=1):
             p = Path(ref)
             if not p.is_absolute():
                 p = (REPO / ref).resolve()
@@ -293,20 +434,71 @@ def build_workflow(shot: dict, chars: dict, style: str, scene: dict | None,
                                      scene.get("atmosphere")) if x)
         if desc:
             inputs["scene_description"] = desc
-        # scene reference image: this is what keeps every shot in the same place
+
+        # 场景图（可以有 N 张）：母版在前，附加角度在后，末帧最后。
+        # scene_images 只有一路插口，多张必须用 ImageBatch 串成批次
+        # （节点说明：batch = one ref slot per frame）。
         imgs = scene.get("images") or ([scene["reference_image"]] if scene.get("reference_image") else [])
-        for p in imgs[:1]:
-            sp = Path(p)
+        extra = [x for x in (scene.get("extra_plates") or []) if x]
+        planned_scene = (plan_refs or {}).get("scene") or []
+        imgs = list(planned_scene) if planned_scene else (list(imgs[:1]) + extra[:1])
+
+        paths: list[Path] = []
+        for raw in imgs:
+            sp = Path(str(raw))
             if not sp.is_absolute():
-                sp = (REPO / p).resolve()
+                sp = (REPO / sp).resolve()
             if sp.is_file():
-                wf["scene_img"] = {"class_type": "LoadImage",
-                                   "inputs": {"image": stage_image(sp)}}
-                inputs["scene_images"] = ["scene_img", 0]
+                paths.append(sp)
             else:
                 log(f"WARNING: missing scene image {sp}")
+
+        guide_ok = (str(shot.get("continuation") or "").lower() == "frame_pin"
+                    or bool(shot.get("chain_ref"))
+                    or os.environ.get("H3_ADD_GUIDE", "").strip().lower() in ("1", "true", "yes"))
+        if chain_ref_img is not None and chain_ref_img.is_file() and not guide_ok:
+            paths.append(chain_ref_img)
+
+        scene_nodes: list[str] = []
+        for i, sp in enumerate(paths, start=1):
+            slot = f"scene_img{i}"
+            wf[slot] = {"class_type": "LoadImage", "inputs": {"image": stage_image(sp)}}
+            scene_nodes.append(slot)
+
+        if len(scene_nodes) == 1:
+            inputs["scene_images"] = [scene_nodes[0], 0]
+        elif len(scene_nodes) > 1:
+            prev = scene_nodes[0]
+            for i, slot in enumerate(scene_nodes[1:], start=2):
+                batch = f"scene_batch{i}"
+                wf[batch] = {"class_type": "ImageBatch",
+                             "inputs": {"image1": [prev, 0], "image2": [slot, 0]}}
+                prev = batch
+            inputs["scene_images"] = [prev, 0]
+            log(f"[scene] {shot.get('shot_id')}: {len(scene_nodes)} 张场景图合成一个批次")
+
     wf["cast_to_video"] = {"class_type": "H3CastToVideo", "inputs": inputs}
-    wf["guider"]["inputs"]["conditioning"] = ["cast_to_video", 0]
+
+    # ---- 接上一镜末帧：原生 AddGuide（0.45.3）优先 ----
+    # 它把末帧作为 keyframe 钉在 frame_idx=0，只改 conditioning，
+    # 不进 ref_images、也不进文本编码器 → 不会被人脸平均。
+    # 按镜启用：continuation == frame_pin 时钉帧；env 仍可强制打开（实验用）
+    pin_wanted = (str(shot.get("continuation") or "").lower() == "frame_pin"
+                  or bool(shot.get("chain_ref")))
+    guide_ok = pin_wanted or os.environ.get("H3_ADD_GUIDE", "").strip().lower() in ("1", "true", "yes")
+    if chain_ref_img is not None and chain_ref_img.is_file() and guide_ok:
+        wf["guide_img"] = {"class_type": "LoadImage",
+                           "inputs": {"image": stage_image(chain_ref_img)}}
+        wf["add_guide"] = {"class_type": "MiniMaxH3AddGuide",
+                           "inputs": {"positive": ["cast_to_video", 0],
+                                      "vae": ["vae_video", 0],
+                                      "latent": ["cast_to_video", 1],
+                                      "image": ["guide_img", 0],
+                                      "frame_idx": 0}}
+        wf["guider"]["inputs"]["conditioning"] = ["add_guide", 0]
+        log(f"[chain] {shot.get('shot_id')}: 末帧走 AddGuide（frame_idx=0，不占参考槽）")
+    else:
+        wf["guider"]["inputs"]["conditioning"] = ["cast_to_video", 0]
     wf["sampler"]["inputs"]["latent_image"] = ["cast_to_video", 1]
     wf["noise"]["inputs"]["noise_seed"] = int(seed)
     wf["scheduler"]["inputs"]["steps"] = int(steps)
@@ -314,43 +506,41 @@ def build_workflow(shot: dict, chars: dict, style: str, scene: dict | None,
     return wf
 
 
+
+def free_vram(server: str, wait: float = 1.5) -> None:
+    """提交前清空显存：否则模型只能部分加载（6 GB 卸载到 CPU），每步从 19s 变成 25s。
+
+    若 H3_NO_FREE=1（上一镜用的是同一个模型），跳过清理，让引擎直接复用权重。
+    """
+    if os.environ.get("H3_NO_FREE"):
+        log("[free] 跳过显存清理（复用上一镜已加载的模型）")
+        return
+    log(f"[free] 清理显存（H3_UNET={os.environ.get('H3_UNET') or '默认 fl2va'}）")
+    ComfyClient(server).free(wait=wait, log=log)
+
+
+def shot_timeout(dur: float) -> float:
+    """单镜超时。实测：5 s(124 帧) ≈ 18 s/步；15 s(362 帧) ≈ 145–155 s/步。
+
+    20 步的话 5 s 约 8 分钟、15 s 约 50 分钟——固定 1800 s 会把长镜直接判死。
+    留 1.8 倍余量，另加 5 分钟模型加载。
+    """
+    frames = valid_length(float(dur or 5.0))
+    per_step = 18.0 * (frames / 124.0) ** 1.9      # 5 s→18 s，15 s→≈150 s
+    return 300.0 + 20.0 * per_step * 1.8
+
+
 def run_shot(server: str, wf: dict, timeout: float = 1800) -> tuple[bool, str]:
-    try:
-        r = post_json(f"{server}/prompt", {"prompt": wf, "client_id": "open-video-drama"})
-    except Exception as e:  # noqa: BLE001
-        return False, f"submit failed: {e}"
-    if r.get("node_errors"):
-        return False, f"rejected: {str(r['node_errors'])[:400]}"
-    pid = r["prompt_id"]
-    t0 = time.time()
-    while time.time() - t0 < timeout:
-        try:
-            h = get_json(f"{server}/history/{pid}")
-        except Exception:  # noqa: BLE001
-            h = {}
-        if pid in h:
-            st = h[pid].get("status", {})
-            if st.get("status_str") == "success":
-                return True, json.dumps({"prompt_id": pid, "outputs": h[pid].get("outputs", {})})
-            return False, f"status={st.get('status_str')}"
-        time.sleep(3)
-    return False, "timeout"
+    """提交并等待。实现已搬到 studio/exec/comfy.py（ComfyClient），这里只做薄封装。"""
+    client = ComfyClient(server)
+    ok, pid_or_err = client.submit(wf)
+    if not ok:
+        return False, pid_or_err
+    return client.wait(pid_or_err, timeout, log=log)
 
 
 def download_output(server: str, info: str, dst: Path) -> bool:
-    outs = (json.loads(info) or {}).get("outputs", {})
-    for payload in outs.values():
-        for key in ("gifs", "videos", "images"):
-            for g in payload.get(key) or []:
-                q = urllib.parse.urlencode({"filename": g["filename"],
-                                            "subfolder": g.get("subfolder", ""),
-                                            "type": g.get("type", "output")})
-                dst.parent.mkdir(parents=True, exist_ok=True)
-                with urllib.request.urlopen(f"{server}/view?{q}", timeout=180) as r, dst.open("wb") as fh:
-                    shutil.copyfileobj(r, fh)
-                if dst.stat().st_size > 1024:
-                    return True
-    return False
+    return ComfyClient(server).download(info, dst)
 
 
 # --------------------------------------------------------------------------- #
@@ -388,16 +578,20 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--height", type=int, default=768)
     ap.add_argument("--steps", type=int, default=20)
     ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--retries", type=int, default=1, help="retries per shot on failure")
+    ap.add_argument("--retries", type=int, default=1, help="失败重试次数（总共最多 1+retries 次）")
+    ap.add_argument("--max-wall", type=int, default=0,
+                    help="单个镜头的时间上限（秒）；超过就放弃，防止无限重渲")
     ap.add_argument("--chain-ssim", type=float, default=0.85,
                     help="minimum SSIM for a [chain] hand-off")
-    ap.add_argument("--chain-retries", type=int, default=2)
+    ap.add_argument("--chain-retries", type=int, default=0,
+                    help="chain 首帧不达标时换种子重渲的次数；默认 0 = 不自动重渲")
     ap.add_argument("--upscale", dest="upscale", action="store_true", default=True)
     ap.add_argument("--no-upscale", dest="upscale", action="store_false")
     ap.add_argument("--upscale-server", default="http://127.0.0.1:8288")
-    ap.add_argument("--upscale-comfy-dir", default=os.environ.get("OV_COMFYUI_UP_DIR"))
+    ap.add_argument("--upscale-comfy-dir", default=str(Path.home() / "openvideo" / "ComfyUI-up"))
     ap.add_argument("--megapixels", type=float, default=2.0)
-    ap.add_argument("--port", type=int, default=8188)
+    ap.add_argument("--port", type=int,
+                    default=int(os.environ.get("OPEN_VIDEO_COMFY_PORT", "8288")))
     ap.add_argument("--engine-flags", default="--cache-none")
     ap.add_argument("--restart-every", type=int, default=0,
                     help="recycle the engine every N shots (0 = never; use 3 on this box)")
@@ -488,7 +682,13 @@ def main(argv: list[str] | None = None) -> int:
             continue
 
         scene = scenes.get(str(sh.get("scene_id")))
+        cur_cast = set(sh.get("characters_present") or [])
+        prev_cast = set((shots[i - 2].get("characters_present") or [])) if i >= 2 else set()
         chain = str(sh.get("transition")) == "chain" and prev_video is not None
+        if chain and cur_cast != prev_cast:
+            log(f"[{i:02d}] chain 但出场角色变了（{sorted(prev_cast)} → {sorted(cur_cast)}），"
+                f"按 cut 处理，避免首帧对比反复失败")
+            chain = False
         lock: Path | None = None
         if args.first_frame and args.only and len(str(args.only).split(",")) == 1:
             pinned = Path(args.first_frame).resolve()
@@ -512,7 +712,7 @@ def main(argv: list[str] | None = None) -> int:
         first_in_scene = scene_id not in seen_scenes
         seen_scenes.add(scene_id)
         anchored = False
-        if lock is None and scene:
+        if lock is None and scene and not (sh.get("characters_present") or []):
             want_anchor = (str(sh.get("anchor") or "") == "plate"
                            or (first_in_scene and not (sh.get("characters_present") or [])
                                and str(sh.get("transition")) != "chain"))
@@ -527,9 +727,12 @@ def main(argv: list[str] | None = None) -> int:
                     anchored = True
                 else:
                     log(f"[{i:02d}] anchor plate missing: {cand}")
-        if anchored and (sh.get("characters_present") or []):
-            log(f"[{i:02d}] WARNING: anchor=plate 走 i2v，角色参考图不生效——"
-                f"建议 anchor 只用于空镜建立镜头")
+        # 有人物的镜头如果还带着首帧/链式锁，SSIM 门禁会永远不达标（人 vs 空景），
+        # 表现就是"渲完又从头开始"。这里把锁一起丢掉。
+        if lock is not None and (sh.get("characters_present") or []) and not chain:
+            log(f"[{i:02d}] 这一镜有人物，忽略首帧锁定（生成与门禁都不用），"
+                f"改用角色参考 + 场景参考")
+            lock = None
 
         if last_done_at is not None:
             gap = round(time.time() - last_done_at, 2)
@@ -543,12 +746,20 @@ def main(argv: list[str] | None = None) -> int:
         peak = 0
         ssim_val: float | None = None
         mode = "i2v-lock" if lock else "cast"
+        wall_start = time.time()
         while attempt <= args.retries:
             attempt += 1
+            spent = time.time() - wall_start
+            if args.max_wall and spent > args.max_wall:
+                log(f"[{i:02d}] 已耗时 {spent:.0f}s，超过单镜上限 {args.max_wall}s —— 放弃这一镜")
+                break
+            log(f"[{i:02d}] 第 {attempt} 次尝试（上限 {args.retries + 1} 次，"
+                f"已耗时 {spent:.0f}s）")
             t0 = time.time()
             wf = build_workflow(sh, chars, style, scene, args.width, args.height,
                                 args.steps, args.seed + 13 * (attempt - 1), lock_frame=lock)
             log(f"[{i:02d}] {sh.get('shot_id')} attempt {attempt} ({sh.get('transition')}, {mode})")
+            free_vram(args.server)
             with VramSampler() as sampler:
                 good, info = run_shot(args.server, wf)
             peak = max(peak, sampler.peak)
@@ -637,14 +848,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.upscale:
         up_dir = out_dir.parent / f"{out_dir.name}_2k"
         log(f"detail pass → {up_dir}")
-        up_cmd = [sys.executable, "scripts/upscale_segments.py",
-                  "--segments", str(out_dir), "--out", str(up_dir),
-                  "--server", args.upscale_server,
-                  "--megapixels", str(args.megapixels)]
-        if args.upscale_comfy_dir:
-            up_cmd += ["--comfy-dir", args.upscale_comfy_dir]
-        cp = subprocess.run(up_cmd, cwd=str(REPO), stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, text=True)
+        cp = subprocess.run([str(REPO / ".venv/bin/python"), "scripts/upscale_segments.py",
+                             "--segments", str(out_dir), "--out", str(up_dir),
+                             "--server", args.upscale_server,
+                             "--comfy-dir", args.upscale_comfy_dir,
+                             "--megapixels", str(args.megapixels)],
+                            cwd=str(REPO), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         print(cp.stdout)
         if cp.returncode != 0:
             log("detail pass FAILED — refusing to merge a half-upscaled film (use --no-upscale)")

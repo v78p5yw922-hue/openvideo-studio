@@ -1,0 +1,43 @@
+/* 右侧内容区顶部：二级菜单栏（顶行） */
+
+.topnav {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: 42px;
+  padding: 0 24px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line-soft);
+}
+.topnav-section {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dim);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+.topnav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--field-bg);
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+}
+.topnav-tab {
+  padding: 5px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--dim);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 120ms ease, color 120ms ease;
+}
+.topnav-tab:hover { color: var(--fg); background: var(--hover); }
+.topnav-tab.is-active {
+  background: var(--hover-strong);
+  color: var(--fg);
+  font-weight: 600;
+}

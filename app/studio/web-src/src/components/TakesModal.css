@@ -1,0 +1,37 @@
+/* 一个镜头的全部版本 */
+
+.takes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.takes-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: var(--bg);
+  border-radius: var(--r-2);
+  transition: box-shadow 140ms ease;
+}
+.takes-card.chosen { box-shadow: inset 0 0 0 1px var(--accent); }
+.takes-video {
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r-1);
+  overflow: hidden;
+  background: #000;
+}
+.takes-info { display: flex; flex-direction: column; gap: 3px; }
+.takes-line { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.takes-acts { display: flex; gap: 6px; }
+.takes-acts button { flex: 1; padding: 4px 8px; font-size: 12px; }
+.small { font-size: 12px; }
+.tag {
+  font-size: 12px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent-soft-strong);
+}
+.tag.warn { color: var(--warn); background: var(--warn-soft); border-color: var(--warn-border); }

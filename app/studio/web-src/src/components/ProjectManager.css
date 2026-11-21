@@ -1,0 +1,127 @@
+.pm-groups {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: var(--field-bg);
+  font-size: 14px;
+}
+
+.pm-x {
+  border: 0;
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.pm-x:hover { color: var(--danger); }
+
+.pm-new {
+  width: 140px;
+  padding: 4px 8px;
+  font-size: 14px;
+}
+
+.pm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.pm-table th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--empty);
+  border-bottom: 1px solid var(--line-soft);
+  padding: 6px 8px;
+}
+
+.pm-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line-soft);
+  vertical-align: middle;
+}
+
+.pm-table tr.is-current td { background: var(--hover-strong); }
+
+.pm-title { font-size: 14px; }
+.pm-sub { font-size: 12px; }
+.pm-check { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.pm-note { margin-top: 10px; font-size: 14px; }
+
+.pm-batch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--field-bg);
+  font-size: 14px;
+}
+
+.pm-batch select { min-width: 120px; }
+
+.pm-sel { width: 28px; text-align: center; }
+
+.pm-chip-name {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+.pm-chip-name:hover { text-decoration: underline; }
+
+.pm-filter {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.pm-search {
+  margin-left: auto;
+  width: 200px;
+  padding: 4px 10px;
+  font-size: 14px;
+}
+
+.pm-filter button {
+  padding: 4px 10px;
+  font-size: 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.pm-filter button.is-active {
+  background: var(--hover-strong);
+  border-color: transparent;
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.pm-table tr.is-archived .pm-title {
+  color: var(--dim);
+  text-decoration: line-through;
+}
+
+.pm-table tr.is-archived { opacity: 0.65; }

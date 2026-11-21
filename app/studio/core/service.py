@@ -6,15 +6,19 @@ at a call site.
 
 from __future__ import annotations
 
+import hashlib
 import json
-import sys
 import time
 import uuid
 from pathlib import Path
 
 from . import db
+from . import refs as refs_mod
 from .model import (RENDER_PARAMS_DEFAULT, cascade, next_version, sha256_file,
                     shot_fingerprint, take_name)
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPTS_DIR = REPO_ROOT / "scripts"
 
 # render budget measured on this box: 5 s @768x1344, 20 steps
 MIN_PER_SHOT_FULL = 8.5
@@ -24,7 +28,66 @@ DIALOGUE_MAX_CHARS = 24      # 5 s of Mandarin at a natural pace
 EXEC_ALLOWED = False          # flipped by the confirmed-run endpoint only
 
 
+def _refresh_all(project_id: str = "") -> None:
+    """参考图/场景图变了就重算指纹与槽位计划。
+
+    这些资产是全局或跨镜头共享的：换一张图，所有用到它的镜头都要失效，
+    否则会拿旧图渲新镜、静默出片。
+    """
+    if project_id:
+        recompute_fingerprints(project_id)
+        return
+    for pr in list_projects(include_archived=True):
+        recompute_fingerprints(pr["id"])
+
+
 # ---------------------------------------------------------------- projects
+
+def project_settings(project_id: str) -> dict:
+    """项目级设置：风格串 / 分辨率 / 时长上限 / 词库覆盖开关。"""
+    with db.txn() as conn:
+        row = conn.execute("SELECT settings_json, style, title FROM projects WHERE id=?",
+                           (project_id,)).fetchone()
+    if not row:
+        raise KeyError(project_id)
+    rec = db.row_to_dict(row)
+    data = db.loads(rec.get("settings_json") or "{}", {})
+    data.setdefault("style", rec.get("style") or "")
+    data.setdefault("width", 1344)
+    data.setdefault("height", 768)
+    data.setdefault("max_duration", 10)
+    data.setdefault("glossary_extra", [])
+    return data
+
+
+def update_project_settings(project_id: str, patch: dict) -> dict:
+    cur = project_settings(project_id)
+    allowed = {"style", "width", "height", "max_duration", "glossary_extra"}
+    for k, v in (patch or {}).items():
+        if k in allowed:
+            cur[k] = v
+    style = str(cur.pop("style", "") or "")
+    with db.txn() as conn:
+        conn.execute("UPDATE projects SET settings_json=?, style=?, updated_at=? WHERE id=?",
+                     (json.dumps(cur, ensure_ascii=False), style, db.now(), project_id))
+        db.emit(conn, project_id, "", "settings.saved", {})
+    cur["style"] = style
+    return cur
+
+
+def rename_project(project_id: str, title: str) -> dict:
+    """改项目标题（project id 不变，URL/资产/任务都不受影响）。"""
+    title = (title or "").strip()
+    if not title:
+        raise ValueError("标题不能为空")
+    if not get_project(project_id):
+        raise ValueError("项目不存在")
+    with db.txn() as conn:
+        conn.execute("UPDATE projects SET title=?, updated_at=? WHERE id=?",
+                     (title, db.now(), project_id))
+        db.emit(conn, project_id, "", "project.renamed", {"title": title})
+    return get_project(project_id) or {}
+
 
 def create_project(project_id: str, title: str, style: str = "") -> dict:
     now = db.now()
@@ -36,22 +99,166 @@ def create_project(project_id: str, title: str, style: str = "") -> dict:
     return get_project(project_id)
 
 
+DEFAULT_AUDIO = {"bgm": {"mode": "off", "path": "", "gain_db": -18.0, "duck_under_voice": True},
+                 "ambience": {"mode": "off", "path": "", "gain_db": -26.0}}
+
+
 def get_project(project_id: str) -> dict | None:
     with db.txn() as conn:
         row = conn.execute("SELECT * FROM projects WHERE id=?", (project_id,)).fetchone()
-    return db.row_to_dict(row)
+    d = db.row_to_dict(row)
+    if d:
+        cfg = db.loads(d.pop("audio_json", "{}") or "{}", {})
+        merged = {**DEFAULT_AUDIO, **(cfg or {})}
+        for key in ("bgm", "ambience"):
+            merged[key] = {**DEFAULT_AUDIO[key], **(merged.get(key) or {})}
+        d["audio"] = merged
+    return d
 
 
-def list_projects() -> list[dict]:
+def set_project_audio(project_id: str, cfg: dict) -> dict:
+    """项目级音频策略：逐镜不生成 BGM，后期铺整集 BGM + 全局 ambience。
+
+    mode: off（不铺）/ file（用指定音频文件）/ auto（先留空，等生成后填 path）
+    """
     with db.txn() as conn:
-        rows = conn.execute("SELECT * FROM projects ORDER BY updated_at DESC").fetchall()
+        row = conn.execute("SELECT audio_json FROM projects WHERE id=?", (project_id,)).fetchone()
+        if row is None:
+            raise ValueError("项目不存在")
+        cur = db.loads(row["audio_json"] or "{}", {})
+        merged = {**DEFAULT_AUDIO, **(cur or {})}
+        for key in ("bgm", "ambience"):
+            if key in (cfg or {}):
+                merged[key] = {**DEFAULT_AUDIO[key], **(merged.get(key) or {}), **(cfg[key] or {})}
+        if "voice_duck" in (cfg or {}):
+            merged["voice_duck"] = bool(cfg["voice_duck"])
+        conn.execute("UPDATE projects SET audio_json=?, updated_at=? WHERE id=?",
+                     (json.dumps(merged, ensure_ascii=False), db.now(), project_id))
+        db.emit(conn, project_id, "", "project.audio", merged)
+    return merged
+
+
+def list_projects(include_archived: bool = False) -> list[dict]:
+    sql = "SELECT * FROM projects"
+    if not include_archived:
+        sql += " WHERE archived=0"
+    sql += " ORDER BY sort_order DESC, updated_at DESC"
+    with db.txn() as conn:
+        rows = conn.execute(sql).fetchall()
     return [dict(r) for r in rows]
+
+
+def reorder_projects(ids: list[str]) -> dict:
+    """按传入顺序保存项目排序（数组第一项排最前）。"""
+    ids = [i for i in (ids or []) if i]
+    if not ids:
+        return {"ok": True, "count": 0}
+    with db.txn() as conn:
+        conn.executemany(
+            "UPDATE projects SET sort_order=? WHERE id=?",
+            [(len(ids) - idx, pid) for idx, pid in enumerate(ids)],
+        )
+    return {"ok": True, "count": len(ids)}
+
+
+# ------------------------------------------------------------------ groups
+def list_groups() -> list[dict]:
+    """项目分组（系列/剧集）。count = 该组下未归档的项目数。"""
+    with db.txn() as conn:
+        rows = conn.execute(
+            "SELECT g.id, g.name, g.created_at, "
+            "  (SELECT COUNT(*) FROM projects p WHERE p.group_id=g.id AND p.archived=0) AS count "
+            "FROM project_groups g ORDER BY g.created_at").fetchall()
+        ungrouped = conn.execute(
+            "SELECT COUNT(*) AS n FROM projects WHERE (group_id='' OR group_id IS NULL) "
+            "AND archived=0").fetchone()
+    out = [dict(r) for r in rows]
+    out.append({"id": "", "name": "未分组", "created_at": "", "count": ungrouped["n"] if ungrouped else 0})
+    return out
+
+
+def ensure_group(name: str) -> dict:
+    """按名字找分组，没有就建（新建项目时不选分组 = 新建一个）。"""
+    name = (name or "").strip()
+    if not name:
+        raise ValueError("分组名不能为空")
+    with db.txn() as conn:
+        row = conn.execute("SELECT * FROM project_groups WHERE name=?", (name,)).fetchone()
+        if row:
+            return dict(row)
+        gid = "g_" + hashlib.sha256(name.encode("utf-8")).hexdigest()[:10]
+        conn.execute("INSERT OR IGNORE INTO project_groups(id,name,created_at) VALUES (?,?,?)",
+                     (gid, name, db.now()))
+        row = conn.execute("SELECT * FROM project_groups WHERE id=?", (gid,)).fetchone()
+    return dict(row)
+
+
+def rename_group(gid: str, name: str) -> dict:
+    name = (name or "").strip()
+    if not name:
+        raise ValueError("分组名不能为空")
+    with db.txn() as conn:
+        conn.execute("UPDATE project_groups SET name=? WHERE id=?", (name, gid))
+        row = conn.execute("SELECT * FROM project_groups WHERE id=?", (gid,)).fetchone()
+    if not row:
+        raise ValueError("分组不存在")
+    return dict(row)
+
+
+def delete_group(gid: str) -> dict:
+    """删分组：组里的项目变成"未分组"，项目本身不删。"""
+    with db.txn() as conn:
+        conn.execute("UPDATE projects SET group_id='' WHERE group_id=?", (gid,))
+        conn.execute("DELETE FROM project_groups WHERE id=?", (gid,))
+    return {"ok": True}
+
+
+def batch_projects(ids: list[str], action: str, group_id: str = "") -> dict:
+    """批量：action = group / archive / unarchive。
+
+    一次事务处理完，避免前端循环发 N 个请求（也避免中途失败一半）。
+    """
+    ids = [i for i in (ids or []) if i]
+    if not ids:
+        return {"ok": True, "count": 0}
+    now = db.now()
+    with db.txn() as conn:
+        if action == "group":
+            conn.executemany("UPDATE projects SET group_id=?, updated_at=? WHERE id=?",
+                             [(group_id or "", now, i) for i in ids])
+        elif action in ("archive", "unarchive"):
+            flag = 1 if action == "archive" else 0
+            conn.executemany("UPDATE projects SET archived=?, updated_at=? WHERE id=?",
+                             [(flag, now, i) for i in ids])
+        else:
+            raise ValueError(f"未知批量操作：{action}")
+        # 审计：批量操作影响面大，必须留痕（单项目的 archived 事件在 set_project_archived）
+        for i in ids:
+            db.emit(conn, i, "", f"project.batch_{action}",
+                    {"group_id": group_id or "", "count": len(ids)})
+    return {"ok": True, "count": len(ids), "action": action, "group_id": group_id}
+
+
+def set_project_group(project_id: str, group_id: str) -> dict:
+    with db.txn() as conn:
+        conn.execute("UPDATE projects SET group_id=?, updated_at=? WHERE id=?",
+                     (group_id or "", db.now(), project_id))
+        db.emit(conn, project_id, "", "project.grouped", {"group_id": group_id or ""})
+    return get_project(project_id) or {}
+
+
+def set_project_archived(project_id: str, archived: bool) -> dict:
+    with db.txn() as conn:
+        conn.execute("UPDATE projects SET archived=?, updated_at=? WHERE id=?",
+                     (1 if archived else 0, db.now(), project_id))
+        db.emit(conn, project_id, "", "project.archived", {"archived": bool(archived)})
+    return get_project(project_id) or {}
 
 
 # ------------------------------------------------------------------ assets
 
 def upsert_character(cid: str, name: str, description: str, refs: list[str],
-                     force: bool = False) -> dict:
+                     force: bool = False, species: str = "") -> dict:
     prev = {c["character_id"]: c for c in list_characters()}.get(cid, {})
     primary = refs[0] if refs else ""
     new_sha = sha256_file(primary) if primary else ""
@@ -62,13 +269,19 @@ def upsert_character(cid: str, name: str, description: str, refs: list[str],
         if new_sha and old_sha and new_sha != old_sha:
             _archive(conn, "character", cid, "", prev["primary_ref"], "replaced")
         conn.execute(
-            """INSERT INTO characters(character_id,name,description,refs_json,primary_ref,updated_at)
-               VALUES (?,?,?,?,?,?)
+            """INSERT INTO characters(character_id,name,description,refs_json,primary_ref,
+                                      species,updated_at)
+               VALUES (?,?,?,?,?,?,?)
                ON CONFLICT(character_id) DO UPDATE SET
                  name=excluded.name, description=excluded.description,
                  refs_json=excluded.refs_json, primary_ref=excluded.primary_ref,
+                 species=CASE WHEN excluded.species='' THEN characters.species
+                              ELSE excluded.species END,
                  updated_at=excluded.updated_at""",
-            (cid, name, description, json.dumps(refs, ensure_ascii=False), primary, db.now()))
+            (cid, name, description, json.dumps(refs, ensure_ascii=False), primary,
+             species or "", db.now()))
+    # 参考图/描述变了：所有用到这个角色的项目都要重算指纹与槽位计划
+    _refresh_all()
     return {"character_id": cid, "name": name, "refs": refs,
             "primary_ref": primary, "locked": bool(prev.get("locked"))}
 
@@ -143,7 +356,44 @@ def upsert_scene(project_id: str, scene_id: str, *, name: str = "", camera: str 
                  light=excluded.light, plate_path=excluded.plate_path,
                  plate_sha=excluded.plate_sha, updated_at=excluded.updated_at""",
             (project_id, scene_id, name, camera, props, light, plate_path, plate_sha, db.now()))
+    _refresh_all(project_id)
     return get_scene(project_id, scene_id)
+
+
+def add_scene_plate(project_id: str, scene_id: str, path: str) -> dict:
+    """追加一张场景参考图（不同机位/角度）。
+
+    H3CastToVideo 的 scene_images 是一个批次，每帧占一个 <Picture> 槽位；
+    同一场景给 2–3 个角度，模型才不会把空间压成一张平面图。
+    """
+    scene = get_scene(project_id, scene_id)
+    if not scene:
+        raise ValueError("场景不存在")
+    plates = list(scene.get("extra_plates") or [])
+    if path not in plates:
+        plates.append(path)
+    plates = plates[:4]                      # 9 个参考槽要留给角色，别贪多
+    with db.txn() as conn:
+        conn.execute("UPDATE scenes SET extra_plates_json=?, updated_at=? "
+                     "WHERE project_id=? AND scene_id=?",
+                     (json.dumps(plates, ensure_ascii=False), db.now(), project_id, scene_id))
+        db.emit(conn, project_id, scene_id, "scene.plates", {"count": len(plates)})
+    _refresh_all(project_id)
+    return get_scene(project_id, scene_id) or {}
+
+
+def remove_scene_plate(project_id: str, scene_id: str, index: int) -> dict:
+    scene = get_scene(project_id, scene_id)
+    if not scene:
+        raise ValueError("场景不存在")
+    plates = list(scene.get("extra_plates") or [])
+    if 0 <= index < len(plates):
+        plates.pop(index)
+    with db.txn() as conn:
+        conn.execute("UPDATE scenes SET extra_plates_json=?, updated_at=? "
+                     "WHERE project_id=? AND scene_id=?",
+                     (json.dumps(plates, ensure_ascii=False), db.now(), project_id, scene_id))
+    return get_scene(project_id, scene_id) or {}
 
 
 def restore_scene_plate(project_id: str, scene_id: str, version: int) -> dict:
@@ -160,29 +410,107 @@ def restore_scene_plate(project_id: str, scene_id: str, version: int) -> dict:
                         plate_path=row["path"], force=True)
 
 
+def _scene_row_to_dict(row) -> dict | None:
+    d = db.row_to_dict(row)
+    if d is None:
+        return None
+    d["extra_plates"] = db.loads(d.pop("extra_plates_json", "[]"), [])
+    return d
+
+
 def get_scene(project_id: str, scene_id: str) -> dict | None:
     with db.txn() as conn:
         row = conn.execute("SELECT * FROM scenes WHERE project_id=? AND scene_id=?",
                            (project_id, scene_id)).fetchone()
-    return db.row_to_dict(row)
+    return _scene_row_to_dict(row)
 
 
 def list_scenes(project_id: str) -> list[dict]:
     with db.txn() as conn:
         rows = conn.execute("SELECT * FROM scenes WHERE project_id=? ORDER BY scene_id",
                             (project_id,)).fetchall()
-    return [dict(r) for r in rows]
+    return [_scene_row_to_dict(r) for r in rows]
 
 
-def list_characters() -> list[dict]:
+def list_characters(project_id: str | None = None) -> list[dict]:
+    """角色库。
+
+    传 project_id 时套用该项目在 project_cast 里的覆盖（描述 / 参考图），
+    这样同一个角色可以在不同剧里有不同造型，互不影响。
+    """
     with db.txn() as conn:
         rows = conn.execute("SELECT * FROM characters ORDER BY name").fetchall()
+        overrides: dict[str, dict] = {}
+        if project_id:
+            for r in conn.execute("SELECT * FROM project_cast WHERE project_id=?",
+                                  (project_id,)).fetchall():
+                overrides[r["character_id"]] = dict(r)
     out = []
     for r in rows:
         d = dict(r)
         d["refs"] = db.loads(d.pop("refs_json"), [])
+        d["refs_verified"] = bool(d.get("refs_verified"))
+        ov = overrides.get(d["character_id"])
+        if ov:
+            if ov.get("description_override"):
+                d["description"] = ov["description_override"]
+            ov_refs = db.loads(ov.get("refs_override_json") or "[]", [])
+            if ov_refs:
+                d["refs"] = ov_refs
+                d["primary_ref"] = ov_refs[0]
+            d["overridden"] = True
+        else:
+            d["overridden"] = False
         out.append(d)
     return out
+
+
+def set_character_verified(cid: str, verified: bool) -> dict:
+    """标记「参考图已核对」：勾了之后不再报 DESC_CONFLICT。"""
+    with db.txn() as conn:
+        cur = conn.execute("UPDATE characters SET refs_verified=?, updated_at=? WHERE character_id=?",
+                           (1 if verified else 0, db.now(), cid))
+        if cur.rowcount == 0:
+            raise ValueError("角色不存在")
+        db.emit(conn, "", cid, "character.verified", {"verified": bool(verified)})
+    return {"character_id": cid, "refs_verified": bool(verified)}
+
+
+def set_project_character_override(project_id: str, cid: str, *,
+                                   description: str | None = None,
+                                   refs: list[str] | None = None) -> dict:
+    """本剧专用覆盖：只影响这个项目，不改角色库。"""
+    if not get_project(project_id):
+        raise ValueError("项目不存在")
+    with db.txn() as conn:
+        row = conn.execute("SELECT * FROM project_cast WHERE project_id=? AND character_id=?",
+                           (project_id, cid)).fetchone()
+        cur_desc = row["description_override"] if row else ""
+        cur_refs = db.loads(row["refs_override_json"], []) if row else []
+        new_desc = cur_desc if description is None else description
+        new_refs = cur_refs if refs is None else refs
+        conn.execute(
+            """INSERT INTO project_cast(project_id,character_id,description_override,
+                                        refs_override_json,updated_at)
+               VALUES (?,?,?,?,?)
+               ON CONFLICT(project_id,character_id) DO UPDATE SET
+                 description_override=excluded.description_override,
+                 refs_override_json=excluded.refs_override_json,
+                 updated_at=excluded.updated_at""",
+            (project_id, cid, new_desc, json.dumps(new_refs, ensure_ascii=False), db.now()))
+        db.emit(conn, project_id, cid, "project_cast.override",
+                {"description": bool(new_desc), "refs": len(new_refs)})
+    recompute_fingerprints(project_id)
+    return {"project_id": project_id, "character_id": cid,
+            "description_override": new_desc, "refs_override": new_refs}
+
+
+def clear_project_character_override(project_id: str, cid: str) -> dict:
+    with db.txn() as conn:
+        conn.execute("DELETE FROM project_cast WHERE project_id=? AND character_id=?",
+                     (project_id, cid))
+    recompute_fingerprints(project_id)
+    return {"project_id": project_id, "character_id": cid, "cleared": True}
 
 
 def cast_refs(cast: list[str]) -> list[str]:
@@ -201,12 +529,13 @@ def cast_refs(cast: list[str]) -> list[str]:
 # ------------------------------------------------------------------- shots
 
 SHOT_FIELDS = ("shot_id", "scene_id", "cast", "camera", "prompt", "dialogue",
-               "sound", "transition", "anchor", "duration", "first_frame")
+               "sound", "music", "transition", "anchor", "duration", "first_frame")
 
 
 def _shot_row_to_dict(row) -> dict:
     d = dict(row)
     d["cast"] = db.loads(d.pop("cast_json"), [])
+    d["ref_plan"] = db.loads(d.pop("ref_plan_json", "{}") or "{}", {})
     return d
 
 
@@ -215,6 +544,77 @@ def list_shots(project_id: str) -> list[dict]:
         rows = conn.execute("SELECT * FROM shots WHERE project_id=? ORDER BY ordinal",
                             (project_id,)).fetchall()
     return [_shot_row_to_dict(r) for r in rows]
+
+
+def _prompt_slots(prompt: str) -> dict:
+    """把 prompt 里的【机位】【人物】解析出来（失败就返回空）。"""
+    try:
+        import sys
+        if str(SCRIPTS_DIR) not in sys.path:
+            sys.path.insert(0, str(SCRIPTS_DIR))
+        import prompt_compiler as pc  # noqa: PLC0415
+        slots = pc.parse_slots(prompt or "")
+        cam = pc.sg.parse_camera(slots.get("机位") or "") or {}
+        people = pc.sg.parse_people(slots.get("人物") or "") or []
+        return {"camera": cam, "people": people}
+    except Exception:  # noqa: BLE001
+        return {"camera": {}, "people": []}
+
+
+def ref_plan_for(project_id: str, shot: dict) -> dict:
+    """给一镜算槽位计划（人物图 + 场景图共享 9 个槽）。
+
+    这是"用哪几张图"的唯一真相：渲染、校验、界面都读它。
+    """
+    cast_ids = list(shot.get("cast") or [])
+    chars: dict[str, dict] = {}
+    if cast_ids:
+        with db.txn() as conn:
+            rows = conn.execute(
+                "SELECT character_id,name,refs_json FROM characters "
+                f"WHERE character_id IN ({','.join('?' * len(cast_ids))})",
+                cast_ids).fetchall()
+        chars = {r["character_id"]: dict(r) for r in rows}
+
+    overrides: dict[str, list[str]] = {}
+    with db.txn() as conn:
+        try:
+            for r in conn.execute(
+                    "SELECT character_id, refs_json FROM project_cast "
+                    "WHERE project_id=? AND refs_json NOT IN ('', '[]')",
+                    (project_id,)).fetchall():
+                overrides[r["character_id"]] = db.loads(r["refs_json"], [])
+        except Exception:  # noqa: BLE001  老库没有这张表
+            pass
+
+    parsed = _prompt_slots(shot.get("prompt") or "")
+    shares = {str(p.get("name") or ""): float(p.get("占比") or 0)
+              for p in parsed["people"]}
+    facings = {str(p.get("name") or ""): str(p.get("朝向") or "")
+               for p in parsed["people"]}
+
+    cast = []
+    for cid in cast_ids:
+        c = chars.get(cid) or {}
+        name = c.get("name") or cid
+        cast.append({"character_id": cid, "name": name,
+                     "refs": overrides.get(cid) or db.loads(c.get("refs_json", "[]"), []),
+                     "facing": facings.get(name, ""), "share": shares.get(name, 0)})
+
+    scene: dict = {}
+    if shot.get("scene_id"):
+        with db.txn() as conn:
+            row = conn.execute(
+                "SELECT plate_path, extra_plates_json FROM scenes "
+                "WHERE project_id=? AND scene_id=?",
+                (project_id, shot["scene_id"])).fetchone()
+        if row:
+            scene = {"plate_path": row["plate_path"] or "",
+                     "extra_plates": db.loads(row["extra_plates_json"], [])}
+
+    plan_shot = dict(shot)
+    plan_shot["camera_slots"] = parsed["camera"]
+    return refs_mod.plan_refs(plan_shot, cast, scene)
 
 
 def save_shots(project_id: str, shots: list[dict]) -> list[dict]:
@@ -237,28 +637,59 @@ def save_shots(project_id: str, shots: list[dict]) -> list[dict]:
                 v = s.get(key)
                 return prev.get(key, default) if v is None else v
             keep.add(sid)
+            cast_list = (s.get("cast") if s.get("cast") is not None
+                         else db.loads(prev.get("cast_json", "[]"), []))
+            anchor_val = pick("anchor", "")
+            # 有人物时锚定母版是错的（会把人物做成母版首帧）；服务端强制归零，
+            # 这样前端不管怎么误操作都不会出现「人物 + plate」的坏状态
+            if cast_list and anchor_val == "plate":
+                anchor_val = ""
             conn.execute(
                 """INSERT INTO shots(project_id,shot_id,ordinal,scene_id,cast_json,camera,prompt,
-                                     dialogue,sound,transition,anchor,duration,first_frame,fingerprint,updated_at)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                                     dialogue,sound,music,transition,anchor,duration,first_frame,
+                                     last_frame,chain_ref,continuation,fingerprint,updated_at)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                    ON CONFLICT(project_id,shot_id) DO UPDATE SET
                      ordinal=excluded.ordinal, scene_id=excluded.scene_id, cast_json=excluded.cast_json,
                      camera=excluded.camera, prompt=excluded.prompt, dialogue=excluded.dialogue,
-                     sound=excluded.sound, transition=excluded.transition, anchor=excluded.anchor,
+                     sound=excluded.sound, music=excluded.music,
+                     transition=excluded.transition, anchor=excluded.anchor,
                      duration=excluded.duration, first_frame=excluded.first_frame,
-                     updated_at=excluded.updated_at""",
+                     last_frame=excluded.last_frame,
+                     chain_ref=excluded.chain_ref,
+                     continuation=excluded.continuation, updated_at=excluded.updated_at""",
                 (project_id, sid, i,
                  pick("scene_id", ""),
                  json.dumps(s.get("cast") if s.get("cast") is not None
                             else db.loads(prev.get("cast_json", "[]"), []), ensure_ascii=False),
                  pick("camera", ""), pick("prompt", ""),
-                 pick("dialogue", ""), pick("sound", ""),
-                 pick("transition", "cut"), pick("anchor", ""),
-                 float(pick("duration", 5.0) or 5.0), pick("first_frame", ""), "", now))
+                 pick("dialogue", ""), pick("sound", ""), pick("music", ""),
+                 pick("transition", "cut"), anchor_val,
+                 float(pick("duration", 5.0) or 5.0), pick("first_frame", ""),
+                 pick("last_frame", ""),
+                 1 if int(pick("chain_ref", 0) or 0) else 0,
+                 str(pick("continuation", "cut")), "", now))
         for sid in existing - keep:
             conn.execute("DELETE FROM shots WHERE project_id=? AND shot_id=?", (project_id, sid))
         conn.execute("UPDATE projects SET updated_at=? WHERE id=?", (now, project_id))
         db.emit(conn, project_id, "", "shots.saved", {"count": len(shots)})
+    recompute_fingerprints(project_id)
+    return list_shots(project_id)
+
+
+def set_chain_ref(project_id: str, shot_id: str, enabled: bool) -> dict:
+    """开关「接上一镜末帧（人物镜）」。
+
+    人物镜走 H3CastToVideo，它没有 first_frame 输入；开启后把上一镜的末帧
+    追加到 scene_images 里，作为视觉锚点，比纯 cut 更接近连续。
+    """
+    with db.txn() as conn:
+        cur = conn.execute(
+            "UPDATE shots SET chain_ref=?, updated_at=? WHERE project_id=? AND shot_id=?",
+            (1 if enabled else 0, db.now(), project_id, shot_id))
+        if cur.rowcount == 0:
+            raise ValueError("镜头不存在")
+        db.emit(conn, project_id, shot_id, "shot.chain_ref", {"enabled": bool(enabled)})
     recompute_fingerprints(project_id)
     return list_shots(project_id)
 
@@ -271,13 +702,20 @@ def recompute_fingerprints(project_id: str, params: dict | None = None) -> list[
     updated = []
     for sh in shots:
         refs = cast_refs(sh["cast"])
-        fp = shot_fingerprint(sh, scenes.get(sh["scene_id"]), refs, params, prev_fp)
-        if fp != sh["fingerprint"]:
+        # 槽位计划：用哪几张图、什么顺序（决定出片，必须进指纹）
+        plan = ref_plan_for(project_id, sh)
+        sig = refs_mod.plan_signature(plan)
+        fp = shot_fingerprint(sh, scenes.get(sh["scene_id"]), refs, params, prev_fp, sig)
+        plan_json = json.dumps(plan, ensure_ascii=False)
+        if fp != sh["fingerprint"] or plan_json != (sh.get("ref_plan_json") or "{}"):
             with db.txn() as conn:
-                conn.execute("UPDATE shots SET fingerprint=? WHERE project_id=? AND shot_id=?",
-                             (fp, project_id, sh["shot_id"]))
+                conn.execute(
+                    "UPDATE shots SET fingerprint=?, ref_plan_json=? "
+                    "WHERE project_id=? AND shot_id=?",
+                    (fp, plan_json, project_id, sh["shot_id"]))
         prev_fp = fp
         sh["fingerprint"] = fp
+        sh["ref_plan"] = plan
         updated.append(sh)
     return updated
 
@@ -319,6 +757,8 @@ def shot_state(project_id: str, shot: dict) -> dict:
         state = "rejected"
 
     d = db.row_to_dict(take) or {}
+    if d:
+        d["metrics"] = db.loads(d.pop("metrics_json", "{}") or "{}", {})
     rv = db.row_to_dict(review) or {}
     pv = get_preview(project_id, shot["shot_id"])
     last_job = None
@@ -351,16 +791,19 @@ def reserve_take(project_id: str, shot_id: str) -> dict:
 
 def record_take(project_id: str, shot_id: str, path: str, fingerprint: str,
                 elapsed_s: float = 0.0, peak_mib: int = 0, note: str = "",
-                version: int | None = None) -> dict:
+                version: int | None = None, metrics: dict | None = None,
+                dialogue: str = "") -> dict:
     with db.txn() as conn:
         versions = [r["version"] for r in conn.execute(
             "SELECT version FROM takes WHERE project_id=? AND shot_id=?",
             (project_id, shot_id)).fetchall()]
         v = version if version else next_version(versions)
         conn.execute(
-            """INSERT INTO takes(project_id,shot_id,version,path,fingerprint,elapsed_s,peak_mib,created_at,note)
-               VALUES (?,?,?,?,?,?,?,?,?)""",
-            (project_id, shot_id, v, path, fingerprint, elapsed_s, peak_mib, db.now(), note))
+            """INSERT INTO takes(project_id,shot_id,version,path,fingerprint,elapsed_s,peak_mib,
+                                 metrics_json,dialogue,created_at,note)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+            (project_id, shot_id, v, path, fingerprint, elapsed_s, peak_mib,
+             json.dumps(metrics or {}, ensure_ascii=False), dialogue, db.now(), note))
         db.emit(conn, project_id, shot_id, "take.recorded",
                 {"version": v, "path": path, "elapsed_s": elapsed_s})
     return {"shot_id": shot_id, "version": v, "path": path}
@@ -409,57 +852,216 @@ def take_by_version(project_id: str, shot_id: str, version: int) -> dict | None:
     return db.row_to_dict(row)
 
 
-def adopt_take(project_id: str, shot_id: str) -> dict:
-    """Declare the latest take valid for the shot's *current* inputs.
+def adopt_take(project_id: str, shot_id: str, version: int | None = None) -> dict:
+    """Declare a take valid for the shot's *current* inputs.
 
-    Needed after a pipeline change (or when a field was touched by accident) and
-    the clip is known to be right; re-rendering would cost minutes.
+    version=None 表示最新一版；指定版本可把"旧但正确"的那版认回来，
+    不用重渲（剧本改过之后文件还在，只是被标成失效）。
     """
     shots = recompute_fingerprints(project_id)
     sh = next((s for s in shots if s["shot_id"] == shot_id), None)
     if sh is None:
         raise ValueError(f"镜头不存在: {shot_id}")
-    take = latest_take(project_id, shot_id)
+    take = latest_take(project_id, shot_id) if version is None \
+        else take_by_version(project_id, shot_id, version)
     if not take:
-        raise ValueError("这一镜还没有片段")
+        raise ValueError("这一镜还没有片段" if version is None else f"没有 v{version}")
     with db.txn() as conn:
         conn.execute("UPDATE takes SET fingerprint=? WHERE project_id=? AND shot_id=? AND version=?",
                      (sh["fingerprint"], project_id, shot_id, take["version"]))
+        conn.execute("""UPDATE takes SET chosen=0
+                        WHERE project_id=? AND shot_id=?""", (project_id, shot_id))
+        conn.execute("""UPDATE takes SET chosen=1
+                        WHERE project_id=? AND shot_id=? AND version=?""",
+                     (project_id, shot_id, take["version"]))
         db.emit(conn, project_id, shot_id, "take.adopted",
                 {"version": take["version"]})
     return {"shot_id": shot_id, "version": take["version"],
             "state": shot_state(project_id, sh)["state"]}
 
 
+def stale_of(project_id: str, shot: dict) -> bool:
+    """该镜的最新片段是否与当前输入不符（已失效）。"""
+    take = latest_take(project_id, shot["shot_id"])
+    if not take:
+        return False
+    return (take.get("fingerprint") or "") != (shot.get("fingerprint") or "")
+
+
+def all_takes(project_id: str, shot_id: str) -> list[dict]:
+    """这一镜的全部版本（新→旧），带选用标记与"是否与当前剧本一致"。"""
+    shot = next((s for s in recompute_fingerprints(project_id)
+                 if s["shot_id"] == shot_id), None)
+    fp = (shot or {}).get("fingerprint") or ""
+    with db.txn() as conn:
+        rows = conn.execute(
+            """SELECT * FROM takes WHERE project_id=? AND shot_id=?
+               ORDER BY version DESC""", (project_id, shot_id)).fetchall()
+    out = []
+    for r in rows:
+        d = db.row_to_dict(r) or {}
+        d["metrics"] = db.loads(d.pop("metrics_json", "{}") or "{}", {})
+        d["chosen"] = bool(d.get("chosen"))
+        d["matches_script"] = bool(fp) and (d.get("fingerprint") or "") == fp
+        out.append(d)
+    return out
+
+
+def choose_take(project_id: str, shot_id: str, version: int) -> dict:
+    """把某一版指定为这一镜的"选用版"（合成用它）。"""
+    take = take_by_version(project_id, shot_id, version)
+    if not take:
+        raise ValueError(f"没有 v{version}")
+    with db.txn() as conn:
+        conn.execute("UPDATE takes SET chosen=0 WHERE project_id=? AND shot_id=?",
+                     (project_id, shot_id))
+        conn.execute("""UPDATE takes SET chosen=1
+                        WHERE project_id=? AND shot_id=? AND version=?""",
+                     (project_id, shot_id, version))
+        db.emit(conn, project_id, shot_id, "take.chosen", {"version": version})
+    return {"shot_id": shot_id, "version": version}
+
+
+def chosen_take(project_id: str, shot_id: str) -> dict | None:
+    """合成时用：优先"选用版"，没有就退到最新版。"""
+    with db.txn() as conn:
+        row = conn.execute(
+            """SELECT * FROM takes WHERE project_id=? AND shot_id=? AND chosen=1
+               ORDER BY version DESC LIMIT 1""", (project_id, shot_id)).fetchone()
+    return db.row_to_dict(row) if row else latest_take(project_id, shot_id)
+
+
+def choose_latest_all(project_id: str) -> dict:
+    """批量：每镜都选最新一版。"""
+    shots = recompute_fingerprints(project_id)
+    picked = []
+    for sh in shots:
+        take = latest_take(project_id, sh["shot_id"])
+        if take:
+            choose_take(project_id, sh["shot_id"], take["version"])
+            picked.append({"shot_id": sh["shot_id"], "version": take["version"]})
+    return {"chosen": picked}
+
+
+def pass_all(project_id: str) -> dict:
+    """批量通过：有片段的镜头一次性标成 passed（不改指纹）。"""
+    shots = recompute_fingerprints(project_id)
+    marked = []
+    for sh in shots:
+        take = chosen_take(project_id, sh["shot_id"])
+        if not take:
+            continue
+        with db.txn() as conn:
+            conn.execute("""UPDATE takes SET fingerprint=?
+                            WHERE project_id=? AND shot_id=? AND version=?""",
+                         (sh["fingerprint"], project_id, sh["shot_id"], take["version"]))
+        marked.append(sh["shot_id"])
+    return {"passed": marked}
+
+
+BEDS_DIR = db.DATA_DIR / "beds"
+
+
+def bed_path(project_id: str, kind: str) -> Path:
+    """预生成/上传的整集音频床文件位置（bgm / ambience）。"""
+    BEDS_DIR.mkdir(parents=True, exist_ok=True)
+    return BEDS_DIR / f"{project_id}_{kind}.m4a"
+
+
+def resolve_bed(project_id: str, kind: str) -> tuple[str, dict]:
+    """按项目配置算出这一条床实际用哪个文件。
+
+    返回 (路径, 报告)。路径为空表示"不铺"或"还没准备好"，
+    报告里一定写清原因——不静默跳过。
+    """
+    aud = (get_project(project_id) or {}).get("audio") or {}
+    cfg = aud.get(kind) or {}
+    mode = (cfg.get("mode") or "off").lower()
+    if mode in ("", "off", "none"):
+        return "", {"mode": "off", "applied": False, "reason": "配置为不铺"}
+    path = ""
+    if mode == "file":
+        path = cfg.get("path") or ""
+        if not path:
+            return "", {"mode": mode, "applied": False,
+                        "reason": "选了自定义文件，但还没上传"}
+    elif mode == "auto":
+        cand = bed_path(project_id, kind)
+        path = str(cand) if cand.is_file() else ""
+        if not path:
+            return "", {"mode": mode, "applied": False,
+                        "reason": "还没生成模型音频（点「生成」）"}
+    else:
+        return "", {"mode": mode, "applied": False, "reason": f"未知模式 {mode}"}
+    if not Path(path).is_file():
+        return "", {"mode": mode, "applied": False, "reason": "文件不存在"}
+    return path, {"mode": mode, "applied": True, "path": path,
+                  "gain_db": cfg.get("gain_db"),
+                  "duck_under_voice": bool(cfg.get("duck_under_voice"))}
+
+
 def assemble(project_id: str, width: int = 1344, height: int = 768,
-             with_subs: bool = True) -> dict:
-    """Stitch every shot's latest take into one film (no GPU model involved)."""
+             with_subs: bool = True, allow_stale: bool = False,
+             shot_ids: list[str] | None = None) -> dict:
+    """Stitch every shot's latest take into one film (no GPU model involved).
+
+    allow_stale：镜头的剧本/资产改过之后旧片段会标成"已失效"，但文件还在。
+    合成时勾选这一项就照用（画面可能和现在的剧本对不上，由人决定）。
+    shot_ids：只合成指定镜头（按项目内顺序），用于批量选片合成。
+    """
     import subprocess
     shots = recompute_fingerprints(project_id)
     if not shots:
         raise ValueError("没有镜头")
+    if shot_ids:
+        wanted = {sid for sid in shot_ids if sid}
+        shots = [s for s in shots if s["shot_id"] in wanted]
+        if not shots:
+            raise ValueError("选中的镜头为空")
     missing = [s["shot_id"] for s in shots if not latest_take(project_id, s["shot_id"])]
     if missing:
         raise ValueError(f"这些镜头还没有片段: {', '.join(missing)}")
+
+    # 合成不拦"失效"：有片段就拼，用哪一版由人决定
+    stale = [s["shot_id"] for s in shots
+             if s.get("fingerprint") and stale_of(project_id, s)]
+    used = []
 
     stamp = time.strftime("%Y%m%d-%H%M%S")
     root = db.DATA_DIR / "projects" / project_id
     staging = root / "assemble" / stamp
     staging.mkdir(parents=True, exist_ok=True)
+    used: list[dict] = []
     for i, sh in enumerate(shots, start=1):
-        take = latest_take(project_id, sh["shot_id"])
+        take = chosen_take(project_id, sh["shot_id"])
         link = staging / f"{i:04d}.mp4"
         if link.exists():
             link.unlink()
         link.symlink_to(take["path"])
+        used.append({"shot_id": sh["shot_id"], "version": take.get("version")})
 
     out_dir = root / "output"
     out_dir.mkdir(parents=True, exist_ok=True)
     merged = out_dir / f"{project_id}_{stamp}.mp4"
     merged_raw = out_dir / f"{project_id}_{stamp}_merge.mp4"
-    cp = subprocess.run([str(VENV_PY), "scripts/merge.py", "--segments", str(staging),
-                         "--out", str(merged_raw),
-                         "--width", str(width), "--height", str(height)],
+    # 整集音频床：模型逐镜不生成 BGM，这里统一铺两条
+    audio_report: dict = {}
+    merge_args = [str(VENV_PY), "scripts/merge.py", "--segments", str(staging),
+                  "--out", str(merged_raw),
+                  "--width", str(width), "--height", str(height)]
+    aud_cfg = (get_project(project_id) or {}).get("audio") or {}
+    for kind, flag, gain_flag, default_gain in (
+            ("bgm", "--bgm", "--bgm-gain", -18.0),
+            ("ambience", "--ambience", "--ambience-gain", -26.0)):
+        path, rep = resolve_bed(project_id, kind)
+        if path:
+            gain = rep.get("gain_db")
+            gain = float(gain) if gain is not None else default_gain
+            merge_args += [flag, path, gain_flag, str(gain)]
+            if kind == "bgm" and (aud_cfg.get("bgm") or {}).get("duck_under_voice"):
+                merge_args += ["--voice-duck"]
+        audio_report[kind] = rep
+    cp = subprocess.run(merge_args,
                         cwd=str(REPO_DIR), stdout=subprocess.PIPE,
                         stderr=subprocess.STDOUT, text=True)
     if cp.returncode != 0 or not merged_raw.is_file():
@@ -470,6 +1072,17 @@ def assemble(project_id: str, width: int = 1344, height: int = 768,
     if with_subs and dialogues:
         from ..exec import render_adapter
         script_path = render_adapter.write_script(project_id, width, height)
+        # 字幕用选用版的台词（音频是那次渲染的 prompt，字幕必须跟它一致）
+        try:
+            _sp = json.loads(Path(script_path).read_text(encoding="utf-8"))
+            for _i, _sh in enumerate(_sp.get("shots") or []):
+                _t = chosen_take(project_id, _sh.get("shot_id"))
+                if _t and (_t.get("dialogue") or "").strip():
+                    _sh["dialogue"] = _t["dialogue"]
+            Path(script_path).write_text(json.dumps(_sp, ensure_ascii=False, indent=1),
+                                         encoding="utf-8")
+        except Exception:  # noqa: BLE001
+            pass
         cp2 = subprocess.run([str(VENV_PY), "scripts/finalize.py", str(script_path),
                               "--in", str(merged_raw), "--out", str(merged),
                               "--segments", str(staging),
@@ -480,7 +1093,8 @@ def assemble(project_id: str, width: int = 1344, height: int = 768,
             final = merged
 
     return {"out": str(final), "url": f"/outputs/{project_id}/{final.name}",
-            "shots": len(shots), "subtitles": bool(dialogues) and with_subs}
+            "shots": len(shots), "subtitles": bool(dialogues) and with_subs,
+            "audio": audio_report, "stale_used": stale, "versions": used}
 
 
 def output_file(project_id: str, name: str) -> Path:
@@ -534,6 +1148,32 @@ def review_shot(project_id: str, shot_id: str, verdict: str, reason: str = "") -
         db.emit(conn, project_id, shot_id, "shot.reviewed",
                 {"verdict": verdict, "reason": reason, "version": take["version"]})
     return {"shot_id": shot_id, "verdict": verdict}
+
+
+def batch_review(project_id: str, shot_ids: list[str], verdict: str,
+                 reason: str = "") -> dict:
+    """批量审核：一次通过/驳回多个镜头。
+
+    没有 take 的镜头跳过（不阻断整批），返回 done / skipped 两个清单。
+    """
+    if verdict not in ("pass", "reject"):
+        raise ValueError("verdict must be pass or reject")
+    ids = [s for s in (shot_ids or []) if s]
+    if not ids:
+        raise ValueError("没有选中镜头")
+    known = {s["shot_id"] for s in list_shots(project_id)}
+    done, skipped = [], []
+    for sid in ids:
+        if sid not in known:
+            skipped.append(sid)
+            continue
+        try:
+            review_shot(project_id, sid, verdict, reason)
+            done.append(sid)
+        except ValueError:
+            skipped.append(sid)       # 没有 take 的镜头
+    return {"ok": True, "verdict": verdict, "done": done,
+            "skipped": skipped, "count": len(done)}
 
 
 def stats(project_id: str) -> dict:
@@ -751,7 +1391,8 @@ def _scene_has_plate(project_id: str, scene_id: str) -> bool:
 
 def batch_update(project_id: str, shot_ids: list[str], *, scene_id: str | None = None,
                  transition: str | None = None, cast_add: list[str] | None = None,
-                 cast_remove: list[str] | None = None) -> dict:
+                 cast_remove: list[str] | None = None,
+                 chain_ref: bool | None = None) -> dict:
     """Apply the same edit to several shots, then recompute fingerprints once."""
     if not shot_ids:
         raise ValueError("没有选中镜头")
@@ -779,6 +1420,9 @@ def batch_update(project_id: str, shot_ids: list[str], *, scene_id: str | None =
             s["anchor"] = ""
         if transition in ("cut", "chain"):
             s["transition"] = transition
+        if chain_ref is not None:
+            # 第一镜没有"上一镜"，强制关掉，免得白开一个无效开关
+            s["chain_ref"] = (1 if chain_ref else 0) if s["ordinal"] > 0 else 0
     save_shots(project_id, shots)
     return {"updated": shot_ids, "count": len(shot_ids)}
 
@@ -858,7 +1502,8 @@ def preview_import(project_id: str, text: str) -> dict:
     incoming = {s["shot_id"] for s in parsed["shots"]}
     removed = [sid for sid in current if sid not in incoming]
     return {"shots": len(parsed["shots"]), "kept": kept, "changed": changed,
-            "added": added, "removed": removed, "warnings": parsed["warnings"]}
+            "added": added, "removed": removed, "warnings": parsed["warnings"],
+            "title": parsed["project"]["title"]}
 
 
 def _resolve_characters(parsed: dict) -> dict[str, str]:
@@ -874,10 +1519,21 @@ def _resolve_characters(parsed: dict) -> dict[str, str]:
         cur = existing.get(name)
         if cur:
             by_name[name] = cur["character_id"]
-            if not cur.get("description") and c.get("description"):
-                upsert_character(cur["character_id"], name, c["description"], cur.get("refs", []))
+            want = (c.get("description") or "").strip()
+            have = (cur.get("description") or "").strip()
+            if want and want != have:
+                # 剧本是角色卡的真相来源：不一致就以剧本为准（锁定的角色只报警）
+                if cur.get("locked"):
+                    parsed.setdefault("warnings", []).append(
+                        f"角色「{name}」已锁定：剧本里的外观描述和库里不一致，未覆盖。")
+                else:
+                    upsert_character(cur["character_id"], name, want, cur.get("refs", []),
+                                     species=c.get("species") or cur.get("species", ""))
+                    parsed.setdefault("warnings", []).append(
+                        f"角色「{name}」的外观描述已按剧本更新（之前库里是旧版本）。")
         else:
-            upsert_character(c["character_id"], name, c.get("description", ""), c.get("refs", []))
+            upsert_character(c["character_id"], name, c.get("description", ""), c.get("refs", []),
+                             species=c.get("species", ""))
             by_name[name] = c["character_id"]
     return by_name
 
@@ -913,7 +1569,8 @@ def import_markdown(project_id: str, text: str) -> dict:
     """
     from . import script_import
     parsed = script_import.parse(text)
-    if not get_project(project_id):
+    _existed = get_project(project_id) is not None
+    if not _existed:
         create_project(project_id, parsed["project"]["title"], parsed["project"]["style"])
     else:
         with db.txn() as conn:
@@ -939,6 +1596,7 @@ def import_markdown(project_id: str, text: str) -> dict:
     save_shots(project_id, shots)
     return {
         "project_id": project_id,
+        "updated": _existed,
         "title": parsed["project"]["title"],
         "characters": [c["name"] for c in parsed["characters"]],
         "scenes": [s["name"] for s in parsed["scenes"]],
@@ -955,7 +1613,8 @@ PLAN_STORE: dict[str, dict] = {}
 PLAN_TTL_S = 600
 
 
-def plan(project_id: str, shot_ids: list[str] | None = None, draft: bool = False) -> dict:
+def plan(project_id: str, shot_ids: list[str] | None = None, draft: bool = False,
+         force: bool = False) -> dict:
     all_shots = recompute_fingerprints(project_id)
     shots = all_shots
     if shot_ids:
@@ -966,14 +1625,27 @@ def plan(project_id: str, shot_ids: list[str] | None = None, draft: bool = False
 
     warnings: list[dict] = []
     todo: list[dict] = []
+
+    # 项目级风格串如果混进角色服装，会污染每一镜（模型给每套衣服画一个人）
+    project = get_project(project_id) or {}
+    style = project.get("style") or ""
+    costume_hits = [w for w in ("robe", "jacket", "shirt", "coat", "turtleneck",
+                                "官袍", "绸袍", "短打", "长衫", "战袍", "西装")
+                    if w in style.lower()]
+    if costume_hits:
+        warnings.append({"shot_id": "", "level": "warn",
+                         "msg": "项目的「视觉语言」里混进了角色服装（"
+                                + "、".join(costume_hits[:4])
+                                + "），每镜会多画出人物；服装只该写在角色卡里"})
+    chars_by_id = {c["character_id"]: c["name"] for c in list_characters()}
     for sh in shots:
         st = shot_state(project_id, sh)
         take = st.get("take") or {}
         is_final_take = bool(take) and (take.get("note") or "") != "draft"
         # a draft take must not block the final render; a final take does
-        if st["state"] == "passed":
+        if st["state"] == "passed" and not force:
             continue
-        if st["state"] == "review" and is_final_take and not draft:
+        if st["state"] == "review" and is_final_take and not draft and not force:
             continue
         if st["state"] == "review" and draft:
             continue
@@ -1001,6 +1673,14 @@ def plan(project_id: str, shot_ids: list[str] | None = None, draft: bool = False
                         and prev["shot_id"] not in {s["shot_id"] for s in todo}):
                     warnings.append({"shot_id": sh["shot_id"], "level": "error",
                                      "msg": f"chain 的上游 {prev['shot_id']} 还没有片段，先渲它"})
+        # 台词说话人必须在本镜出场角色里，否则说话人对不上（口型/视线会乱）
+        dlg = (sh.get("dialogue") or "").replace("<d>", "").replace("</d>", "")
+        if dlg:
+            speaker = dlg.split("：")[0].split(":")[0].strip()
+            cast_names = {chars_by_id.get(cid, "") for cid in sh["cast"]}
+            if speaker and speaker not in cast_names:
+                warnings.append({"shot_id": sh["shot_id"], "level": "warn",
+                                 "msg": f"台词是「{speaker}」说的，但它不在本镜出场角色里"})
         if sh["anchor"] == "plate" and sc and not sc.get("plate_sha"):
             warnings.append({"shot_id": sh["shot_id"], "level": "error",
                              "msg": "设置了 anchor=plate 但场景没有母版图"})
@@ -1017,10 +1697,19 @@ def plan(project_id: str, shot_ids: list[str] | None = None, draft: bool = False
     worst = round(len(todo) * per * 3, 1)
     plan_id = canonical_plan_id(project_id, todo, draft)
     PLAN_STORE[plan_id] = {"project_id": project_id, "shot_ids": shot_ids,
-                           "draft": draft, "created": time.time()}
+                           "draft": draft, "force": force, "created": time.time()}
     for old in [k for k, v in PLAN_STORE.items()
                 if time.time() - v["created"] > PLAN_TTL_S]:
         PLAN_STORE.pop(old, None)
+    # 契约校验：任何 error 都阻断渲染（避免渲出废片）
+    try:
+        from . import validate as _validate
+        _rep = _validate.validate_project(project_id)
+        warnings.extend(_rep["warnings"])
+        warnings.extend(_rep["errors"])
+    except Exception:  # noqa: BLE001  校验器不该阻断计划本身
+        pass
+
     return {
         "plan_id": plan_id,
         "project_id": project_id,
@@ -1043,6 +1732,17 @@ def canonical_plan_id(project_id: str, todo: list[dict], draft: bool) -> str:
 
 
 # -------------------------------------------------------------------- jobs
+
+
+def active_job_for_shot(project_id: str, shot_id: str) -> dict | None:
+    """该镜是否已经有排队/渲染中的任务（防止同一镜被重复排队）。"""
+    with db.txn() as conn:
+        row = conn.execute(
+            """SELECT * FROM jobs WHERE project_id=? AND state IN ('queued','running')
+                 AND payload LIKE ? ORDER BY created_at DESC LIMIT 1""",
+            (project_id, f'%"{shot_id}"%')).fetchone()
+    return db.row_to_dict(row)
+
 
 def enqueue_job(project_id: str, kind: str, payload: dict) -> dict:
     jid = uuid.uuid4().hex[:12]
@@ -1072,17 +1772,42 @@ def list_jobs(project_id: str | None = None, limit: int = 50) -> list[dict]:
 
 
 REPO_DIR = Path(__file__).resolve().parents[2]
-VENV_PY = sys.executable          # 用当前解释器：venv / 系统 python 都行
+VENV_PY = REPO_DIR / ".venv/bin/python"
 
 
 def fail_orphan_running(reason: str = "服务重启，任务中断") -> int:
-    """A job left in 'running' by a dead process would block the queue forever."""
+    """Clean up jobs left in 'running' by a dead process.
+
+    夜间无人值守要能续跑：被重启/断电打断的批次如果还有重试额度，就重新排回去。
+    注意：重新入队必须在事务**外面**做 —— enqueue_job 自己会开一个事务，
+    在已打开的事务里再开会导致 SQLite 锁住，整个清理函数失败，队列就永远卡在 running。
+    """
+    to_requeue: list[tuple[str, str, dict]] = []
     with db.txn() as conn:
+        rows = conn.execute("SELECT * FROM jobs WHERE state='running'").fetchall()
+        for row in rows:
+            payload = db.loads(row["payload"], {})
+            left = int(payload.get("retries_left", 0) or 0)
+            shots = payload.get("shots") or []
+            if left > 0 and shots:
+                to_requeue.append((row["project_id"], row["kind"],
+                                   {**payload, "shots": shots,
+                                    "retries_left": left,       # 重启不算失败，不扣额度
+                                    "auto_retry": True,
+                                    "requeued_after": reason}))
+                db.emit(conn, row["project_id"], "", "job.requeued",
+                        {"job_id": row["id"], "shots": shots, "reason": reason})
         cur = conn.execute(
             "UPDATE jobs SET state='failed', error=?, finished_at=? WHERE state='running'",
             (reason, db.now()))
-        return cur.rowcount
+        n = cur.rowcount
 
+    for pid, kind, payload in to_requeue:
+        try:
+            enqueue_job(pid, kind, payload)
+        except Exception as e:  # noqa: BLE001
+            print(f"[executor] 续排失败 {pid} {payload.get('shots')}: {e}", flush=True)
+    return n
 
 def cancel_job(job_id: str, reason: str = "cancelled") -> dict:
     with db.txn() as conn:

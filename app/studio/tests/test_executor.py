@@ -16,7 +16,7 @@ TMP = tempfile.mkdtemp(prefix="studio-exec-")
 os.environ["STUDIO_DATA"] = TMP
 os.environ["STUDIO_ALLOW_RENDER"] = "0"
 os.environ["STUDIO_DISABLE_EXECUTOR"] = "1"
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))   # app/
+sys.path.insert(0, str(Path.home() / "openvideo/video-agent"))
 
 from studio.core import db, service  # noqa: E402
 from studio.exec import runner  # noqa: E402

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OpenVideo Studio</title>
+    <script>
+      // 首屏防闪：在 React 挂载前根据 localStorage 或系统偏好设置主题。
+      (function () {
+        try {
+          var saved = localStorage.getItem('ov-theme');
+          var theme;
+          if (saved === 'dark' || saved === 'light') {
+            theme = saved;
+          } else {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

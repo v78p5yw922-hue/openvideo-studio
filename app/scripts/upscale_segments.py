@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Upscale/re-draw finished H3 segments with ComfyUI-H3-Video-Upsampler.
 
 Why this exists: H3 spreads one pass across composition, motion and audio, so
@@ -18,7 +18,27 @@ Usage
 
 from __future__ import annotations
 
+try:
+    import sys as _sys
+    from pathlib import Path as _P
+    _sys.path.insert(0, str(_P(__file__).resolve().parents[1]))
+    from studio import config as _cfg
+    _CFG = _cfg.load()
+except Exception:  # noqa: BLE001
+    _CFG = {}
+
+
+def _cfgj(path: str, default):
+    node = _CFG
+    for part in path.split("."):
+        if not isinstance(node, dict) or part not in node:
+            return default
+        node = node[part]
+    return node
+
+
 import argparse
+import os
 import json
 import re
 import shutil
@@ -35,11 +55,11 @@ REPO = Path(__file__).resolve().parent.parent
 COMFY = REPO / "ComfyUI"          # overridden by --comfy-dir
 COMFY_INPUT = COMFY / "input"
 COMFY_OUTPUT = COMFY / "output"
-DEFAULT_SERVER = "http://127.0.0.1:8188"
+DEFAULT_SERVER = os.environ.get("OPEN_VIDEO_COMFYUI", _cfgj("comfy.url", "http://127.0.0.1:8288"))
 
-UNET = "minimax_h3_fl2va_pruned_int8_convrot.safetensors"
-VAE_VIDEO = "minimax_h3_video_vae_int8_convrot.safetensors"
-VAE_AUDIO = "minimax_h3_audio_vae_fp32.safetensors"
+UNET = _cfgj("models.video_unet", "minimax_h3_fl2va_pruned_int8_convrot.safetensors")
+VAE_VIDEO = _cfgj("models.video_vae", "minimax_h3_video_vae_int8_convrot.safetensors")
+VAE_AUDIO = _cfgj("models.audio_vae", "minimax_h3_audio_vae_fp32.safetensors")
 UPSCALE_MODEL = "minimax_h3_latent_upscaler_2d_conv_v1_bf16.safetensors"
 LORA = "open_h3_regenerate_2k_r256pp_bf16.safetensors"
 

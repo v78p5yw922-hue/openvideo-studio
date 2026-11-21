@@ -38,7 +38,7 @@ def main() -> int:
     ap.add_argument("--duration", type=float, default=3.0)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--steps", type=int, default=20)
-    ap.add_argument("--server", default="http://127.0.0.1:8188")
+    ap.add_argument("--server", default=os.environ.get("OPEN_VIDEO_COMFYUI", "http://127.0.0.1:8288"))
     ap.add_argument("--at", type=float, default=0.55, help="which frame to keep (0-1)")
     ap.add_argument("--first-frame", default=None,
                     help="use this image as frame 1 (i2v) — keeps the character inside a real set")

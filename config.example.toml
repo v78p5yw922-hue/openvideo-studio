@@ -1,0 +1,37 @@
+# 复制成 config.toml 后按自己的环境改（config.toml 不进版本库）
+# OpenVideo Studio 实例配置
+# 优先级：项目设置（UI）> 环境变量 > 本文件 > 内置默认
+# 环境变量映射见 studio/config.py 的 ENV_MAP（STUDIO_DATA / OPEN_VIDEO_COMFYUI 等仍优先）
+
+[comfy]
+# ComfyUI 服务地址（含协议与端口）
+url = "http://127.0.0.1:8288"
+# ComfyUI 安装目录（用于读日志、放 input 参考图、列模型清单）
+root = "/home/agent/openvideo/ComfyUI-up"   # 改成你的 ComfyUI 目录
+
+[paths]
+# 运行时数据（SQLite / takes / 参考图 / 成片）。必须放在本机快盘。
+# 留空 = 环境变量 STUDIO_DATA，或 ~/openvideo/studio-data
+data_dir = ""
+# 创作文件（剧本 Markdown、分镜、内容简报）。不进代码仓库。
+content_dir = ""   # 留空 = <仓库>/content；也可以指向任意目录（放剧本、分镜）
+
+[models]
+# 换成别的权重时只改这里
+video_unet = "minimax_h3_fl2va_pruned_int8_convrot.safetensors"
+ref_unet = "minimax_h3_ref2va_pruned_int8_convrot.safetensors"
+image_unet = "minimax_h3_image_pruned_int8_convrot.safetensors"
+text_encoder = "qwen3vl_32b_minimax_h3_int8_convrot.safetensors"
+video_vae = "minimax_h3_video_vae_fp16.safetensors"
+audio_vae = "minimax_h3_audio_vae_fp32.safetensors"
+image_vae = "minimax_h3_image_vae_fp16.safetensors"
+
+[render]
+width = 1344
+height = 768
+steps = 20
+max_wall = 0            # 0 = 不限；单镜上限由 shot_timeout(时长) 兜底
+
+[gpu]
+# queue = 先来先跑（默认）；render_priority = 渲染优先
+policy = "queue"

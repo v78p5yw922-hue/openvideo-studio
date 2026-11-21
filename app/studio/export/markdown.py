@@ -10,6 +10,15 @@ from __future__ import annotations
 from ..core import service
 
 
+
+def _cell(value, limit: int | None = None) -> str:
+    """表格单元格里不能出现换行或竖线，否则整行会被截断。"""
+    s = str(value or "").replace("\r", " ").replace("\n", " / ").replace("|", "/")
+    s = " ".join(s.split())
+    if limit:
+        s = s[:limit]
+    return s
+
 def build_markdown(project_id: str) -> str:
     project = service.get_project(project_id)
     if not project:
@@ -56,8 +65,8 @@ def build_markdown(project_id: str) -> str:
         out.append("")
 
     out.append("## 镜头表")
-    out.append("| 镜号 | 场景 | 出场角色（≤3） | 景别 / 机位 / 运动 | 空间锚点 | 动作 | 台词 | 转场 | 锚定 |")
-    out.append("|---|---|---|---|---|---|---|---|---|")
+    out.append("| 镜号 | 场景 | 出场角色（≤3） | 景别 / 机位 / 运动 | 动作 | 台词 | 音效 | 配乐 | 转场 | 锚定 |")
+    out.append("|---|---|---|---|---|---|---|---|---|---|")
     scene_name = {s["scene_id"]: (s.get("name") or s["scene_id"]) for s in scenes}
     for sh in shots:
         n = int(sh["shot_id"].lstrip("s") or 0) or 1
@@ -65,9 +74,11 @@ def build_markdown(project_id: str) -> str:
         dialogue = sh.get("dialogue") or "无"
         anchor = "plate" if str(sh.get("anchor") or "") == "plate" else "空"
         out.append(
-            f"| 镜 {n}（{float(sh['duration'] or 5):g}s） | {scene_name.get(sh['scene_id'], sh['scene_id'])} "
-            f"| {cast} | {sh.get('camera', '')} | {sh.get('camera', '')} | "
-            f"{sh.get('prompt', '')[:40]} | {dialogue} | {sh.get('transition', 'cut')} | {anchor} |")
+            f"| 镜 {n}（{float(sh['duration'] or 5):g}s） "
+            f"| {_cell(scene_name.get(sh['scene_id'], sh['scene_id']))} "
+            f"| {_cell(cast)} | {_cell(sh.get('camera'))} | {_cell(sh.get('prompt'), 60)} "
+            f"| {_cell(dialogue)} | {_cell(sh.get('sound') or '无')} "
+            f"| {_cell(sh.get('music') or '无')} | {sh.get('transition', 'cut')} | {anchor} |")
     out.append("")
 
     out.append("## 每镜可执行 prompt")

@@ -15,7 +15,9 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-DATA_DIR = Path(os.environ.get("STUDIO_DATA", Path.home() / "openvideo/studio-data"))
+from .. import config as _config
+
+DATA_DIR = _config.data_dir()
 DB_PATH = DATA_DIR / "studio.db"
 SCHEMA = Path(__file__).with_name("schema.sql")
 
@@ -55,10 +57,27 @@ def init_db() -> None:
 def _migrate(conn: sqlite3.Connection) -> None:
     """Additive migrations for databases created before a column existed."""
     want = {
-        "scenes": [("locked", "INTEGER NOT NULL DEFAULT 0")],
-        "characters": [("locked", "INTEGER NOT NULL DEFAULT 0")],
-        "takes": [("kind", "TEXT NOT NULL DEFAULT 'final'")],
-        "shots": [("first_frame", "TEXT NOT NULL DEFAULT ''")],
+        "scenes": [("locked", "INTEGER NOT NULL DEFAULT 0"),
+                   ("extra_plates_json", "TEXT NOT NULL DEFAULT '[]'")],
+        "characters": [("locked", "INTEGER NOT NULL DEFAULT 0"),
+                       ("species", "TEXT NOT NULL DEFAULT 'human'"),
+                       ("refs_verified", "INTEGER NOT NULL DEFAULT 0")],
+        "takes": [("kind", "TEXT NOT NULL DEFAULT 'final'"),
+                  ("metrics_json", "TEXT NOT NULL DEFAULT '{}'"),
+                  ("chosen", "INTEGER NOT NULL DEFAULT 0"),
+                  ("dialogue", "TEXT NOT NULL DEFAULT ''")],
+        "projects": [("settings_json", "TEXT NOT NULL DEFAULT '{}'"), ("group_id", "TEXT NOT NULL DEFAULT ''"),
+                      ("archived", "INTEGER NOT NULL DEFAULT 0"),
+                      ("audio_json", "TEXT NOT NULL DEFAULT '{}'"),
+                      ("sort_order", "INTEGER NOT NULL DEFAULT 0")],
+        "shots": [("first_frame", "TEXT NOT NULL DEFAULT ''"),
+                  ("music", "TEXT NOT NULL DEFAULT ''"),
+                  ("chain_ref", "INTEGER NOT NULL DEFAULT 0"),
+                  ("ref_plan_json", "TEXT NOT NULL DEFAULT '{}'"),
+                  ("last_frame", "TEXT NOT NULL DEFAULT ''"),
+                  ("continuation", "TEXT NOT NULL DEFAULT 'cut'")],
+        "asset_candidates": [("project_id", "TEXT NOT NULL DEFAULT ''"),
+                              ("group_id", "TEXT NOT NULL DEFAULT ''")],
     }
     for table, cols in want.items():
         have = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}

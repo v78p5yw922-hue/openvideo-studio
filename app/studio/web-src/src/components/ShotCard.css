@@ -1,0 +1,268 @@
+/* 镜头卡：上方视频区 + 下方说明条 */
+
+.shot-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  transition: border-color 140ms ease;
+}
+.shot-card:hover { border-color: var(--line); }
+.shot-card.is-selected {
+  border-color: var(--select-ring);
+  box-shadow: none;
+}
+.shot-card:focus-visible .shot-frame { box-shadow: 0 0 0 2px var(--select-ring); }
+
+.shot-frame {
+  position: relative;
+  /* 高度由列宽（--card-w）推出，避免 aspect-ratio 在网格自动行高里被算成 0 */
+  height: calc(var(--card-w, 240px) * 0.5625);
+  background: var(--panel2);
+  overflow: hidden;
+  border-radius: 11px 11px 0 0;
+}
+.shot-video, .shot-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+/* 悬停：内容轻微外扩，卡片本身不动 */
+.shot-video, .shot-preview { transition: transform 320ms ease; }
+.shot-card:hover .shot-preview,
+.shot-card:hover .shot-video { transform: scale(1.025); }
+
+.shot-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(90, 160, 255, 0.08), transparent 60%),
+    var(--panel2);
+}
+.shot-empty-text {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  color: var(--empty);
+  opacity: 0.85;
+}
+.shot-card.state-running .shot-empty-text { letter-spacing: 2px; font-size: 15px; color: var(--accent); }
+
+/* 顶部：状态胶囊（只显示状态）+ 问题数 */
+.shot-top {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+.shot-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+.shot-state-text {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+}
+
+.shot-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--empty);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
+}
+.shot-dot.state-empty { background: #6b7686; }
+.shot-dot.state-queued { background: #f0b45a; }
+.shot-dot.state-running { background: var(--accent); animation: shot-pulse 1.2s ease infinite; }
+.shot-dot.state-review { background: #a78bfa; }
+.shot-dot.state-passed { background: #4ade80; }
+.shot-dot.state-rejected { background: #f87171; }
+.shot-dot.state-stale { background: #fb923c; }
+.shot-dot.state-failed { background: #ef4444; }
+@keyframes shot-pulse { 50% { opacity: 0.35; } }
+
+.shot-problems {
+  font-size: 12px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fbbf24;
+  pointer-events: auto;
+}
+
+/* 版本号 */
+.shot-version {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+.shot-version:hover { background: rgba(255, 255, 255, 0.22); }
+
+/* 悬停出现：放大播放 */
+.shot-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.92);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease, transform 140ms ease, background 140ms ease;
+}
+.shot-card:hover .shot-play,
+.shot-play:focus-visible { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+.shot-play:hover { background: rgba(0, 0, 0, 0.78); }
+
+/* 细进度条 */
+.shot-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.4);
+}
+.shot-progress > div { height: 100%; background: var(--accent); transition: width 400ms ease; }
+
+/* hover 操作按钮 */
+.shot-actions {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+.shot-card:hover .shot-actions { opacity: 1; transform: none; }
+.shot-btn {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(20, 24, 32, 0.85);
+  color: #fff;
+  font-size: 12px;
+  backdrop-filter: blur(4px);
+}
+.shot-btn:hover:not(:disabled) { background: rgba(40, 48, 62, 0.95); }
+.shot-btn.primary { background: var(--btn-primary-bg); color: var(--btn-primary-fg); font-weight: 600; }
+.shot-btn.primary:hover:not(:disabled) { filter: brightness(1.08); }
+.shot-btn:disabled { opacity: 0.6; cursor: default; }
+
+/* 底部说明条：第一行 序号 + 状态/时长，第二行 描述 */
+.shot-meta {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-height: 40px;
+  padding: 7px 10px;
+  border-top: 1px solid var(--line-soft);
+  background: var(--panel);
+  border-radius: 0 0 11px 11px;
+}
+.shot-card.state-stale .shot-meta { border-left: 3px solid #fb923c; padding-left: 8px; }
+.shot-check {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+/* 复选框只在批量操作（审核/成片）时出现；已勾选时保持可见 */
+.shot-card.force-check .shot-check,
+.shot-card:has(.shot-check input:checked) .shot-check { opacity: 1; }
+.shot-check input {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border-radius: 4px;
+  border: 1.5px solid var(--check-border);
+  background: var(--field-bg);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.shot-check input:hover { border-color: var(--accent); }
+.shot-check input:checked { background: var(--btn-primary-bg); border-color: transparent; }
+.shot-check input:checked::after { content: '✓'; font-size: 12px; line-height: 1; color: var(--btn-primary-fg); }
+.shot-meta-name {
+  flex: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.shot-seq { font-size: 12px; font-weight: 500; color: var(--dim); letter-spacing: 0.3px; }
+.shot-meta-desc {
+  flex: 0 0 100%;
+  order: 9;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.shot-stale-tag {
+  flex: none;
+  font-size: 12px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(251, 146, 60, 0.16);
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.35);
+}
+.shot-meta-dur {
+  flex: none;
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--dim);
+  background: var(--field-bg);
+  padding: 1px 7px;
+  border-radius: 999px;
+}

@@ -12,7 +12,7 @@ import pytest
 TMP = tempfile.mkdtemp(prefix="studio-refs-")
 os.environ.setdefault("STUDIO_DATA", TMP)
 os.environ["STUDIO_DISABLE_EXECUTOR"] = "1"
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))   # app/
+sys.path.insert(0, str(Path.home() / "openvideo/video-agent"))
 
 from fastapi.testclient import TestClient  # noqa: E402
 
@@ -87,10 +87,10 @@ def test_workflow_uses_every_reference_and_sets_max_views():
     shot = script["shots"][0]
     assert shot["characters_present"] == ["甲"]
 
-    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+    sys.path.insert(0, str(Path.home() / "openvideo/video-agent/scripts"))
     import importlib.util
     spec = importlib.util.spec_from_file_location(
-        "rd2", Path(__file__).resolve().parents[2] / "scripts" / "render_drama.py")
+        "rd2", Path.home() / "openvideo/video-agent/scripts/render_drama.py")
     rd = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(rd)
     chars = {"甲": {"name": "甲", "description": "", "reference_images": [str(a), str(b), str(c)]}}
@@ -100,3 +100,33 @@ def test_workflow_uses_every_reference_and_sets_max_views():
     assert member.get("image_1") and member.get("image_2") and member.get("image_3")
     assert wf["cast_to_video"]["inputs"]["max_views_per_member"] == 3, \
         "多张参考图必须真的被使用"
+
+
+def test_lock_instruction_matches_effective_workflow(monkeypatch):
+    """人物镜即使收到 lock_frame，也不能在 prompt 里谎称使用了首帧。"""
+    sys.path.insert(0, str(Path.home() / "openvideo/video-agent/scripts"))
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "rd_lock", Path.home() / "openvideo/video-agent/scripts/render_drama.py")
+    rd = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(rd)
+    import prompt_compiler as pc
+
+    monkeypatch.setattr(rd, "stage_image", lambda _path: "staged.jpg")
+    ref = _img("lock-ref.jpg", b"r" * 40)
+    lock = _img("lock-frame.jpg", b"l" * 40)
+    chars = {"甲": {"name": "甲", "description": "", "reference_images": [str(ref)]}}
+
+    cast_wf = rd.build_workflow(
+        {"shot_id": "cast", "characters_present": ["甲"], "visual_prompt": "p"},
+        chars, "", None, 1344, 768, 12, 42, lock_frame=lock,
+    )
+    cast_prompt = cast_wf["cast_to_video"]["inputs"]["prompt"]
+    assert not cast_prompt.startswith(pc.i2v_instruction())
+
+    empty_wf = rd.build_workflow(
+        {"shot_id": "empty", "characters_present": [], "visual_prompt": "p"},
+        {}, "", None, 1344, 768, 12, 42, lock_frame=lock,
+    )
+    empty_prompt = empty_wf["h3_i2v"]["inputs"]["prompt"]
+    assert empty_prompt.startswith(pc.i2v_instruction())

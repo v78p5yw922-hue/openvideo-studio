@@ -1,0 +1,139 @@
+/* 弹窗外壳：统一遮罩、圆角、头部层级与三级按钮 */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--overlay);
+  /* 只压暗不糊：后面的内容仍然看得清，弹窗靠边框和阴影区分 */
+  display: grid;
+  place-items: center;
+  padding: var(--sp-4);
+  animation: modal-fade 140ms ease;
+}
+@keyframes modal-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  width: min(560px, 100%);
+  max-height: min(86vh, 900px);
+  display: flex;
+  flex-direction: column;
+  background: var(--pop);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-pop);
+  overflow: hidden;
+  animation: modal-pop 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes modal-pop {
+  from { transform: translateY(10px) scale(0.985); opacity: 0.5; }
+  to { transform: none; opacity: 1; }
+}
+.modal.wide { width: min(1040px, 100%); }
+.modal.gallery-modal { width: min(840px, 100%); }
+
+.modal > header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 16px 20px 12px;
+}
+.modal > header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  flex: 1;
+  color: var(--fg);
+}
+.modal > header .close {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font-size: 14px;
+  border-radius: 7px;
+  color: var(--dim);
+}
+
+.modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 4px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-footer {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--line-soft);
+  background: transparent;
+}
+.modal-footer .spacer { flex: 1; }
+.modal-footer button { padding: 7px 14px; }
+
+.confirm-message {
+  margin: 0;
+  color: var(--dim);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+/* 设置类弹窗：左侧竖向分栏 + 右侧内容（参考「设置」面板） */
+.modal-split {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  gap: 16px;
+  min-height: 320px;
+}
+.modal-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-right: 1px solid var(--line-soft);
+  padding-right: 12px;
+}
+.modal-rail button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-start;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--dim);
+}
+.modal-rail button:hover { background: var(--hover); color: var(--fg); }
+.modal-rail button.is-active {
+  background: var(--hover-strong);
+  color: var(--fg);
+  font-weight: 600;
+}
+.modal-rail .rail-section {
+  font-size: 12px;
+  color: var(--empty);
+  padding: 8px 10px 4px;
+}
+
+/* 项目设置弹窗 */
+.pset { display: grid; gap: 14px; min-width: 420px; }
+.pset label { display: grid; gap: 6px; font-size: 13px; }
+.pset label > span { color: var(--text-2); }
+.pset textarea, .pset input, .pset select {
+  width: 100%; padding: 7px 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--text);
+  font-family: inherit; font-size: 13px;
+}
+.pset-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.pset-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }

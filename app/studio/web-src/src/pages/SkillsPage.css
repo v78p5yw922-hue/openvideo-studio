@@ -1,0 +1,44 @@
+.skills-page { padding: 20px 24px; }
+.skills-body { display: grid; grid-template-columns: 220px 1fr; gap: 18px; align-items: start; }
+
+.skills-side { display: grid; gap: 4px; position: sticky; top: 8px; }
+.skills-side button {
+  display: flex; flex-direction: column; gap: 2px; text-align: left;
+  padding: 8px 10px; border-radius: 8px; border: 1px solid transparent;
+  background: transparent; color: var(--text-2); font-size: 13px; cursor: pointer;
+}
+.skills-side button:hover { background: var(--panel); }
+.skills-side button.is-active { background: var(--panel); border-color: var(--line); color: var(--text); }
+
+.skills-main { display: grid; gap: 16px; min-width: 0; }
+.skills-main .card {
+  border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 14px 16px;
+}
+.card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.card-head h2 { font-size: 14px; margin: 0; }
+
+.skill-body {
+  margin: 0; max-height: 320px; overflow: auto; white-space: pre-wrap;
+  font-size: 12px; line-height: 1.6; color: var(--text-2);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+  font-family: inherit;
+}
+
+.skills-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.skills-form label { display: grid; gap: 5px; font-size: 12px; color: var(--text-2); }
+.skills-form label.full { grid-column: 1 / -1; }
+.skills-form label.check { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; }
+.skills-form input, .skills-form select, .skills-form textarea {
+  width: 100%; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--bg); color: var(--text); font-family: inherit; font-size: 13px;
+}
+.skills-form label.check input { width: auto; }
+
+.skills-preview { border-top: 1px dashed var(--line); padding-top: 10px; }
+.skills-preview-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); margin-bottom: 6px; }
+.skills-preview pre {
+  margin: 0; max-height: 340px; overflow: auto; white-space: pre-wrap;
+  font-size: 12px; line-height: 1.65; background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+  font-family: inherit; color: var(--text);
+}
