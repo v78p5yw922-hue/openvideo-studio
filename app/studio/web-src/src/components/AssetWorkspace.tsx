@@ -1,10 +1,11 @@
-/** 资产管理 —— 角色和场景（可按项目 / 分组筛选）。 */
+/** 资产管理 —— 顶部 tab（角色/场景/视频/图片/音频）+ 项目筛选 + 分页 30/页 */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api } from '../lib/api'
 import { useAppModals } from '../lib/app-modals'
 import { t, tpl } from '../lib/i18n'
-import { verifyCharacter, useStore } from '../lib/store'
+import { confirmDialog } from '../lib/confirm'
+import { toast, useStore } from '../lib/store'
 import type { AssetCandidate, Character, OutputVideo, Scene } from '../lib/types'
 import './AssetWorkspace.css'
 
@@ -12,337 +13,350 @@ interface Props {
   onOpenAsset: (kind: 'character' | 'scene', id: string, projectId?: string) => void
 }
 
+type Tab = 'character' | 'scene' | 'video' | 'image' | 'audio'
+const PAGE_SIZE = 30
+
+const TABS: Array<{ key: Tab; label: string }> = [
+  { key: 'character', label: 'assets.chars' },
+  { key: 'scene', label: 'assets.scenes' },
+  { key: 'video', label: 'assets.videos' },
+  { key: 'image', label: 'assets.images' },
+  { key: 'audio', label: 'assets.audio' },
+]
+
+function timeLabel(iso: string) {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso || ''
+  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+/** 项目名固定 8 字宽，超出省略，悬浮看全名 */
+function ProjectTag({ name }: { name: string }) {
+  if (!name) return null
+  const short = name.length > 8 ? name.slice(0, 8) + '…' : name
+  return <span className="aw-proj" title={name}>{short}</span>
+}
+
+function CopyId({ value, label }: { value: string; label: string }) {
+  return (
+    <button className="aw-copy" title={`${label}: ${value}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              void navigator.clipboard?.writeText(value)
+              toast(t('assets.copied'), 'ok')
+            }}>⧉</button>
+  )
+}
+
 export function AssetWorkspace({ onOpenAsset }: Props) {
-  const { detail, pid, projects, groups } = useStore()
+  const { projects } = useStore()
   const modals = useAppModals()
-  const [projectId, setProjectId] = useState(pid ?? '')
-  const [groupId, setGroupId] = useState('')
+  const [tab, setTab] = useState<Tab>('character')
+  const [page, setPage] = useState(0)
+  const [projectFilter, setProjectFilter] = useState('')
   const [characters, setCharacters] = useState<Character[]>([])
   const [scenes, setScenes] = useState<Scene[]>([])
   const [outputs, setOutputs] = useState<OutputVideo[]>([])
-  const [generated, setGenerated] = useState<AssetCandidate[]>([])
+  const [cands, setCands] = useState<AssetCandidate[]>([])
   const [error, setError] = useState('')
+  const [zoom, setZoom] = useState<AssetCandidate | null>(null)
+  const [play, setPlay] = useState<OutputVideo | null>(null)
+  const [audioDetail, setAudioDetail] = useState<AssetCandidate | null>(null)
 
-  useEffect(() => { setProjectId(pid ?? ''); setGroupId('') }, [pid])
+  const projectName = (id?: string) => {
+    if (!id) return ''
+    return projects.find((p) => p.id === id)?.title || id
+  }
 
-  useEffect(() => {
-    let alive = true
-    api.assetsCatalog({ projectId, groupId })
+  const load = () => {
+    api.assetsCatalog()
       .then((r) => {
-        if (!alive) return
-        setCharacters(r.characters)
-        setScenes(r.scenes)
-        setOutputs(r.outputs ?? [])
-        setGenerated(r.generated ?? [])
+        setCharacters(r.characters || [])
+        setScenes(r.scenes || [])
+        setOutputs(r.outputs || [])
         setError('')
       })
-      .catch((e) => {
-        if (!alive) return
-        setCharacters([])
-        setScenes([])
-        setOutputs([])
-        setGenerated([])
-        setError(e instanceof Error ? e.message : t('assets.read-error'))
+      .catch((e) => setError(e instanceof Error ? e.message : t('assets.read-error')))
+    api.assetCandidates()
+      .then((r) => {
+        const seen = new Map<string, AssetCandidate>()
+        for (const c of r.candidates || []) seen.set(c.id, c)
+        setCands([...seen.values()])
       })
-    return () => { alive = false }
-  }, [projectId, groupId, detail])
+      .catch(() => undefined)
+  }
 
-  const showProject = !projectId
+  useEffect(load, [])
+  useEffect(() => setPage(0), [tab, projectFilter])
+
+  const hasProjectFilter = tab === 'character' || tab === 'scene' || tab === 'video'
+
+  const chars = useMemo(() => {
+    if (!projectFilter) return characters
+    return characters.filter((c) => (c.projects || []).some((p) => p.id === projectFilter))
+  }, [characters, projectFilter])
+
+  const scenesAll = useMemo(() => {
+    if (!projectFilter) return scenes
+    return scenes.filter((s) => s.project_id === projectFilter)
+  }, [scenes, projectFilter])
+
+  const videos = useMemo(() => {
+    if (!projectFilter) return outputs
+    return outputs.filter((o) => (o as unknown as { project_id?: string }).project_id === projectFilter)
+  }, [outputs, projectFilter])
+
+  const images = useMemo(() => cands.filter((c) => c.kind !== 'music'), [cands])
+  const audios = useMemo(() => cands.filter((c) => c.kind === 'music'), [cands])
+
+  const counts: Record<Tab, number> = {
+    character: chars.length,
+    scene: scenesAll.length,
+    video: videos.length,
+    image: images.length,
+    audio: audios.length,
+  }
+
+  const total = counts[tab]
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const slice = <T,>(arr: T[]) => arr.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
+
+  async function removeCharacter(c: Character) {
+    const ok = await confirmDialog({
+      title: t('assets.delete-character'),
+      message: tpl('assets.delete-character-confirm', { name: c.name }),
+      confirmText: t('assets.delete'),
+      danger: true,
+    })
+    if (!ok) return
+    await api.deleteCharacter(c.character_id, true)
+    toast(t('assets.deleted'), 'ok')
+    load()
+  }
+
+  async function removeCandidate(c: AssetCandidate) {
+    const ok = await confirmDialog({
+      title: t('assets.delete'),
+      message: t('assets.delete-confirm'),
+      confirmText: t('assets.delete'),
+      danger: true,
+    })
+    if (!ok) return
+    await api.deleteAssetCandidate(c.id)
+    toast(t('assets.deleted'), 'ok')
+    setZoom(null)
+    load()
+  }
 
   return (
-    <div className="asset-space">
-      <div className="asset-filters">
-        <label>
-          <span>{t('assets.filter.project')}</span>
-          <select
-            value={projectId}
-            onChange={(e) => { setProjectId(e.target.value); setGroupId('') }}
-          >
-            <option value="">{t('assets.filter.all')}</option>
-            {groups.filter((g) => g.id).map((g) => {
-              const list = projects.filter((p) => (p.group_id || '') === g.id && !p.archived)
-              if (list.length === 0) return null
+    <div className="aw-root">
+      <div className="aw-tabs" role="tablist">
+        {TABS.map((x) => (
+          <button key={x.key} role="tab" aria-selected={tab === x.key}
+                  className={`aw-tab${tab === x.key ? ' is-active' : ''}`}
+                  onClick={() => setTab(x.key)}>
+            {t(x.label)} <span className="aw-tab-n">{counts[x.key]}</span>
+          </button>
+        ))}
+        <div className="aw-tabs-spacer" />
+        {hasProjectFilter && (
+          <select className="aw-proj-filter" value={projectFilter}
+                  onChange={(e) => setProjectFilter(e.target.value)}>
+            <option value="">{t('assets.filter.all-projects')}</option>
+            {projects.filter((p) => !p.archived).map((p) => (
+              <option key={p.id} value={p.id}>{p.title}</option>
+            ))}
+          </select>
+        )}
+        {pages > 1 && (
+          <div className="aw-pager">
+            <button className="ghost sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>‹</button>
+            <span className="muted">{page + 1} / {pages}</span>
+            <button className="ghost sm" disabled={page >= pages - 1} onClick={() => setPage((p) => p + 1)}>›</button>
+          </div>
+        )}
+      </div>
+
+      {error && <div className="aw-error">⚠ {error}</div>}
+
+      <div className="aw-body">
+        {tab === 'character' && (
+          <div className="aw-grid aw-chars">
+            {slice(chars).map((c) => (
+              <div key={c.character_id} className="aw-card aw-char"
+                   onClick={() => onOpenAsset('character', c.character_id)}>
+                <div className="aw-thumb aw-thumb-contain">
+                  <img src={`/assets/characters/${encodeURIComponent(c.character_id)}?v=${encodeURIComponent((c.primary_ref || '').split('/').pop() || '0')}`}
+                       alt={c.name} loading="lazy"
+                       onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }} />
+                </div>
+                <div className="aw-meta">
+                  <b title={c.name}>{c.name}</b>
+                  <span className="aw-meta-right">
+                    <ProjectTag name={projectName((c.projects || [])[0]?.id)} />
+                  </span>
+                </div>
+                <div className="aw-ids">
+                  <span className="aw-id" title={c.character_id}>{c.character_id}</span>
+                  <CopyId value={c.character_id} label="character_id" />
+                </div>
+              </div>
+            ))}
+            {chars.length === 0 && <div className="muted">{t('assets.char-empty')}</div>}
+          </div>
+        )}
+
+        {tab === 'scene' && (
+          <div className="aw-grid aw-scenes">
+            {slice(scenesAll).map((s) => (
+              <div key={`${s.project_id}/${s.scene_id}`} className="aw-card aw-scene"
+                   onClick={() => onOpenAsset('scene', s.scene_id, s.project_id)}>
+                <div className="aw-thumb aw-thumb-cover">
+                  <img src={`/assets/scenes/${encodeURIComponent(s.project_id)}/${encodeURIComponent(s.scene_id)}?v=${s.updated_at || ''}`}
+                       alt={s.name} loading="lazy"
+                       onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }} />
+                </div>
+                <div className="aw-meta">
+                  <b title={s.name}>{s.name || s.scene_id}</b>
+                  <span className="aw-meta-right">
+                    <ProjectTag name={projectName(s.project_id)} />
+                  </span>
+                </div>
+                <div className="aw-ids">
+                  <span className="aw-id" title={`${s.scene_id} · ${s.project_id}`}>
+                    {s.scene_id}
+                  </span>
+                  <CopyId value={s.scene_id} label="scene_id" />
+                  <CopyId value={s.project_id} label="project_id" />
+                </div>
+              </div>
+            ))}
+            {scenesAll.length === 0 && <div className="muted">{t('assets.scene-empty')}</div>}
+          </div>
+        )}
+
+        {tab === 'video' && (
+          <div className="aw-grid aw-videos">
+            {slice(videos).map((o) => (
+              <div key={o.url} className="aw-card aw-video">
+                <div className="aw-thumb aw-thumb-cover aw-video-thumb">
+                  {o.poster ? <img src={o.poster} alt={o.name} loading="lazy" /> : null}
+                  <button className="aw-play" onClick={() => setPlay(o)} title={t('assets.play')}>▶</button>
+                  <a className="aw-dl" href={o.url} download onClick={(e) => e.stopPropagation()}
+                     title={t('assets.download')}>⬇</a>
+                </div>
+                <div className="aw-meta">
+                  <b title={o.name}>{o.name}</b>
+                  <span className="aw-meta-right">
+                    <ProjectTag name={projectName((o as unknown as { project_id?: string }).project_id)} />
+                    <span className="muted">{(o.size / 1048576).toFixed(1)}M</span>
+                  </span>
+                </div>
+                <div className="aw-ids">
+                  <span className="aw-id" title={(o as unknown as { project_id?: string }).project_id}>
+                    {(o as unknown as { project_id?: string }).project_id || '—'}
+                  </span>
+                  {(o as unknown as { project_id?: string }).project_id && (
+                    <CopyId value={(o as unknown as { project_id?: string }).project_id as string}
+                            label="project_id" />
+                  )}
+                </div>
+              </div>
+            ))}
+            {videos.length === 0 && <div className="muted">{t('assets.video-empty')}</div>}
+          </div>
+        )}
+
+        {tab === 'image' && (
+          <div className="aw-grid aw-images">
+            {slice(images).map((c) => (
+              <figure key={c.id} className="aw-card aw-image" onClick={() => setZoom(c)}>
+                <div className="aw-thumb aw-thumb-contain">
+                  {c.url ? <img src={c.url} alt={c.prompt} loading="lazy" /> : null}
+                </div>
+                <div className="aw-meta">
+                  <b className="muted">{timeLabel(c.created_at)}</b>
+                  <span className="aw-meta-right muted">{c.width}×{c.height}</span>
+                </div>
+                <figcaption className="aw-prompt" title={c.prompt}>{c.prompt}</figcaption>
+                <div className="aw-ids">
+                  <span className="aw-id" title={c.id}>{c.id}</span>
+                  <CopyId value={c.id} label="asset_id" />
+                </div>
+              </figure>
+            ))}
+            {images.length === 0 && <div className="muted">{t('assets.generated-empty')}</div>}
+          </div>
+        )}
+
+        {tab === 'audio' && (
+          <div className="aw-music-list">
+            {slice(audios).map((m) => {
+              const pr = (m as unknown as { params?: Record<string, unknown> }).params || {}
               return (
-                <optgroup key={g.id} label={g.name}>
-                  {list.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
-                </optgroup>
+                <div key={m.id} className="aw-music">
+                  <div className="aw-music-head">
+                    <b title={m.prompt}>{m.prompt}</b>
+                    <span className="aw-meta-right">
+                      <ProjectTag name={projectName(m.project_id)} />
+                      <span className="muted">
+                        {pr.seconds ? `${pr.seconds}s` : '—'} · {pr.lyrics ? t('assets.music-vocal') : t('assets.music-instrumental')}
+                      </span>
+                    </span>
+                  </div>
+                  <audio controls preload="none" src={m.url || ''} />
+                  <div className="aw-ids">
+                    <span className="aw-id" title={m.id}>{m.id}</span>
+                    <CopyId value={m.id} label="asset_id" />
+                  </div>
+                  <div className="aw-music-actions">
+                    <span className="muted">{timeLabel(m.created_at)}</span>
+                    <div className="aw-tabs-spacer" />
+                    <button className="ghost sm" onClick={() => setAudioDetail(m)}>{t('audio.detail')}</button>
+                    <button className="ghost sm danger" onClick={() => void removeCandidate(m)}>
+                      {t('assets.delete')}
+                    </button>
+                  </div>
+                </div>
               )
             })}
-            {projects.some((p) => !p.group_id && !p.archived) && (
-              <optgroup label={t('project.ungrouped')}>
-                {projects.filter((p) => !p.group_id && !p.archived).map((p) => (
-                  <option key={p.id} value={p.id}>{p.title}</option>
-                ))}
-              </optgroup>
-            )}
-          </select>
-        </label>
-
-        <label>
-          <span>{t('assets.filter.group')}</span>
-          <select
-            value={groupId}
-            onChange={(e) => { setGroupId(e.target.value); setProjectId('') }}
-          >
-            <option value="">{t('assets.filter.all-groups')}</option>
-            {groups.filter((g) => g.id).map((g) => (
-              <option key={g.id} value={g.id}>{g.name}（{g.count}）</option>
-            ))}
-          </select>
-        </label>
-
-        <span className="muted asset-filter-count">
-          {tpl('assets.filter.stats', { chars: characters.length, scenes: scenes.length })}
-          {' · '}
-          {tpl('assets.filter.stats-media', { outputs: outputs.length, generated: generated.length })}
-        </span>
+            {audios.length === 0 && <div className="muted">{t('assets.music-empty')}</div>}
+          </div>
+        )}
       </div>
 
-      {error && <div className="asset-error">⚠ {error}</div>}
-
-      <section className="assets-section">
-        <h2>{t('assets.chars')} <span className="muted">{characters.length}</span></h2>
-        {characters.length === 0 ? (
-          <div className="empty">
-            <div>{t('assets.char-empty')}</div>
-            <div className="muted">{t('assets.char-empty-sub')}</div>
+      {zoom && (
+        <div className="aw-zoom-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) setZoom(null) }}>
+          <div className="aw-zoom">
+            <header>
+              <span className="muted">{timeLabel(zoom.created_at)} · {zoom.width}×{zoom.height} · seed {zoom.seed}</span>
+              <div className="aw-zoom-actions">
+                <button className="ghost sm" onClick={() => void removeCandidate(zoom)}>{t('assets.delete')}</button>
+                <button className="ghost sm" onClick={() => setZoom(null)}>✕</button>
+              </div>
+            </header>
+            <div className="aw-zoom-stage"><img src={zoom.url} alt={zoom.prompt} /></div>
+            <p className="aw-zoom-prompt">{zoom.prompt}</p>
           </div>
-        ) : (
-          <div className="char-grid">
-            {characters.map((c) => (
-              <CharacterCard key={c.character_id} c={c}
-                onOpen={() => onOpenAsset('character', c.character_id)} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="assets-section">
-        <h2>{t('assets.scenes')} <span className="muted">{scenes.length}</span></h2>
-        {scenes.length === 0 ? (
-          <div className="empty">
-            <div>{t('assets.scene-empty')}</div>
-            <div className="muted">{t('assets.scene-empty-sub')}</div>
-          </div>
-        ) : (
-          <div className="scene-grid">
-            {scenes.map((s) => (
-              <SceneCard
-                key={`${s.project_id}/${s.scene_id}`}
-                scene={s}
-                showProject={showProject}
-                onOpen={() => onOpenAsset('scene', s.scene_id, s.project_id)}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="assets-section">
-        <h2>{t('assets.outputs')} <span className="muted">{outputs.length}</span></h2>
-        {outputs.length === 0 ? (
-          <div className="empty">
-            <div>{t('assets.outputs-empty')}</div>
-            <div className="muted">{t('assets.outputs-empty-sub')}</div>
-          </div>
-        ) : (
-          <div className="output-grid">
-            {outputs.map((o) => (
-              <OutputCard
-                key={`${o.project_id}/${o.name}`}
-                o={o}
-                showProject={showProject}
-                onPlay={() => modals.playUrl(o.url, o.project_title || o.name)}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="assets-section">
-        <h2>{t('assets.generated')} <span className="muted">{generated.length}</span></h2>
-        {generated.length === 0 ? (
-          <div className="empty">
-            <div>{t('assets.generated-empty')}</div>
-            <div className="muted">{t('assets.generated-empty-sub')}</div>
-          </div>
-        ) : (
-          <div className="t2i-grid">
-            {generated.map((c) => <GeneratedCard key={c.id} c={c} />)}
-          </div>
-        )}
-      </section>
-    </div>
-  )
-}
-
-function CharacterCard({ c, onOpen }: { c: Character; onOpen: () => void }) {
-  return (
-    <div className="char-card">
-      <div className="char-portrait">
-        <img
-          src={`/assets/characters/${encodeURIComponent(c.character_id)}?v=${encodeURIComponent((c.primary_ref || '').split('/').pop() || '0')}`}
-          alt={c.name}
-          loading="lazy"
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
-        />
-        {c.locked && <span className="badge">{t('assets.lock')}</span>}
-      </div>
-      <div className="char-info">
-        <div className="asset-name">{c.name} {c.refs_verified && <span title="verified">✓</span>}</div>
-        <div className="asset-sub">
-          {tpl('assets.used-in', { n: c.used_in?.length ?? 0 })} · {tpl('assets.refs', { n: c.refs.length })}
-          {c.overridden ? ` · ${t('assets.overridden')}` : ''}
-          {(c.projects?.length ?? 0) > 1 ? ` · ${tpl('assets.projects-count', { n: c.projects!.length })}` : ''}
         </div>
-        <p className="desc">{c.description || t('assets.no-desc')}</p>
-        <div className="row">
-          <button className="ghost" onClick={onOpen}>{t('assets.gallery')}</button>
-          <button className="ghost" onClick={() => void verifyCharacter(c.character_id, !c.refs_verified)}>
-            {c.refs_verified ? t('assets.unverify') : t('assets.verify')}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+      )}
 
-function SceneCard({ scene, showProject, onOpen }: {
-  scene: Scene; showProject: boolean; onOpen: () => void
-}) {
-  return (
-    <div className="scene-card">
-      <div className="scene-plate">
-        {scene.plate_sha ? (
-          <img
-            src={`/assets/scenes/${encodeURIComponent(scene.project_id)}/${encodeURIComponent(scene.scene_id)}?v=${encodeURIComponent(scene.plate_sha)}`}
-            alt={scene.name}
-            loading="lazy"
-          />
-        ) : (
-          <span className="placeholder">{t('assets.no-plate')}</span>
-        )}
-      </div>
-      <div className="scene-info">
-        <div className="asset-name">{scene.name || scene.scene_id}</div>
-        <div className="asset-sub">
-          {scene.scene_id} · {tpl('assets.angles', { n: scene.extra_plates?.length ?? 0 })}
-          {scene.locked ? ` · ${t('assets.locked')}` : ''}
-        </div>
-        {showProject && scene.project_title && (
-          <div className="asset-sub">{tpl('assets.scene-project', { name: scene.project_title })}</div>
-        )}
-        {scene.extra_plates?.length ? (
-          <div className="mini-plates">
-            {scene.extra_plates.map((p, i) => (
-              <span key={p} className="mini-plate" title={p}>{tpl('asset.angle', { n: i + 1 })}</span>
-            ))}
+      {audioDetail && <AudioDetail cand={audioDetail as never} onClose={() => setAudioDetail(null)} />}
+
+      {play && (
+        <div className="aw-zoom-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) setPlay(null) }}>
+          <div className="aw-zoom">
+            <header>
+              <span className="muted">{play.name}</span>
+              <div className="aw-zoom-actions">
+                <a className="ghost sm" href={play.url} download>{t('assets.download')}</a>
+                <button className="ghost sm" onClick={() => setPlay(null)}>✕</button>
+              </div>
+            </header>
+            <video src={play.url} controls autoPlay style={{ maxWidth: '100%', maxHeight: '70vh' }} />
           </div>
-        ) : null}
-        <div className="row">
-          <button className="ghost" onClick={onOpen}>{t('assets.plate-manage')}</button>
         </div>
-      </div>
-    </div>
-  )
-}
-
-function formatSize(bytes: number): string {
-  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`
-  return `${Math.max(1, Math.round(bytes / 1024))} KB`
-}
-
-function formatDate(sec: number): string {
-  const d = new Date(sec * 1000)
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
-}
-
-function OutputCard({ o, showProject, onPlay }: {
-  o: OutputVideo; showProject: boolean; onPlay: () => void
-}) {
-  const [copied, setCopied] = useState(false)
-
-  async function copyPath(e: React.MouseEvent) {
-    e.stopPropagation()
-    try {
-      await navigator.clipboard.writeText(o.path)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
-    } catch {
-      setCopied(false)
-    }
-  }
-
-  function download(e: React.MouseEvent) {
-    e.stopPropagation()
-    const a = document.createElement('a')
-    a.href = o.url
-    a.download = o.name
-    a.click()
-  }
-
-  async function reveal(e: React.MouseEvent) {
-    e.stopPropagation()
-    try {
-      await api.revealOutput(o.project_id, o.name)
-    } catch {
-      try { await navigator.clipboard.writeText(o.path) } catch { /* 忽略 */ }
-    }
-  }
-
-  return (
-    <div className="output-card">
-      <div className="output-post" onClick={onPlay}>
-        <img
-          src={`${o.poster}?v=${o.mtime}`}
-          alt={o.name}
-          loading="lazy"
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }}
-        />
-        <span className="output-play" title={t('assets.play')}>▶</span>
-        <button className="output-dl" title={t('assets.download')} onClick={download}>
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
-               stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 4v11" />
-            <path d="M7 10l5 5 5-5" />
-            <path d="M5 20h14" />
-          </svg>
-        </button>
-      </div>
-      <div className="output-info">
-        <div className="asset-name" title={o.name}>{o.name}</div>
-        {showProject && o.project_title && (
-          <div className="asset-sub">{tpl('assets.scene-project', { name: o.project_title })}</div>
-        )}
-        <div className="asset-sub">{formatDate(o.mtime)} · {formatSize(o.size)}</div>
-        <div className="output-actions">
-          <button className="mini-btn" onClick={reveal} title={t('assets.open-dir')}>
-            {t('assets.open-dir')}
-          </button>
-          <button className="mini-btn" onClick={copyPath} title={o.path}>
-            {copied ? t('assets.copied') : t('assets.copy-path')}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function GeneratedCard({ c }: { c: AssetCandidate }) {
-  return (
-    <div className="t2i-card">
-      <div className="t2i-img">
-        {c.url ? (
-          <img src={c.url} alt={c.prompt} loading="lazy" />
-        ) : (
-          <span className="placeholder">{t('assets.no-image')}</span>
-        )}
-      </div>
-      <div className="t2i-info">
-        <div className="asset-sub">{t(`t2i.kind.${c.kind}`)} · {c.width}×{c.height}</div>
-        <p className="desc">{c.prompt || t('assets.no-desc')}</p>
-      </div>
+      )}
     </div>
   )
 }

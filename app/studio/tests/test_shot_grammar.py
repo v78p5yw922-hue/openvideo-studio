@@ -63,3 +63,12 @@ def test_compose_segments_split_each_person_without_changing_separators():
         "甲：位置=左；层级=前景；朝向=面向镜头；视线=看镜头；占比=50",
         "乙：位置=右；层级=中景；朝向=背对镜头；视线=看画外；占比=40",
     ]
+
+def test_eyeline_offscreen_target_ok():
+    """视线=看对方、对象写「阿乙（画外）」时不该报错。"""
+    people = [
+        {"name": "阿甲", "位置": "中", "层级": "中景", "朝向": "面向镜头",
+         "视线": "看对方", "对象": "阿乙（画外）", "占比": "50"},
+    ]
+    issues = sg.people_issues(people, ["阿甲"])
+    assert not [i for i in issues if i["code"] == "EYELINE_TARGET_NOT_IN_CAST"]

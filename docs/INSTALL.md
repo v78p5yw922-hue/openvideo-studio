@@ -7,8 +7,8 @@
 ## 场景 A：已有 ComfyUI + 模型（最省事，0 下载）
 
 ```bash
-git clone <this-repo> openvideo
-cd openvideo
+git clone <this-repo> 搭象工坊
+cd 搭象工坊
 bash install.sh --comfyui-dir /path/to/ComfyUI --models-dir /path/to/ComfyUI/models
 ```
 
@@ -50,7 +50,7 @@ bash install.sh
 输出形如：
 
 ```
-OpenVideo doctor  v0.1.0   (Linux 5.15)
+搭象工坊 doctor  v0.1.0   (Linux 5.15)
   ✓ Python 3.10.12
   ✓ GPU: NVIDIA GeForce RTX 4090, 24564 MiB, 572.xx
   ✓ ffmpeg: ffmpeg version 5.1.6
@@ -86,7 +86,7 @@ config → venv → comfyui → nodes → models → services → selftest
 | `ov install --force --only venv` | 重做某个阶段 |
 | `ov status` | 看每个阶段的状态与时间 |
 
-状态在 `~/.openvideo/state.json`，原子写入（先写 `.tmp` 再 rename），不会出现半个 JSON。
+状态在 `~/.搭象工坊/state.json`，原子写入（先写 `.tmp` 再 rename），不会出现半个 JSON。
 
 ---
 
@@ -98,12 +98,12 @@ Linux/WSL2 用 systemd：
 sed -e "s|%USER%|$USER|g" \
     -e "s|%VENV%|$PWD/.venv|g" \
     -e "s|%APP_DIR%|$PWD/app|g" \
-    -e "s|%DATA_DIR%|$HOME/openvideo/studio-data|g" \
+    -e "s|%DATA_DIR%|$HOME/搭象工坊/studio-data|g" \
     -e "s|%COMFYUI_DIR%|/path/to/ComfyUI|g" \
-    services/openvideo-studio.service.in | sudo tee /etc/systemd/system/openvideo-studio.service
+    services/搭象工坊-studio.service.in | sudo tee /etc/systemd/system/搭象工坊-studio.service
 
 sudo systemctl daemon-reload
-sudo systemctl enable --now openvideo-engine openvideo-studio
+sudo systemctl enable --now 搭象工坊-engine 搭象工坊-studio
 ```
 
 不想用 systemd：`./ov start --foreground`。
@@ -128,8 +128,8 @@ sudo systemctl enable --now openvideo-engine openvideo-studio
 ## 卸载
 
 ```bash
-sudo systemctl disable --now openvideo-studio openvideo-engine
-rm -rf ~/.openvideo           # 状态与日志
+sudo systemctl disable --now 搭象工坊-studio 搭象工坊-engine
+rm -rf ~/.搭象工坊           # 状态与日志
 rm -rf ./app ./engine .venv   # 代码与虚拟环境
 ```
 
@@ -140,7 +140,7 @@ rm -rf ./app ./engine .venv   # 代码与虚拟环境
 ## 装完先体检：`studio doctor`
 
 ```bash
-cd /home/agent/openvideo/video-agent          # 部署目录
+cd /home/agent/搭象工坊/video-agent          # 部署目录
 .venv/bin/python -m studio.doctor             # 人看
 .venv/bin/python -m studio.doctor --json      # 机器看
 ```

@@ -84,7 +84,7 @@ def test_second_render_bumps_version(monkeypatch):
     monkeypatch.setenv("STUDIO_ALLOW_RENDER", "1")
     service.enqueue_job(pid, "render", {"shots": ["s01"], "draft": False})
     runner.tick()
-    service.enqueue_job(pid, "render", {"shots": ["s01"], "draft": False})
+    service.enqueue_job(pid, "render", {"shots": ["s01"], "draft": False, "force": True})
     runner.tick()
     with db.txn() as conn:
         rows = conn.execute("SELECT version, path FROM takes WHERE project_id=? AND shot_id=? "

@@ -182,6 +182,25 @@ export const api = {
     get<{ jobs: Job[] }>(pid ? `/api/jobs?project_id=${enc(pid)}` : '/api/jobs'),
   cancelJob: (jobId: string) => post<{ job: Job }>(`/api/jobs/${enc(jobId)}/cancel`, {}),
   /** 全局停止：杀掉正在渲的任务并取消所有排队任务 */
+  useAudioPath: (pid: string, kind: string, path: string) =>
+    post<{ ok: boolean; path: string }>(`${P(pid)}/audio/use-path`, { kind, path }),
+  systemAudioFiles: (path = '') =>
+    get<{ path: string; dirs: Array<{ name: string; path: string }>;
+          files: Array<{ name: string; path: string; size: number }> }>
+      (`/api/system/audio-files?path=${encodeURIComponent(path)}`),
+  uploadAvatar: async (file: File) => {
+    const r = await fetch('/api/auth/me/avatar', {
+      method: 'POST', body: file,
+      headers: { 'content-type': file.type || 'application/octet-stream' },
+    })
+    if (!r.ok) throw new Error(await r.text())
+    return (await r.json()) as { ok: boolean; url: string }
+  },
+  deleteBed: (pid: string, kind: string) =>
+    del<{ ok: boolean; kind: string; removed: string[] }>(`${P(pid)}/audio/${enc(kind)}`),
+  activeJobs: () => get<{ jobs: Array<{ id: string; kind: string; state: string;
+    project_id: string; target: string; page: string; pct?: number | null;
+    detail?: string; started_at?: string }> }>('/api/jobs/active'),
   stopAll: () => post<{ ok: boolean; cancelled: number; killed: string[] }>('/api/stop', {}),
   clearQueue: (pid: string) => post<{ cancelled: number }>(`${P(pid)}/clear-queue`, {}),
 
@@ -371,6 +390,14 @@ export const api = {
   doctor: () => get<Record<string, unknown>>('/api/doctor'),
   /** 设置页：只读配置展示 */
   configView: () => get<Record<string, unknown>>('/api/config'),
+  /** 音乐生成（MiniMax Music 3） */
+  generateMusic: (body: { prompt: string; lyrics?: string; seconds?: number;
+                            seed?: number; project_id?: string; group_id?: string }) =>
+    post<{ job_id: string; queue_position: number }>('/api/assets/generate',
+         { kind: 'music', ...body }),
+  candidateAsBgm: (candId: string, projectId: string) =>
+    post<{ ok: boolean; path: string }>(`/api/assets/candidates/${encodeURIComponent(candId)}/as-bgm`,
+         { project_id: projectId }),
   /** 技能页：skill 列表（含正文） */
   skills: () => get<Record<string, unknown>>('/api/skills'),
   /** 规范页：规则 + 历史教训 */
@@ -398,6 +425,14 @@ export const api = {
     body: { project_id?: string; group_id?: string; kind?: AssetKind }) =>
     patch<AssetCandidate>(`/api/assets/candidates/${enc(id)}`, body),
   assetCandidates: () => get<{ candidates: AssetCandidate[] }>('/api/assets/candidates'),
+  uploadAssetRef: async (file: File) => {
+    const r = await fetch(`/api/assets/refs/upload?name=${encodeURIComponent(file.name)}`, {
+      method: 'POST', body: file,
+      headers: { 'content-type': file.type || 'application/octet-stream' },
+    })
+    if (!r.ok) throw new Error(await r.text())
+    return (await r.json()) as { path: string; name: string }
+  },
   deleteAssetCandidate: (id: string) => del<{ ok: boolean }>(`/api/assets/candidates/${enc(id)}`),
   adoptAssetCandidate: (id: string, body: {
     target: 'character' | 'scene'; character_id?: string;
@@ -409,7 +444,7 @@ export const api = {
   generateAssets: (body: {
     kind: AssetKind; prompt: string; width: number; height: number;
     steps?: number; seed?: number; count?: number;
-    project_id?: string; group_id?: string; refs?: string[];
+    project_id?: string; group_id?: string; refs?: string[]; ref_paths?: string[];
   }) => post<{
     job_id: string; accepted: boolean; count: number;
     queue_position: number; executor: boolean;

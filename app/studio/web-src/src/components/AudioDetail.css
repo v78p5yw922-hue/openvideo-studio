@@ -1,0 +1,23 @@
+.ad-root { display: flex; flex-direction: column; gap: 12px; font-size: 13px; }
+.ad-progress { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.ad-bar { flex: 1; height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.ad-bar > i { display: block; height: 100%; background: var(--text-3); transition: width .2s linear; }
+
+.ad-grid { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(260px, 1fr); gap: 18px; align-items: start; }
+.ad-label { font-size: 12px; color: var(--text-2); margin: 4px 0 6px; }
+
+.ad-lyrics {
+  max-height: 46vh; overflow: auto; padding-right: 6px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.ad-line {
+  font-size: 13px; line-height: 1.7; color: var(--text-2); cursor: pointer;
+  padding: 1px 6px; border-radius: 6px; transition: color .15s, background .15s;
+}
+.ad-line:hover { color: var(--text); background: color-mix(in srgb, var(--line) 45%, transparent); }
+.ad-line.is-active { color: var(--text); background: color-mix(in srgb, var(--text-3) 18%, transparent); }
+.ad-tag { color: var(--text-3); font-size: 12px; cursor: default; margin-top: 6px; }
+
+.ad-meta p { margin: 0 0 8px; line-height: 1.6; }
+.ad-list { margin: 0 0 10px; padding-left: 18px; font-size: 12px; color: var(--text-2); line-height: 1.7; }
+.ad-list code { font-family: ui-monospace, monospace; font-size: 12px; }

@@ -16,7 +16,7 @@
 
 .checks { display: grid; gap: 6px; }
 .check { display: grid; grid-template-columns: 18px 96px 1fr; gap: 8px; font-size: 13px; align-items: baseline; }
-.check-icon { font-size: 11px; }
+.check-icon { font-size: 12px; }
 .check.is-ok .check-icon { color: #2f9e6b; }
 .check.is-warn .check-icon { color: #d9a441; }
 .check.is-fail .check-icon { color: #d9534f; }

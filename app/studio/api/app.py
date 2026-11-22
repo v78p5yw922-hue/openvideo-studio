@@ -215,7 +215,11 @@ def logout(request: Request):
 
 @app.get("/api/auth/me")
 def me(request: Request):
-    return {"user": request.state.user}
+    user = dict(request.state.user or {})
+    f = db.DATA_DIR / "avatars" / f"{user.get('id')}.png"
+    if f.is_file():
+        user["avatar_url"] = f"/assets/avatar/{user['id']}?v={int(f.stat().st_mtime)}"
+    return {"user": user}
 
 
 @app.put("/api/auth/me")
@@ -232,6 +236,32 @@ def update_me(body: ProfileIn, request: Request):
     except ValueError as e:
         raise HTTPException(400, str(e)) from e
     return {"user": updated}
+
+
+@app.post("/api/auth/me/avatar")
+async def upload_avatar(request: Request):
+    """上传头像（当前登录用户），返回可直接引用的 URL。"""
+    user = request.state.user
+    body = await request.body()
+    if not body:
+        raise HTTPException(400, "空文件")
+    if len(body) > 8 * 1024 * 1024:
+        raise HTTPException(400, "头像不能超过 8 MB")
+    d = db.DATA_DIR / "avatars"
+    d.mkdir(parents=True, exist_ok=True)
+    dst = d / f"{user['id']}.png"
+    dst.write_bytes(body)
+    return {"ok": True, "url": f"/assets/avatar/{user['id']}?v={int(dst.stat().st_mtime)}"}
+
+
+@app.get("/assets/avatar/{uid}")
+def get_avatar(uid: str):
+    from fastapi.responses import FileResponse as _FR
+
+    f = db.DATA_DIR / "avatars" / f"{uid}.png"
+    if not f.is_file():
+        raise HTTPException(404, "没有头像")
+    return _FR(f, media_type="image/png")
 
 
 @app.get("/api/users")
@@ -1019,7 +1049,7 @@ async def upload_bed(pid: str, kind: str, name: str, request: Request):
         raise HTTPException(400, "空文件")
     dst = _P("/tmp") / f"upload_{pid}_{kind}{_P(name).suffix or '.m4a'}"
     dst.write_bytes(body)
-    out = service.bed_path(pid, kind)
+    out = service.bed_path(pid, kind, "custom")
     cp = subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(dst),
                          "-vn", "-c:a", "aac", "-b:a", "192k", str(out)],
                         capture_output=True, text=True)
@@ -1027,7 +1057,7 @@ async def upload_bed(pid: str, kind: str, name: str, request: Request):
     if cp.returncode != 0 or not out.is_file():
         raise HTTPException(400, f"音频转码失败：{(cp.stderr or '')[-200:]}")
     service.set_project_audio(pid, {kind: {"mode": "file", "path": str(out)}})
-    return {"ok": True, "kind": kind, "path": str(out)}
+    return {"ok": True, "kind": kind, "path": str(out), "variant": "custom"}
 
 
 @app.get("/assets/audio/{pid}/{name}")
@@ -1124,11 +1154,78 @@ def generate_bed(pid: str, kind: str = "bgm"):
     return {"ok": True, "kind": kind, "status": "started"}
 
 
+@app.delete("/api/projects/{pid}/audio/{kind}")
+def delete_bed(pid: str, kind: str):
+    """删掉这条床（文件 + 配置）：自定义和模型生成的都清掉。"""
+    if kind not in ("bgm", "ambience"):
+        raise HTTPException(400, "kind 只能是 bgm 或 ambience")
+    if not service.get_project(pid):
+        raise HTTPException(404, "项目不存在")
+    removed = service.delete_beds(pid, kind)
+    service.set_project_audio(pid, {kind: {"mode": "off", "path": ""}})
+    return {"ok": True, "kind": kind, **removed}
+
+
+@app.post("/api/projects/{pid}/audio/use-path")
+def use_audio_path(pid: str, body: dict):
+    """把磁盘上任意一个音频文件设为整集床（bgm / ambience）。"""
+    import subprocess
+    from pathlib import Path as _P
+
+    kind = str(body.get("kind") or "bgm")
+    raw = str(body.get("path") or "")
+    if kind not in ("bgm", "ambience"):
+        raise HTTPException(400, "kind 只能是 bgm 或 ambience")
+    if not service.get_project(pid):
+        raise HTTPException(404, "项目不存在")
+    src = _P(raw).expanduser()
+    if not src.is_file():
+        raise HTTPException(400, f"文件不存在：{raw}")
+    if src.suffix.lower() not in (".m4a", ".mp3", ".wav", ".flac", ".aac", ".ogg"):
+        raise HTTPException(400, "只支持 m4a/mp3/wav/flac/aac/ogg")
+    out = service.bed_path(pid, kind, "custom")
+    cp = subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(src), "-vn",
+                         "-c:a", "aac", "-b:a", "192k", str(out)],
+                        capture_output=True, text=True)
+    if cp.returncode != 0 or not out.is_file():
+        raise HTTPException(400, f"转码失败：{(cp.stderr or '')[-200:]}")
+    service.set_project_audio(pid, {kind: {"mode": "file", "path": str(out)}})
+    return {"ok": True, "kind": kind, "path": str(out), "source": str(src)}
+
+
+@app.get("/api/system/audio-files")
+def system_audio_files(path: str = ""):
+    """浏览服务器目录里的音频文件（给"系统目录选择"用）。"""
+    from pathlib import Path as _P
+
+    base = _P(path).expanduser() if path else _P.home()
+    if not base.is_dir():
+        raise HTTPException(400, f"目录不存在：{path}")
+    exts = (".m4a", ".mp3", ".wav", ".flac", ".aac", ".ogg")
+    dirs, files = [], []
+    for child in sorted(base.iterdir()):
+        try:
+            if child.is_dir():
+                dirs.append({"name": child.name, "path": str(child)})
+            elif child.suffix.lower() in exts:
+                files.append({"name": child.name, "path": str(child),
+                              "size": child.stat().st_size})
+        except OSError:
+            continue
+    return {"path": str(base), "dirs": dirs[:200], "files": files[:200]}
+
+
 @app.get("/api/projects/{pid}/audio/status")
 def bed_status(pid: str):
     st = BED_JOBS.get(pid) or {}
     out = {k: st.get(k) for k in ("running", "kind", "log", "path", "error")}
-    out["exists"] = {k: service.bed_path(pid, k).is_file() for k in ("bgm", "ambience")}
+    aud = (service.get_project(pid) or {}).get("audio") or {}
+    out["exists"] = {}
+    out["in_use"] = {}
+    for k in ("bgm", "ambience"):
+        path, rep = service.resolve_bed(pid, k)
+        out["exists"][k] = bool(path)
+        out["in_use"][k] = {"path": path, **rep}
     return out
 
 
@@ -1375,6 +1472,41 @@ def stop_everything():
         except ValueError:
             pass
     return {"ok": True, "cancelled": len(jobs), "killed": killed}
+
+
+@app.get("/api/jobs/active")
+def active_jobs():
+    """当前在跑 / 排队的任务，统一给状态栏用（视频、图片、音乐都认得出）。"""
+    import json as _json
+    out = []
+    for job in service.list_jobs(limit=200):
+        if job.get("state") not in ("running", "queued"):
+            continue
+        payload = _json.loads(job.get("payload") or "{}")
+        kind = job.get("kind") or ""
+        target = ""
+        page = "/create/video/rendering"
+        if kind == "render":
+            target = "镜 " + "、".join(payload.get("shots") or [])
+            page = "/create/video/rendering"
+        elif kind == "music" or payload.get("kind") == "music":
+            target = f"音乐 {float(payload.get('seconds') or 0):.0f}s"
+            page = "/create/music"
+        elif kind in ("asset", "preview"):
+            target = f"{payload.get('kind') or '图片'}"
+            page = "/create/text-to-image"
+        elif kind in ("assemble", "merge", "export"):
+            target = "合成"
+            page = "/create/video/compose"
+        prog = runner.progress_of(job["id"]) or {}
+        out.append({
+            "id": job["id"], "kind": kind, "state": job["state"],
+            "project_id": job.get("project_id") or "",
+            "target": target, "page": page,
+            "created_at": job.get("created_at"), "started_at": job.get("started_at"),
+            "pct": prog.get("pct"), "detail": prog.get("detail") or prog.get("stage") or "",
+        })
+    return {"jobs": out}
 
 
 @app.get("/api/jobs/{jid}/progress")
@@ -1663,6 +1795,20 @@ def get_asset_candidate(cand_id: str):
     return c
 
 
+@app.get("/api/assets/candidates/{cand_id}/lyrics")
+def candidate_lyrics(cand_id: str):
+    """.lrc 歌词（时间轴是按行估算的，播放器用它做进度高亮）。"""
+    from fastapi.responses import PlainTextResponse as _PT
+
+    c = assets.get_candidate(cand_id)
+    if not c:
+        raise HTTPException(404, "候选不存在")
+    text = assets.lyrics_of(c)
+    if not text.strip():
+        raise HTTPException(404, "这段音乐没有歌词")
+    return _PT(text, media_type="text/plain; charset=utf-8")
+
+
 @app.delete("/api/assets/candidates/{cand_id}")
 def delete_asset_candidate(cand_id: str):
     ok = assets.delete_candidate(cand_id)
@@ -1700,7 +1846,30 @@ class AssetGenerateIn(BaseModel):
     count: int = 1       # 1–4 张
     project_id: str = ""
     group_id: str = ""
-    refs: list[str] = []  # 角色 id，取该角色的主图（refs[0]）当参考图，最多 4 张
+    refs: list[str] = []  # 角色 id（旧接口，保留兼容）
+    ref_paths: list[str] = []  # 上传的参考图路径（不绑角色/项目），最多 4 张
+    lyrics: str = ""      # kind=music：歌词（留空=器乐）
+    seconds: float = 60.0  # kind=music：时长（秒，≤360）
+
+
+@app.post("/api/assets/refs/upload")
+async def upload_ref(name: str, request: Request):
+    """上传一张参考图（不绑角色、不绑项目），返回它在数据目录里的路径。"""
+    import hashlib
+
+    body = await request.body()
+    if not body:
+        raise HTTPException(400, "空文件")
+    if len(body) > 20 * 1024 * 1024:
+        raise HTTPException(400, "图片不能超过 20 MB")
+    suffix = Path(name).suffix.lower() or ".png"
+    if suffix not in (".png", ".jpg", ".jpeg", ".webp"):
+        raise HTTPException(400, "只接受 png/jpg/webp")
+    d = db.DATA_DIR / "refs"
+    d.mkdir(parents=True, exist_ok=True)
+    dst = d / (hashlib.sha256(body).hexdigest()[:16] + suffix)
+    dst.write_bytes(body)
+    return {"path": str(dst), "name": name}
 
 
 @app.post("/api/assets/generate")
@@ -1750,6 +1919,20 @@ def generate_asset(body: AssetGenerateIn):
             if not p.is_file():
                 raise HTTPException(400, f"参考图文件不存在：{p.name}")
             ref_paths.append(str(p))
+
+    if body.ref_paths:
+        data_root = db.DATA_DIR.resolve()
+        for raw in body.ref_paths:
+            p = Path(raw).resolve()
+            try:
+                p.relative_to(data_root)
+            except ValueError as e:
+                raise HTTPException(400, "参考图不在资产目录内") from e
+            if not p.is_file():
+                raise HTTPException(400, f"参考图文件不存在：{p.name}")
+            ref_paths.append(str(p))
+    if len(ref_paths) > 4:
+        raise HTTPException(400, "参考图最多 4 张")
 
     missing = [m for m in model_status.status() if m["state"] != "ready"]
     if missing:
@@ -1890,6 +2073,60 @@ def config_view():
         "render": _cfg.load().get("render", {}),
         "gpu": _cfg.load().get("gpu", {}),
     }
+
+
+
+class AsBgmIn(BaseModel):
+    project_id: str
+
+
+@app.post("/api/assets/candidates/{cand_id}/as-bgm")
+def candidate_as_bgm(cand_id: str, body: AsBgmIn):
+    """把一段生成好的音乐设为该项目的 BGM 床（不下载、不重传）。"""
+    import subprocess
+    from pathlib import Path as _P
+
+    cand = assets.get_candidate(cand_id)
+    if not cand:
+        raise HTTPException(404, "候选不存在")
+    src = _P(cand.get("path") or "")
+    if not src.is_file():
+        raise HTTPException(400, "文件已不在磁盘上")
+    if not service.get_project(body.project_id):
+        raise HTTPException(404, "项目不存在")
+    out = service.bed_path(body.project_id, "bgm")
+    cp = subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(src),
+                         "-vn", "-c:a", "aac", "-b:a", "192k", str(out)],
+                        capture_output=True, text=True)
+    if cp.returncode != 0 or not out.is_file():
+        raise HTTPException(400, f"转码失败：{(cp.stderr or '')[-200:]}")
+    service.set_project_audio(body.project_id, {"bgm": {"mode": "file", "path": str(out)}})
+    return {"ok": True, "path": str(out)}
+
+
+@app.delete("/api/characters/{cid}")
+def delete_character_api(cid: str):
+    from . import assets as _assets  # noqa: F401  （保持导入习惯）
+    from ..core import assets as _a
+
+    if not _a.delete_character(cid):
+        raise HTTPException(404, "角色不存在")
+    return {"ok": True}
+
+
+@app.get("/api/trash")
+def list_trash_api():
+    from ..core import trash as _trash
+
+    items = _trash.list_trash()
+    return {"items": items, "count": len(items)}
+
+
+@app.post("/api/trash/empty")
+def empty_trash_api():
+    from ..core import trash as _trash
+
+    return _trash.empty_trash()
 
 
 @app.get("/api/doctor")

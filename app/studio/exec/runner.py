@@ -124,14 +124,24 @@ def kill_orphan_renderers() -> int:
     systemd 若配成 KillMode=process，重启后子进程会被 init 收养、继续占 GPU，
     渲出来的帧却没人收集 —— 表现为"新任务在排队、旧进程在空转"。
     """
+    # 测试/一次性脚本里 import runner 也会走这里 —— 不能让它杀掉线上正在渲的进程
+    if os.environ.get("STUDIO_DISABLE_EXECUTOR") == "1":
+        return 0
     killed = 0
     try:
-        out = subprocess.run(["pgrep", "-f", "scripts/(render_drama|gen_image)\\.py"],
-                             capture_output=True, text=True).stdout.split()
+        out = subprocess.run(["pgrep", "-af", "scripts/(render_drama|gen_image)\\.py"],
+                             capture_output=True, text=True).stdout.splitlines()
     except Exception:  # noqa: BLE001
         return 0
     live_pids = {p.pid for p in RUNNING.values() if p}
-    for pid in out:
+    data_dir = str(db.DATA_DIR)
+    for line in out:
+        parts = line.split(None, 1)
+        if len(parts) != 2:
+            continue
+        pid, cmd = parts
+        if data_dir not in cmd:      # 别的数据目录/别的实例，别碰
+            continue
         try:
             ipid = int(pid)
         except ValueError:
@@ -252,6 +262,10 @@ def still_cmd() -> list[str]:
     return [str(VENV_PY), "scripts/render_still.py"]
 
 
+def music_cmd() -> list[str]:
+    return [str(VENV_PY), "scripts/gen_music.py"]
+
+
 def asset_cmd() -> list[str]:
     custom = os.environ.get("STUDIO_ASSET_CMD")
     if custom:
@@ -307,6 +321,56 @@ def tick() -> dict | None:
     return None
 
 
+
+def _run_music(job: dict, payload: dict) -> dict:
+    """MiniMax Music 3：一次生成一段完整音乐（最长 360 秒）。"""
+    import uuid as _uuid
+    pid = job["project_id"]
+    caption = str(payload.get("prompt") or "").strip()
+    lyrics = str(payload.get("lyrics") or "")
+    seconds = float(payload.get("seconds") or 60.0)
+    seed = int(payload.get("seed", -1))
+    if not caption:
+        _finish(job["id"], "failed", "风格描述为空")
+        return {"job_id": job["id"], "state": "failed"}
+    day = time.strftime("%Y%m%d")
+    out_dir = db.DATA_DIR / "generated" / day
+    out_dir.mkdir(parents=True, exist_ok=True)
+    cand_id = _uuid.uuid4().hex[:12]
+    out = out_dir / f"{cand_id}.flac"
+    ensure_engine()
+    # 单段超过 ~35 秒模型容易在尾部糊成噪声：自动拆成 2 段交叉淡化拼接
+    segs = 1 if seconds <= 35 else (2 if seconds <= 80 else 3)
+    cmd = music_cmd() + ["--caption", caption, "--lyrics", lyrics,
+                         "--seconds", str(seconds), "--seed", str(seed if seed >= 0 else 7),
+                         "--segments", str(segs),
+                         "--out", str(out)]
+    PROGRESS[job["id"]] = {"shot_id": "音乐", "pct": None, "stage": "starting",
+                           "detail": "已提交，等待引擎接手", "started": time.time()}
+    try:
+        cp = _run_streaming(cmd, job["id"], "音乐")
+        ok_file = out.is_file() and out.stat().st_size > 4096
+        if cp["returncode"] != 0 and not ok_file:
+            tail = (cp["output"] or "").strip().splitlines()[-1:] or [""]
+            _finish(job["id"], "failed", f"音乐生成失败：{tail[0][:180]}")
+            return {"job_id": job["id"], "state": "failed"}
+        if cp["returncode"] != 0 and ok_file:
+            # 引擎在 SaveAudio 阶段被打断（比如点了停止），但音频已经落盘 —— 照样入库
+            print("[music] 任务返回非 0，但音频已生成，按成功入库", flush=True)
+        cand = assets.create_candidate(
+            kind="music", prompt=caption, negative="", width=0, height=0, seed=seed,
+            steps=0, path=str(out), elapsed_s=0.0, project_id=pid,
+            group_id=str(payload.get("group_id") or ""),
+            params={"kind": "music", "caption": caption, "lyrics": lyrics,
+                    "seconds": seconds, "seed": seed, "steps": 30, "cfg": 1.7, "top_k": 50,
+                    "model": "minimax_music3_int8"})
+        _finish(job["id"], "done", f"音乐 {seconds:.0f}s → {cand['id']}")
+        return {"job_id": job["id"], "state": "done", "candidates": [cand["id"]]}
+    except Exception as exc:  # noqa: BLE001 —— 绝不能让任务卡在 running
+        _finish(job["id"], "failed", f"音乐任务异常：{exc}")
+        return {"job_id": job["id"], "state": "failed"}
+
+
 # ------------------------------------------------------------------- render
 
 def _run_render(job: dict, already_started: bool = False) -> dict:
@@ -328,6 +392,16 @@ def _run_render(job: dict, already_started: bool = False) -> dict:
     shots = {s["shot_id"]: s for s in service.recompute_fingerprints(pid)}
     ordered = service.list_shots(pid)
     index_of = {s["shot_id"]: i for i, s in enumerate(ordered, start=1)}
+    # 只渲真正需要的：已有片段且指纹一致 / 连续失败 2 次以上的跳过
+    # payload.force=true 表示"我要重渲这一镜"，不做过滤
+    if not payload.get("force"):
+        wanted = service.shots_to_render(pid, wanted)
+    skipped = [s for s in (payload.get("shots") or []) if s not in wanted]
+    if skipped:
+        print(f"[render] 跳过已渲好或已 blocked 的镜: {skipped}", flush=True)
+    if not wanted:
+        _finish(job["id"], "done", "没有需要渲的镜（都已渲好）")
+        return service.get_job(job["id"])
     failures: list[str] = []
     done: list[str] = []
 
@@ -515,6 +589,11 @@ def _run_asset(job: dict, already_started: bool = False) -> dict:
 
     if not already_started:
         _mark(job["id"], "running")
+
+    # ---- 音乐：另一个模型（MiniMax Music 3），走单独脚本
+    if str(payload.get("kind")) == "music":
+        return _run_music(job, payload)
+
     if not prompt:
         _finish(job["id"], "failed", "提示词为空")
         return {"job_id": job["id"], "state": "failed"}

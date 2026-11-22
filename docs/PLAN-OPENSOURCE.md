@@ -26,7 +26,7 @@
 | 1 | 引擎地址 | `8288` 散在 7 个文件 | 统一到 `config.toml` / `OPEN_VIDEO_COMFY_PORT` | 0 | 低 |
 | 2 | 模型文件名 | 硬编码在 4 个文件（`gen_image.py`、`model_status.py`、`upscale_segments.py`…） | 抽成 `models.toml`，启动时校验存在 | 0（启动时 stat） | 低 |
 | 3 | 节点名 | `H3CastToVideo/H3CastMember/AddGuide` 在 3 个文件 | 抽成适配层常量，按后端注册 | 0 | 中（改错就渲不出） |
-| 4 | 数据目录 | 已有 `STUDIO_DATA` 环境变量（35 文件引用，但都经 `db.DATA_DIR`） | 收敛到配置加载器；默认 `~/.local/share/openvideo` | 0 | 低 |
+| 4 | 数据目录 | 已有 `STUDIO_DATA` 环境变量（35 文件引用，但都经 `db.DATA_DIR`） | 收敛到配置加载器；默认 `~/.local/share/搭象工坊` | 0 | 低 |
 | 5 | 能力探测 | 无 | 启动 `GET /object_info`，比对所需节点/模型，缺了就**明确报错** | +50–200 ms（启动一次） | 低 |
 | 6 | 工作流组装 | `render_drama.py` 里直接拼 ComfyUI 图 | 拆「工作流描述（dict）」+「ComfyUI 适配器」 | 每镜 +0.1 ms | 中（需回归测试） |
 | 7 | `studio doctor` | 无 | 独立命令：查端口/权重/节点/显存/磁盘 | 离线执行 1–3 s | 低 |
@@ -42,7 +42,7 @@
 
 | 位置 | 典型路径 | 顺序读写 | 大量小文件 | 结论 |
 |---|---|---|---|---|
-| **WSL 原生 ext4** | `~/openvideo/studio-data` | 基准（≈1 GB/s） | 好 | ✅ 推荐 |
+| **WSL 原生 ext4** | `~/搭象工坊/studio-data` | 基准（≈1 GB/s） | 好 | ✅ 推荐 |
 | Windows 挂载盘（9p/drvfs） | `/mnt/d/...` | 慢 2–4 倍 | 慢 5–10 倍 | ⚠️ 只适合放源码，不适放数据 |
 | 网络盘（SMB/NFS） | `//nas/...` | 慢 3–10 倍，延迟抖动 | 很差 | ❌ 不要 |
 | 内存盘（tmpfs） | `/dev/shm` | 最快 | 好 | 只适合临时中间件 |
@@ -53,7 +53,7 @@
 ### 3.2 建议的目录布局（开源版）
 
 ```
-~/.local/share/openvideo/            ← 数据目录（必须本地盘）
+~/.local/share/搭象工坊/            ← 数据目录（必须本地盘）
   studio.db
   projects/<slug>/                   ← 每个剧的产物（takes/output/scenes 图）
   characters/                        ← 角色参考图

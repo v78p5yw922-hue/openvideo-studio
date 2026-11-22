@@ -43,7 +43,7 @@ ComfyUI/models/
 或者用 ComfyUI 原生的 `extra_model_paths.yaml` 指向别处：
 
 ```yaml
-openvideo:
+搭象工坊:
   base_path: /data/models
   diffusion_models: diffusion_models
   text_encoders: text_encoders
@@ -56,7 +56,7 @@ openvideo:
 ## 查找顺序
 
 ```
---models-dir  >  OV_MODELS_DIR  >  ~/.openvideo/state.json 里记录的
+--models-dir  >  OV_MODELS_DIR  >  ~/.搭象工坊/state.json 里记录的
               >  <ComfyUI>/models  >  扫描 ~/.cache、/mnt/d、/mnt/e、D:\
 ```
 

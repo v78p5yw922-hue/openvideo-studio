@@ -241,7 +241,7 @@ def people_issues(people: list[dict], cast_names: list[str]) -> list[dict]:
             if not target:
                 issues.append(_issue("人物", "对象", who, "EYELINE_TARGET_MISSING",
                                      "视线=看对方 但没有写「对象」", list(cast_names)))
-            elif target not in cast_names:
+            elif target not in cast_names and "画外" not in str(target):
                 issues.append(_issue("人物", "对象", who, "EYELINE_TARGET_NOT_IN_CAST",
                                      f"对象「{target}」不在本镜出场角色里", list(cast_names)))
         scale = p.get("占比")

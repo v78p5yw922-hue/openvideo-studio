@@ -272,18 +272,33 @@ def validate_project(project_id: str) -> dict:
                                f"锚定=plate，但场景「{sc.get('name') or sh['scene_id']}」没有母版图。",
                                "给该场景上传母版图，或把这一镜的锚定改成「无」。"))
 
+        # 商店类场景必须写招牌/门头：否则模型会画成普通民宅
+        _shop = re.search(r"供销社|商店|铺子|饭店|集市|粮站", str((sc or {}).get("name") or ""))
+        _scene_txt = ""
+        _m_scene = re.search(r"【场景】([^\n]*)", sh.get("prompt") or "")
+        if _m_scene:
+            _scene_txt = _m_scene.group(1)
+        _shows_front = bool(re.search(r"门脸|门外|台阶|临街|店门前|门口两级", _scene_txt))
+        if (_shop and _shows_front
+                and not re.search(r"招牌|门楣|牌匾|横幅|门头|牌子上", _scene_txt)):
+            warnings.append(_warn(sid, "SHOP_NO_SIGN",
+                                  "场景是商店，但【场景】里没写招牌/门头，渲出来会像普通民宅。",
+                                  "补一句：门楣上方红底金字的横幅招牌（字虚化）。"))
+
         # 台词：说话人/对象必须在本镜出场角色里
+        _off = bool(re.search(r"【画外音】\s*(是|1|true|yes)",
+                              sh.get("prompt") or "", re.I))
         speaker, target, text = split_dialogue(sh.get("dialogue") or "")
         if text:
             if not speaker:
                 errors.append(_err(sid, "DLG_NO_SPEAKER",
                                    "台词没写说话人。",
                                    "写成 <d>角色名：台词</d>（对谁说就写 <d>A→B：台词</d>）。"))
-            elif speaker not in cast_names:
+            elif speaker not in cast_names and "画外" not in speaker and not _off:
                 errors.append(_err(sid, "DLG_SPEAKER_NOT_IN_CAST",
                                    f"台词是「{speaker}」说的，但他/她不在本镜出场角色里。",
                                    "把说话人加进「出场角色」，或改掉这句台词。"))
-            if target and target not in cast_names:
+            if target and target not in cast_names and "画外" not in target and not _off:
                 errors.append(_err(sid, "DLG_TARGET_NOT_IN_CAST",
                                    f"台词对象「{target}」不在本镜出场角色里，画面里没人可看。",
                                    f"把 {target} 加进出场角色（≤3 人），"
@@ -388,7 +403,7 @@ def validate_project(project_id: str) -> dict:
         if dlg_spk:
             m_sp = re.search(r"<d>\s*([^：:]{1,14})[：:]", dlg_spk)
             sp = m_sp.group(1).split("→")[0].strip() if m_sp else ""
-            if sp and sp != "画外音":
+            if sp and sp != "画外音" and "画外" not in sp:
                 line = next((ln for ln in (sh.get("prompt") or "").splitlines()
                              if re.match(rf"^\s*-\s*{re.escape(sp)}\s*[:：]", ln)), "")
                 if not line:

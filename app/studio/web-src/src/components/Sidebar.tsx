@@ -34,6 +34,7 @@ export function Sidebar({ user, onLogout }: Props) {
   const [profile, setProfile] = useState(false)
 
   const userName = user.display_name || user.username
+  const avatarUrl = (user as unknown as { avatar_url?: string }).avatar_url || ''
 
   useEffect(() => {
     localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0')
@@ -65,7 +66,9 @@ export function Sidebar({ user, onLogout }: Props) {
 
         <div className="sidebar-bottom">
           <button className="sidebar-user" onClick={() => setDrawer(true)} title={t('user.account')}>
-            <span className="sidebar-avatar">{userName.slice(0, 1)}</span>
+            <span className="sidebar-avatar">
+              {avatarUrl ? <img src={avatarUrl} alt={userName} /> : userName.slice(0, 1)}
+            </span>
             {!collapsed && (
               <span className="sidebar-user-meta">
                 <span className="sidebar-user-name">{userName}</span>
@@ -130,7 +133,9 @@ function AccountDrawer({ user, userName, onClose, onProfile, onManageUsers, onSe
       <div className="pop-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }} />
       <div className="account-pop" role="dialog" aria-modal="true" aria-label={t('user.account')}>
         <header className="drawer-head">
-          <span className="sidebar-avatar lg">{userName.slice(0, 1)}</span>
+          <span className="sidebar-avatar lg">
+            {avatarUrl ? <img src={avatarUrl} alt={userName} /> : userName.slice(0, 1)}
+          </span>
           <div>
             <div className="drawer-name">{userName}</div>
             <div className="drawer-role">
@@ -258,19 +263,7 @@ function ProfileModal({ user, onClose }: { user: AuthUser; onClose: () => void }
 /* ---------------------------------------------------------------- 图标 */
 
 function LogoMark() {
-  return (
-    <svg className="logo-mark" width="26" height="26" viewBox="0 0 32 32" aria-hidden>
-      <defs>
-        <linearGradient id="ovg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#5aa0ff" />
-          <stop offset="1" stopColor="#8b5cf6" />
-        </linearGradient>
-      </defs>
-      <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#ovg)" opacity="0.16" />
-      <path d="M12 10.5v11l9-5.5-9-5.5z" fill="url(#ovg)" />
-      <rect x="5" y="5" width="22" height="22" rx="6" fill="none" stroke="url(#ovg)" strokeWidth="1.4" opacity="0.55" />
-    </svg>
-  )
+  return <img className="logo-mark" src="/static/logo-128.png" alt="" width={26} height={26} />
 }
 
 /** 收起/展开：仿调试器停靠位置切换（左/右两块） */

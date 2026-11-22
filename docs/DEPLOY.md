@@ -11,16 +11,16 @@ ROOT=$PWD
 sed -e "s|%USER%|$USER|g" \
     -e "s|%VENV%|$ROOT/.venv|g" \
     -e "s|%COMFYUI_DIR%|/path/to/ComfyUI|g" \
-    services/openvideo-engine.service.in | sudo tee /etc/systemd/system/openvideo-engine.service
+    services/搭象工坊-engine.service.in | sudo tee /etc/systemd/system/搭象工坊-engine.service
 
 sed -e "s|%USER%|$USER|g" \
     -e "s|%VENV%|$ROOT/.venv|g" \
     -e "s|%APP_DIR%|$ROOT/app|g" \
-    -e "s|%DATA_DIR%|$HOME/openvideo/studio-data|g" \
-    services/openvideo-studio.service.in | sudo tee /etc/systemd/system/openvideo-studio.service
+    -e "s|%DATA_DIR%|$HOME/搭象工坊/studio-data|g" \
+    services/搭象工坊-studio.service.in | sudo tee /etc/systemd/system/搭象工坊-studio.service
 
 sudo systemctl daemon-reload
-sudo systemctl enable --now openvideo-engine openvideo-studio
+sudo systemctl enable --now 搭象工坊-engine 搭象工坊-studio
 ```
 
 ### 关键环境变量
@@ -28,7 +28,7 @@ sudo systemctl enable --now openvideo-engine openvideo-studio
 | 变量 | 作用 | 默认 |
 |---|---|---|
 | `STUDIO_ALLOW_RENDER` | **必须为 1 才会真正渲染**（安全默认：关） | 0 |
-| `STUDIO_DATA` | 数据库与产物的根目录 | `~/openvideo/studio-data` |
+| `STUDIO_DATA` | 数据库与产物的根目录 | `~/搭象工坊/studio-data` |
 | `STUDIO_COMFY_LOG` | 引擎日志路径，用于解析进度 | 自动探测 |
 | `STUDIO_RENDER_CMD` | 覆盖渲染命令（测试用） | `scripts/render_drama.py` |
 | `PATH` | **WSL 下必须包含 `/usr/lib/wsl/lib`**，否则 `nvidia-smi` 采集显存失败 | — |
@@ -78,13 +78,13 @@ $STUDIO_DATA/
 
 ```bash
 # 每日 03:28 执行：SQLite .backup + rsync，保留 14 份
-app/studio/backup.py --to /mnt/backup/openvideo --keep 14
+app/studio/backup.py --to /mnt/backup/搭象工坊 --keep 14
 ```
 
 配 systemd timer 或直接 cron：
 
 ```cron
-28 3 * * * /path/to/.venv/bin/python /path/to/app/studio/backup.py --to /mnt/backup/openvideo
+28 3 * * * /path/to/.venv/bin/python /path/to/app/studio/backup.py --to /mnt/backup/搭象工坊
 ```
 
 恢复：停服务 → 用备份覆盖 `studio.db` 与 `projects/` → 起服务 → 跑 `GET /api/selftest`。
@@ -96,7 +96,7 @@ app/studio/backup.py --to /mnt/backup/openvideo --keep 14
 ```bash
 git pull
 ./ov install --only venv --force --yes     # 依赖可能变了
-sudo systemctl restart openvideo-studio
+sudo systemctl restart 搭象工坊-studio
 curl -s localhost:8801/api/selftest | jq .summary
 ```
 

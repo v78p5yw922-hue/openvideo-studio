@@ -12,7 +12,7 @@
 | `SCRIPT-FORMAT-V3.md` | **当前格式**：镜头表 10 列 + 七槽 + 接续/服装状态/道具卡 |
 | `SCRIPT-FORMAT.md` | v1 格式基线（代码注释仍引用这个路径，保留） |
 | `SHOT-SELECTION.md` | 怎么选机位、景别、运镜（避免连续固定） |
-| `REVIEW-LESSONS.md` | **12 条真实打回**，写之前先扫一遍 |
+| `REVIEW-LESSONS.md` | **14 条真实打回**，写之前先扫一遍 |
 | `studio/data/script-glossary.json` | 词汇库（7 类 150+ 条），写的时候从里面挑词 |
 
 ### 做素材（角色 / 场景 / 图）
@@ -73,3 +73,15 @@ _archive/root-legacy/           仓库根目录 11-12 ~ 11-19 的阶段性报告
 
 **归档判据**：被新版取代、或是一次性阶段产物（评审请求、交接、单次实验报告）。
 判断不了就先归档——`_archive` 是只进不出的仓库，不是删除。
+
+## 界面（截图）
+
+| 截图 | 说明 |
+|---|---|
+| `screenshots/login.png` | 登录页（深色） |
+| `screenshots/assets.png` | 资产管理：角色 / 场景 / 视频 / 图片 / 音频 五个 tab，项目筛选 + 分页 |
+| `screenshots/t2i.png` | 文生图工作台：参数在上、图片流在下，点开弹窗放大 |
+| `screenshots/music.png` | 音乐生成：风格 + 歌词 → 入库，带 .lrc 与播放进度 |
+| `screenshots/compose.png` | 合成：拼接 / 字幕 / BGM 选择 |
+| `screenshots/projects.png` | 项目管理 |
+

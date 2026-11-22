@@ -61,7 +61,8 @@ def _migrate(conn: sqlite3.Connection) -> None:
                    ("extra_plates_json", "TEXT NOT NULL DEFAULT '[]'")],
         "characters": [("locked", "INTEGER NOT NULL DEFAULT 0"),
                        ("species", "TEXT NOT NULL DEFAULT 'human'"),
-                       ("refs_verified", "INTEGER NOT NULL DEFAULT 0")],
+                       ("refs_verified", "INTEGER NOT NULL DEFAULT 0"),
+                       ("deleted", "INTEGER NOT NULL DEFAULT 0")],
         "takes": [("kind", "TEXT NOT NULL DEFAULT 'final'"),
                   ("metrics_json", "TEXT NOT NULL DEFAULT '{}'"),
                   ("chosen", "INTEGER NOT NULL DEFAULT 0"),
@@ -77,7 +78,9 @@ def _migrate(conn: sqlite3.Connection) -> None:
                   ("last_frame", "TEXT NOT NULL DEFAULT ''"),
                   ("continuation", "TEXT NOT NULL DEFAULT 'cut'")],
         "asset_candidates": [("project_id", "TEXT NOT NULL DEFAULT ''"),
-                              ("group_id", "TEXT NOT NULL DEFAULT ''")],
+                              ("group_id", "TEXT NOT NULL DEFAULT ''"),
+                              ("params_json", "TEXT NOT NULL DEFAULT '{}'"),
+                              ("deleted", "INTEGER NOT NULL DEFAULT 0")],
     }
     for table, cols in want.items():
         have = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}

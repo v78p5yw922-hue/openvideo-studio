@@ -36,7 +36,7 @@
 }
 .audio-head b { font-size: 13px; }
 .audio-head .badge {
-  font-size: 11px;
+  font-size: 12px;
   padding: 1px 7px;
   border-radius: 8px;
   background: var(--accent-soft-strong);
@@ -54,3 +54,11 @@
 }
 
 .audio-row input[type='range'] { width: 140px; }
+
+.audio-pick select, .audio-pick input {
+  font-size: 12px; padding: 3px 7px; border-radius: 7px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--text);
+}
+.audio-pick input { min-width: 260px; flex: 1; }
+.audio-browse { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; margin: 4px 0 8px; }
+.audio-browse .row { gap: 4px; flex-wrap: wrap; }

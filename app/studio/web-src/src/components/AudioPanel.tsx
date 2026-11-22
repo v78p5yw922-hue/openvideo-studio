@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { t, tpl } from '../lib/i18n'
+import { confirmDialog } from '../lib/confirm'
 import { toast, useStore } from '../lib/store'
 import './AudioPanel.css'
 
@@ -30,9 +31,15 @@ export function AudioPanel() {
   const { pid } = useStore()
   const [cfg, setCfg] = useState<AudioCfg>(DEFAULTS)
   const [status, setStatus] = useState<{ running?: boolean; log?: string; error?: string;
-    exists?: Record<string, boolean> }>({})
+    exists?: Record<string, boolean>;
+    in_use?: Record<string, { mode?: string; applied?: boolean; reason?: string; path?: string }> }>({})
   const [busy, setBusy] = useState<Kind | ''>('')
   const [previewUrl, setPreviewUrl] = useState('')
+  const [assets, setAssets] = useState<Array<{ id: string; prompt: string; url?: string;
+    path?: string; project_id?: string; params?: Record<string, unknown> }>>([])
+  const [pathInput, setPathInput] = useState('')
+  const [browse, setBrowse] = useState<{ path: string; dirs: Array<{ name: string; path: string }>;
+    files: Array<{ name: string; path: string }> } | null>(null)
 
   async function load() {
     if (!pid) return
@@ -41,6 +48,8 @@ export function AudioPanel() {
       setCfg({ ...DEFAULTS, ...(r.audio as unknown as AudioCfg) })
       const st = await api.audioStatus(pid)
       setStatus(st)
+      const c = await api.assetCandidates()
+      setAssets((c.candidates || []).filter((x) => x.kind === 'music') as never)
     } catch { /* 忽略 */ }
   }
 
@@ -86,6 +95,56 @@ export function AudioPanel() {
       await load()
     } catch (e) {
       toast(tpl('audio.upload-failed', { err: String(e) }), 'err')
+    }
+  }
+
+  async function removeBed(kind: Kind) {
+    if (!pid) return
+    const ok = await confirmDialog({
+      title: t('audio.delete'),
+      message: tpl('audio.delete-confirm', { kind: kind === 'bgm' ? t('audio.bgm') : t('audio.ambience') }),
+      confirmText: t('audio.delete'),
+      danger: true,
+    })
+    if (!ok) return
+    try {
+      await api.deleteBed(pid, kind)
+      toast(t('audio.deleted'), 'ok')
+      await load()
+    } catch (e) {
+      toast(tpl('audio.delete-failed', { err: String(e) }), 'err')
+    }
+  }
+
+  async function useAsset(kind: Kind, assetId: string) {
+    if (!pid) return
+    const a = assets.find((x) => x.id === assetId)
+    if (!a?.path) { toast(t('audio.no-path'), 'err'); return }
+    try {
+      await api.useAudioPath(pid, kind, a.path)
+      toast(t('audio.picked').replace('{kind}', kind === 'bgm' ? t('audio.bgm') : t('audio.ambience')), 'ok')
+      await load()
+    } catch (e) {
+      toast(String(e), 'err')
+    }
+  }
+
+  async function usePath(kind: Kind) {
+    if (!pid || !pathInput.trim()) return
+    try {
+      await api.useAudioPath(pid, kind, pathInput.trim())
+      toast(t('audio.picked').replace('{kind}', kind === 'bgm' ? t('audio.bgm') : t('audio.ambience')), 'ok')
+      await load()
+    } catch (e) {
+      toast(String(e), 'err')
+    }
+  }
+
+  async function browseDir(path: string) {
+    try {
+      setBrowse(await api.systemAudioFiles(path))
+    } catch (e) {
+      toast(String(e), 'err')
     }
   }
 
@@ -158,6 +217,15 @@ export function AudioPanel() {
               </div>
             )}
 
+            {(() => {
+              const u = status.in_use?.[kind]
+              if (!u) return null
+              const label = u.applied
+                ? (u.mode === 'file' ? t('audio.in-use.custom') : t('audio.in-use.auto'))
+                : tpl('audio.in-use.none', { why: u.reason || '' })
+              return <p className="muted sm">{t('audio.in-use')}：{label}</p>
+            })()}
+
             <div className="row">
               <button className="ghost" disabled={busy === kind}
                       onClick={() => void generate(kind)}>
@@ -174,6 +242,11 @@ export function AudioPanel() {
               {exists && (
                 <audio controls src={`/assets/audio/${pid}/${kind}.m4a`}
                        style={{ height: 32 }} />
+              )}
+              {(exists || c.mode === 'file') && (
+                <button className="ghost danger" onClick={() => void removeBed(kind)}>
+                  {t('audio.delete')}
+                </button>
               )}
             </div>
           </div>

@@ -7,6 +7,7 @@ M1 阶段：生成接口还没接真实 H3-Image 工作流，candidates.path 会
 from __future__ import annotations
 
 import hashlib
+import json
 import shutil
 import time
 import uuid
@@ -18,7 +19,12 @@ from . import db, service
 
 def _row_to_candidate(row: db.sqlite3.Row) -> dict:
     c = {k: row[k] for k in row.keys()}
+    c["params"] = db.loads(c.pop("params_json", "{}") or "{}", {})
     c["url"] = _candidate_url(c.get("path", ""))
+    if c.get("kind") == "music":
+        c["lyrics"] = lyrics_of(c)
+        lrc = Path(c.get("path") or "").with_suffix(".lrc")
+        c["lyrics_url"] = f"/api/assets/candidates/{c['id']}/lyrics" if lrc.is_file() else ""
     return c
 
 
@@ -33,11 +39,16 @@ def _candidate_url(path: str) -> str:
     return "/assets/generated/" + rel.as_posix()
 
 
-def list_candidates(limit: int = 100) -> list[dict]:
+def list_candidates(limit: int = 100, kind: str | None = None) -> list[dict]:
+    sql = "SELECT * FROM asset_candidates WHERE COALESCE(deleted,0)=0"
+    args: list = []
+    if kind:
+        sql += " AND kind=?"
+        args.append(kind)
+    sql += " ORDER BY created_at DESC LIMIT ?"
+    args.append(limit)
     with db.txn() as conn:
-        rows = conn.execute(
-            "SELECT * FROM asset_candidates ORDER BY created_at DESC LIMIT ?", (limit,)
-        ).fetchall()
+        rows = conn.execute(sql, args).fetchall()
     return [_row_to_candidate(r) for r in rows]
 
 
@@ -174,10 +185,15 @@ def ensure_group(name: str) -> dict:
         conn.execute("INSERT OR IGNORE INTO asset_groups(id, name, created_at) VALUES (?,?,?)",
                      (gid, name, db.now()))
         row = conn.execute("SELECT * FROM asset_groups WHERE id=?", (gid,)).fetchone()
+    d["params"] = db.loads(d.pop("params_json", "{}") or "{}", {})
+    if d.get("kind") == "music":
+        d["lyrics"] = lyrics_of(d)
+        lrc = Path(d.get("path") or "").with_suffix(".lrc")
+        d["lyrics_url"] = (f"/api/assets/candidates/{d['id']}/lyrics" if lrc.is_file() else "")
     return dict(row)
 
 
-ASSET_KINDS = ("character", "scene", "prop", "emotion")
+ASSET_KINDS = ("character", "scene", "prop", "emotion", "music")
 
 
 def patch_candidate(cand_id: str, *, project_id: str | None = None,
@@ -231,6 +247,7 @@ def create_candidate(
     cand_id: str | None = None,
     project_id: str = "",
     group_id: str = "",
+    params: dict | None = None,
 ) -> dict:
     cand_id = cand_id or uuid.uuid4().hex[:12]
     with db.txn() as conn:
@@ -238,8 +255,8 @@ def create_candidate(
             """
             INSERT INTO asset_candidates (id, created_at, kind, prompt, negative,
                 width, height, seed, steps, path, elapsed_s, source_path, adopted_to,
-                project_id, group_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?)
+                project_id, group_id, params_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?, ?)
             """,
             (
                 cand_id,
@@ -256,11 +273,18 @@ def create_candidate(
                 source_path,
                 project_id,
                 group_id,
+                json.dumps(params or {}, ensure_ascii=False),
             ),
         )
     c = get_candidate(cand_id)
     if not c:
         raise RuntimeError("create_candidate: 写入后读回失败")
+    lyr = str((params or {}).get("lyrics") or "")
+    if kind == "music" and lyr.strip() and Path(path).is_file():
+        try:
+            write_lrc(path, lyr, float((params or {}).get("seconds") or 0))
+        except Exception:  # noqa: BLE001 —— 歌词写不进去不影响音频
+            pass
     return c
 
 
@@ -268,15 +292,15 @@ def delete_candidate(cand_id: str) -> bool:
     c = get_candidate(cand_id)
     if not c:
         return False
-    # 只删候选图文件，不动已经入库到角色/场景目录的副本
+    # 只处理候选自己的文件，不动已经入库到角色/场景目录的副本
+    # 文件先进回收站（不物理删），列表里用 deleted=1 隐藏
+    from . import trash as _trash
+
     p = Path(c["path"]) if c["path"] else None
     with db.txn() as conn:
-        conn.execute("DELETE FROM asset_candidates WHERE id = ?", (cand_id,))
-    if p and p.exists():
-        try:
-            p.unlink()
-        except OSError:
-            pass
+        conn.execute("UPDATE asset_candidates SET deleted=1 WHERE id=?", (cand_id,))
+    if p and p.is_file():
+        _trash.move_to_trash(p, kind=str(c.get("kind") or ""), owner=cand_id)
     return True
 
 
@@ -376,3 +400,76 @@ def adopt_candidate(
         return AdoptResult(cand_id, "", "", ok=False, error=f"文件操作失败：{e}")
     except Exception as e:
         return AdoptResult(cand_id, "", "", ok=False, error=str(e))
+
+
+def delete_character(cid: str) -> bool:
+    """删角色：参考图进回收站，库里标记 deleted=1（不再出现在列表）。"""
+    from . import trash as _trash
+
+    with db.txn() as conn:
+        row = conn.execute("SELECT * FROM characters WHERE character_id=?", (cid,)).fetchone()
+        if row is None:
+            return False
+        refs = db.loads(row["refs_json"] or "[]", [])
+        conn.execute("UPDATE characters SET deleted=1, updated_at=? WHERE character_id=?",
+                     (db.now(), cid))
+    for r in refs:
+        if r:
+            _trash.move_to_trash(r, kind="character", owner=cid)
+    return True
+
+
+def _probe_duration(path: Path) -> float:
+    """用 ffprobe 读时长；失败就返回 0（调用方回退到 params.seconds）。"""
+    import subprocess
+
+    try:
+        cp = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                             "-of", "csv=p=0", str(path)], capture_output=True, text=True)
+        return float((cp.stdout or "0").strip() or 0)
+    except Exception:  # noqa: BLE001
+        return 0.0
+
+
+def write_lrc(audio_path: str | Path, lyrics: str, seconds: float = 0.0) -> Path | None:
+    """把歌词写成 .lrc（时间轴按行数均分 —— 没有词级时间戳，只能估算）。
+
+    空行和 [Verse]/[Chorus] 这类标签不占时间，也不写时间戳。
+    """
+    if not lyrics.strip():
+        return None
+    audio = Path(audio_path)
+    dur = _probe_duration(audio) or float(seconds or 0)
+    lines = [ln.strip() for ln in lyrics.splitlines()]
+    body = [ln for ln in lines if ln and not ln.startswith("[")]
+    if not body:
+        return None
+    step = (dur / len(body)) if dur > 0 else 0.0
+
+    def stamp(sec: float) -> str:
+        m = int(sec // 60)
+        s = sec - m * 60
+        return f"[{m:02d}:{s:05.2f}]"
+
+    out: list[str] = [f"[ti]{audio.stem}", "[by]OpenVideo Studio"]
+    i = 0
+    for ln in lines:
+        if not ln:
+            continue
+        if ln.startswith("["):
+            out.append(ln)          # 段落标签原样保留（没有时间戳）
+            continue
+        out.append(f"{stamp(i * step)}{ln}")
+        i += 1
+    dst = audio.with_suffix(".lrc")
+    dst.write_text("\n".join(out) + "\n", encoding="utf-8")
+    return dst
+
+
+def lyrics_of(cand: dict) -> str:
+    p = Path(cand.get("path") or "")
+    lrc = p.with_suffix(".lrc")
+    if lrc.is_file():
+        return lrc.read_text(encoding="utf-8")
+    params = cand.get("params") or {}
+    return str(params.get("lyrics") or "")

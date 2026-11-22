@@ -439,7 +439,7 @@ def list_characters(project_id: str | None = None) -> list[dict]:
     这样同一个角色可以在不同剧里有不同造型，互不影响。
     """
     with db.txn() as conn:
-        rows = conn.execute("SELECT * FROM characters ORDER BY name").fetchall()
+        rows = conn.execute("SELECT * FROM characters WHERE COALESCE(deleted,0)=0 ORDER BY name").fetchall()
         overrides: dict[str, dict] = {}
         if project_id:
             for r in conn.execute("SELECT * FROM project_cast WHERE project_id=?",
@@ -720,6 +720,54 @@ def recompute_fingerprints(project_id: str, params: dict | None = None) -> list[
     return updated
 
 
+def shots_to_render(project_id: str, wanted: list[str] | None = None) -> list[str]:
+    """过滤出真正需要渲的镜。
+
+    跳过两类：
+      · 已有片段且指纹一致（clean / review / passed / rejected 都算"渲过了"）
+      · 最近连续失败 2 次以上（避免一夜里反复撞同一个错）
+    失效（stale）和从未渲过的镜照常返回。
+    """
+    shots = {s["shot_id"]: s for s in recompute_fingerprints(project_id)}
+    order = [s["shot_id"] for s in list_shots(project_id)]
+    want = [s for s in (wanted or order) if s in shots]
+    out: list[str] = []
+    with db.txn() as conn:
+        for sid in want:
+            take = conn.execute(
+                """SELECT fingerprint FROM takes WHERE project_id=? AND shot_id=?
+                   ORDER BY version DESC LIMIT 1""", (project_id, sid)).fetchone()
+            if take is not None and (take["fingerprint"] or "") == (shots[sid].get("fingerprint") or ""):
+                continue                      # 已渲且没改稿
+            fails = conn.execute(
+                """SELECT COUNT(*) FROM jobs WHERE project_id=? AND kind='render'
+                   AND state='failed' AND payload LIKE ?""",
+                (project_id, f'%"{sid}"%')).fetchone()[0]
+            if fails >= 2 and take is None:
+                continue                      # 从没成功过、且失败 2 次以上 → 先别烧卡
+            out.append(sid)
+    return out
+
+
+def blocked_shots(project_id: str) -> list[str]:
+    """连续失败 2 次以上、且还没有片段的镜（UI 可以显示"需要人工看"）。"""
+    shots = [s["shot_id"] for s in list_shots(project_id)]
+    out = []
+    with db.txn() as conn:
+        for sid in shots:
+            take = conn.execute(
+                "SELECT 1 FROM takes WHERE project_id=? AND shot_id=?", (project_id, sid)).fetchone()
+            if take:
+                continue
+            fails = conn.execute(
+                """SELECT COUNT(*) FROM jobs WHERE project_id=? AND kind='render'
+                   AND state='failed' AND payload LIKE ?""",
+                (project_id, f'%"{sid}"%')).fetchone()[0]
+            if fails >= 2:
+                out.append(sid)
+    return out
+
+
 def shot_state(project_id: str, shot: dict) -> dict:
     """Derive one shot's state from takes / reviews / jobs (never stored twice)."""
     with db.txn() as conn:
@@ -962,10 +1010,33 @@ def pass_all(project_id: str) -> dict:
 BEDS_DIR = db.DATA_DIR / "beds"
 
 
-def bed_path(project_id: str, kind: str) -> Path:
-    """预生成/上传的整集音频床文件位置（bgm / ambience）。"""
+def bed_path(project_id: str, kind: str, variant: str = "auto") -> Path:
+    """整集音频床文件位置（bgm / ambience）。
+
+    variant:
+      auto   —— 模型生成的那条（点「生成」写的）
+      custom —— 用户上传/设为 BGM 的那条
+    老版本只有一个 <pid>_<kind>.m4a，保留 legacy_bed_path() 做兼容。
+    """
     BEDS_DIR.mkdir(parents=True, exist_ok=True)
+    return BEDS_DIR / f"{project_id}_{kind}_{variant}.m4a"
+
+
+def legacy_bed_path(project_id: str, kind: str) -> Path:
+    """旧版本的单文件路径（<pid>_<kind>.m4a），只用于迁移判断。"""
     return BEDS_DIR / f"{project_id}_{kind}.m4a"
+
+
+def delete_beds(project_id: str, kind: str) -> dict:
+    """删掉这一条床的所有变体（auto / custom / 旧单文件）。"""
+    removed = []
+    for path in (bed_path(project_id, kind, "auto"),
+                 bed_path(project_id, kind, "custom"),
+                 legacy_bed_path(project_id, kind)):
+        if path.is_file():
+            path.unlink()
+            removed.append(str(path))
+    return {"removed": removed}
 
 
 def resolve_bed(project_id: str, kind: str) -> tuple[str, dict]:
@@ -983,10 +1054,17 @@ def resolve_bed(project_id: str, kind: str) -> tuple[str, dict]:
     if mode == "file":
         path = cfg.get("path") or ""
         if not path:
+            cand = bed_path(project_id, kind, "custom")
+            if not cand.is_file():
+                cand = legacy_bed_path(project_id, kind)   # 老版本上传的文件
+            path = str(cand) if cand.is_file() else ""
+        if not path:
             return "", {"mode": mode, "applied": False,
                         "reason": "选了自定义文件，但还没上传"}
     elif mode == "auto":
-        cand = bed_path(project_id, kind)
+        # 只认模型生成的那条；旧的单文件 <pid>_<kind>.m4a 算"自定义"，
+        # 不能混用（否则切回"自动"还在放用户上传的音乐）
+        cand = bed_path(project_id, kind, "auto")
         path = str(cand) if cand.is_file() else ""
         if not path:
             return "", {"mode": mode, "applied": False,

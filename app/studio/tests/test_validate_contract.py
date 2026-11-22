@@ -156,3 +156,28 @@ def test_plan_blocks_on_contract_error():
     _load(_md(style="cinematic, crimson official robe"))
     p = service.plan(PID, None, draft=False, force=True)
     assert any(b["code"] == "STYLE_COSTUME" for b in p["blocking"]), p["blocking"]
+
+def test_speaker_offscreen_is_exempt():
+    """<d>阿甲（画外）：…</d> 时，说话人不必出现在出场角色里。"""
+    row2 = ("| 镜 2（5s） | 屋子 | 阿乙 | 近景平视 | 抬头 "
+            "| <d>阿甲（画外）：有人吗</d> | 翻书声 | 无 | cut | 空 |")
+    rep = _load(_md(rows=(ROW1, row2)))
+    assert "DLG_SPEAKER_NOT_IN_CAST" not in _codes(rep)
+
+
+def test_speaker_offscreen_flag_is_exempt():
+    """prompt 写了【画外音】时，同样豁免。"""
+    row2 = ("| 镜 2（5s） | 屋子 | 阿乙 | 近景平视 | 抬头 "
+            "| <d>阿甲：有人吗</d> | 翻书声 | 无 | cut | 空 |")
+    md = _md(rows=(ROW1, row2))
+    head, sep, tail = md.partition("### 镜 2")
+    md = head + sep + tail + "\n【画外音】是\n"
+    rep = _load(md)
+    assert "DLG_SPEAKER_NOT_IN_CAST" not in _codes(rep)
+
+def test_target_offscreen_is_exempt():
+    """<d>甲→乙（画外）：…</d> 时，对象不必出场。"""
+    row2 = ("| 镜 2（5s） | 屋子 | 阿甲 | 近景平视 | 抬头 "
+            "| <d>阿甲→阿乙（画外）：有人吗</d> | 翻书声 | 无 | cut | 空 |")
+    rep = _load(_md(rows=(ROW1, row2)))
+    assert "DLG_TARGET_NOT_IN_CAST" not in _codes(rep)

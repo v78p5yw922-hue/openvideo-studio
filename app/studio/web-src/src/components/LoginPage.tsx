@@ -79,17 +79,5 @@ export function LoginPage() {
 }
 
 function LogoMark() {
-  return (
-    <svg width="40" height="40" viewBox="0 0 32 32" aria-hidden>
-      <defs>
-        <linearGradient id="ovlg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#5aa0ff" />
-          <stop offset="1" stopColor="#8b5cf6" />
-        </linearGradient>
-      </defs>
-      <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#ovlg)" opacity="0.16" />
-      <path d="M12 10.5v11l9-5.5-9-5.5z" fill="url(#ovlg)" />
-      <rect x="5" y="5" width="22" height="22" rx="6" fill="none" stroke="url(#ovlg)" strokeWidth="1.4" opacity="0.55" />
-    </svg>
-  )
+  return <img className="login-logo" src="/static/logo-128.png" alt="" width={64} height={64} />
 }

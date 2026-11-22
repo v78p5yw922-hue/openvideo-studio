@@ -1,4 +1,4 @@
-# OpenVideo Studio · 项目总结（2026-11 版）
+# 搭象工坊 · 项目总结（2026-11 版）
 
 > 这份文档取代 `TECH-OVERVIEW.md`（那份写于 23 条规则 / 40 路由 / 六槽提示词阶段，已过期）。
 > 面向两个用途：①后续会话的上下文基线 ②开发者/面试用的技术与产品说明。
@@ -7,6 +7,15 @@
 
 # 第一部分：技术细节
 
+## 界面
+
+![资产管理](screenshots/assets.png)
+
+![音乐生成](screenshots/music.png)
+
+![文生图](screenshots/t2i.png)
+
+
 ## 1. 一句话
 
 **把中文短剧剧本，编译成 MiniMax H3 能吃的中英混合提示词，跑通「校验 → 渲染 → 审核 → 选版 → 合成」的完整流水线，全部操作在 Web UI 里。**
@@ -14,7 +23,7 @@
 ## 2. 系统结构
 
 ```
-┌──────────────────────────── Windows（D:\AI\DeepSeekProjects\OpenVideo）───────────────┐
+┌──────────────────────────── Windows（D:\AI\DeepSeekProjects\搭象工坊）───────────────┐
 │  源码 + 项目数据（剧本/分镜/参考图/成片）+ 部署脚本 + 文档                              │
 │                                                                                        │
 │  studio/web-src  ──(vite build)──►  studio/web/dist  ──┐                               │
@@ -22,8 +31,8 @@
 └────────────────────────────────────────────────────────│───────────────────────────────┘
                                                           │ deploy-to-wsl.ps1（同步 + 重启）
 ┌──────────────────────────── WSL2 Ubuntu 22.04 ──────────▼───────────────────────────────┐
-│  /home/agent/openvideo/video-agent      ← 部署副本（studio + scripts，跑服务）           │
-│  /home/agent/openvideo/studio-data       ← 运行时数据（SQLite + 参考图 + takes + 成片）   │
+│  /home/agent/搭象工坊/video-agent      ← 部署副本（studio + scripts，跑服务）           │
+│  /home/agent/搭象工坊/studio-data       ← 运行时数据（SQLite + 参考图 + takes + 成片）   │
 │  studio.service  :8801  FastAPI + 内置执行器（runner.py 线程）                            │
 │  comfyui-h3-045.service :8288  ComfyUI 0.45.3 + comfy-kitchen 0.2.41（自定义节点包）      │
 │  RTX 4090 24 GB（WSL 直通），权重见 §5                                                    │
@@ -38,7 +47,7 @@
 <仓库>/                      代码：studio、scripts、web-src、docs、examples
 <仓库>/content/<剧名>/       创作内容：剧本、分镜、场景清单、内容简报   ← 不进版本库
 <数据目录>/                  运行时数据：SQLite、takes、参考图、成片      ← 不进版本库
-  ~/.local/share/openvideo/studio-data  (或环境变量 STUDIO_DATA)
+  ~/.local/share/搭象工坊/studio-data  (或环境变量 STUDIO_DATA)
 config.toml                  实例配置：引擎地址、模型名、数据/内容目录、渲染默认值
 ```
 
@@ -183,7 +192,7 @@ comfy-kitchen 0.2.41 → H3CastMember / H3CastToVideo（把角色卡编译成 H3
 .\scripts\deploy-to-wsl.ps1 -NoRestart # 只同步（队列在跑时用这个）
 
 # 环境体检（WSL 侧）
-cd /home/agent/openvideo/video-agent
+cd /home/agent/搭象工坊/video-agent
 .venv/bin/python -m studio.doctor                 # 七项检查
 .venv/bin/python -m studio.doctor --json          # 给 UI/脚本
 

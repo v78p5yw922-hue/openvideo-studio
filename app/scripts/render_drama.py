@@ -527,7 +527,26 @@ def shot_timeout(dur: float) -> float:
     """
     frames = valid_length(float(dur or 5.0))
     per_step = 18.0 * (frames / 124.0) ** 1.9      # 5 s→18 s，15 s→≈150 s
-    return 300.0 + 20.0 * per_step * 1.8
+    return 600.0 + 20.0 * per_step * 2.6
+
+
+
+def clear_stale(server: str, log=print) -> None:
+    """清掉引擎里不属于本次的残留 prompt。
+
+    背景：任务被取消/中断时，已经提交给 ComfyUI 的 prompt 仍可能排队，
+    后面的镜就要和它抢 GPU —— 表现为"5 秒镜跑一小时还超时"。
+    """
+    try:
+        c = ComfyClient(server)
+        q = c.get("/queue")
+        running = q.get("queue_running") or []
+        pending = q.get("queue_pending") or []
+        if len(running) + len(pending) > 1:
+            c.post("/queue", {"clear": True})
+            log(f"[queue] 清掉 {len(pending)} 个残留 prompt")
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def run_shot(server: str, wf: dict, timeout: float = 1800) -> tuple[bool, str]:
@@ -759,9 +778,11 @@ def main(argv: list[str] | None = None) -> int:
             wf = build_workflow(sh, chars, style, scene, args.width, args.height,
                                 args.steps, args.seed + 13 * (attempt - 1), lock_frame=lock)
             log(f"[{i:02d}] {sh.get('shot_id')} attempt {attempt} ({sh.get('transition')}, {mode})")
+            clear_stale(args.server, log)
             free_vram(args.server)
             with VramSampler() as sampler:
-                good, info = run_shot(args.server, wf)
+                good, info = run_shot(args.server, wf,
+                                     timeout=shot_timeout(float(sh.get("duration_sec") or 5)))
             peak = max(peak, sampler.peak)
 
             if not good:

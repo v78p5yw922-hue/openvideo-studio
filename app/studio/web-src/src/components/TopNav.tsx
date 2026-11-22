@@ -16,6 +16,7 @@ const CREATE_TABS: Array<{ to: string; key: string }> = [
   { to: '/create/video/rendering', key: 'rendering' },
   { to: '/create/video/compose', key: 'compose' },
   { to: '/create/text-to-image', key: 't2i' },
+  { to: '/create/music', key: 'music' },
 ]
 
 export function TopNav() {

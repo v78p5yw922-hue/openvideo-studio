@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { t, tpl } from '../lib/i18n'
+import { confirmDialog } from '../lib/confirm'
 import { toast } from '../lib/store'
 import './SettingsPage.css'
 
@@ -201,6 +202,33 @@ export function SettingsPage() {
           <p className="muted">{t('settings.about.body')}</p>
         </section>
       </div>
-    </div>
+    
+        <section className="card">
+          <h3>{t('settings.trash')}</h3>
+          <p className="muted">{t('settings.trash-desc')}</p>
+          <button className="ghost danger" onClick={() => void (async () => {
+            const ok = await confirmDialog({ title: t('settings.trash-empty'),
+              message: t('settings.trash-desc'), confirmText: t('settings.trash-empty'), danger: true })
+            if (!ok) return
+            const r = await api.emptyTrash()
+            toast(tpl('settings.trash-empty-done', { n: r.removed }), 'ok')
+          })()}>{t('settings.trash-empty')}</button>
+        </section>
+
+        <section className="card">
+          <h3>{t('avatar.change')}</h3>
+          <label className="ghost file-btn" style={{ display: 'inline-block' }}>
+            {t('avatar.change')}
+            <input type="file" accept="image/*" hidden
+                   onChange={(e) => {
+                     const f = e.target.files?.[0]
+                     if (!f) return
+                     void api.uploadAvatar(f)
+                       .then(() => { toast(t('avatar.done'), 'ok'); window.location.reload() })
+                       .catch(() => toast(t('avatar.failed'), 'err'))
+                   }} />
+          </label>
+        </section>
+</div>
   )
 }
