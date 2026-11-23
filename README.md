@@ -132,9 +132,17 @@ bash install.sh      # 7 项体检：配置/引擎/节点/权重/ffmpeg/数据�
 | 参考槽 | 9 张（人物 + 场景共享） |
 | 音乐 | 单段 ≤ 35 秒最稳；更长自动拆段交叉淡化（上限 360 秒） |
 
-模型：MiniMax H3 系列（视频 fl2va / ref2va、图像 image）+ Qwen3-VL 文本编码器
-+ MiniMax Music 3（int8）；节点依赖 ComfyUI ≥ 0.45.3 与 comfy-kitchen 0.2.41。
-详见 [docs/MODELS.md](docs/MODELS.md)。
+三类模型（全部本地，不联网）：
+
+| 类别 | 模型 | 干什么 | 权重 |
+|---|---|---|---|
+| 视频 | MiniMax H3（fl2va / ref2va） | 1344×768、5/8/10 秒，**自带音轨** | 19.5 GB ×2 + 视频/音频 VAE |
+| 图片 | MiniMax H3 Image | 定妆照、场景母版、文生图 | 19.5 GB + 图像 VAE |
+| 音乐 | MiniMax Music 3（int8） | 整段 BGM / 带人声，≤360 秒 | 2.3 + 8.6 + 0.2 GB |
+| 文本编码 | Qwen3-VL 32B（H3 打包） | 视频与图片共用 | 25.3 GB |
+
+三者**不能同时驻留**（一张 24 GB 卡只够一套），切换时自动 `/free` 卸载。
+细节（文件清单/参数/放置位置/查找顺序）见 [docs/MODELS.md](docs/MODELS.md)。
 
 ---
 
