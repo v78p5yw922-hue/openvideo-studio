@@ -1718,9 +1718,10 @@ def media(pid: str, shot_id: str, version: int):
 
 @app.get("/")
 def index():
-    """首页直接给新界面；只有在没有构建产物时才回落到旧版单文件。"""
-    dist = WEB / "dist" / "index.html"
-    return _html(dist) if dist.is_file() else _html(WEB / "index.html")
+    """根路径跳 /app —— SPA 的 basename 是 /app，直接给 index.html 会白屏。"""
+    from fastapi.responses import RedirectResponse as _RR
+
+    return _RR("/app", status_code=302)
 
 
 app.mount("/static", StaticFiles(directory=str(WEB)), name="static")
