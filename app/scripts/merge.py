@@ -271,8 +271,13 @@ def lay_beds(src: Path, bgm: Path | None, ambience: Path | None,
     fmt = "aformat=sample_fmts=fltp:channel_layouts=stereo"
 
     inputs: list[str] = ["-i", str(src)]
-    # [voice] 既要进 sidechain 又要进最终 amix → 必须 asplit，否则"matches no streams"
-    filt: list[str] = [f"[0:a]{fmt},asplit=2[voice][voice_key]"]
+    duck = bool(bgm and voice_duck)
+    # 只有要 sidechain 时才 asplit；否则 [voice_key] 没有下游 → ffmpeg 报
+    # "Filter asplit:output1 has an unconnected output"，整条铺轨直接失败
+    if duck:
+        filt: list[str] = [f"[0:a]{fmt},asplit=2[voice][voice_key]"]
+    else:
+        filt = [f"[0:a]{fmt}[voice]"]
     idx = 0
     if ambience:
         inputs += ["-stream_loop", "-1", "-i", str(ambience)]
@@ -285,7 +290,6 @@ def lay_beds(src: Path, bgm: Path | None, ambience: Path | None,
         filt.append(f"[{idx}:a]volume={bgm_gain}dB,{fmt},atrim=0:{dur:.3f},"
                     f"afade=t=out:st={max(0.0, dur - 1.5):.3f}:d=1.5[bgm_raw]")
 
-    duck = bool(bgm and voice_duck)
     if duck:
         filt.append("[bgm_raw][voice_key]sidechaincompress=threshold=0.05:ratio=6:"
                     "attack=20:release=350[bgm]")

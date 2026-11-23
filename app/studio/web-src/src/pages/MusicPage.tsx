@@ -137,7 +137,7 @@ export function MusicPage() {
 
   const generate = async () => {
     if (!caption.trim()) { toast(t('music.need-caption'), 'err'); return }
-    if (wantsVocal && (!withVocal || !lyrics.trim())) {
+    if (wantsVocal && !lyrics.trim()) {
       toast(t('music.vocal-needs-lyrics'), 'err')
       return
     }
@@ -145,8 +145,10 @@ export function MusicPage() {
     setBusy(true)
     try {
       const zh = PRESETS.find((p) => p.caption === caption)?.zh || ''
+      // 只要歌词框里有内容就按带人声生成（曾经因为没勾复选框被静默丢弃）
+      const lyricsToSend = lyrics.trim()
       const r = await api.generateMusic({
-        prompt: caption, caption_zh: zh, lyrics: withVocal ? lyrics : '',
+        prompt: caption, caption_zh: zh, lyrics: lyricsToSend,
         seconds, seed, project_id: pid || '',
       })
       setJob({ id: r.job_id, state: 'queued' })
@@ -221,7 +223,11 @@ export function MusicPage() {
           {withVocal && (
             <div className="music-field">
               <span>{t('music.lyrics')}</span>
-              <textarea rows={8} value={lyrics} onChange={(e) => setLyrics(e.target.value)}
+              <textarea rows={8} value={lyrics}
+                        onChange={(e) => {
+                          setLyrics(e.target.value)
+                          if (e.target.value.trim()) setWithVocal(true)
+                        }}
                         placeholder={'[Verse]\n一行一句\n\n[Chorus]\n一句一句'} />
               <em className="muted music-hint">{t('music.lyrics.hint')}</em>
             </div>
@@ -248,6 +254,9 @@ export function MusicPage() {
             </label>
           </div>
 
+          {!withVocal && lyricLines > 0 && (
+            <p className="music-note is-warn">{t('music.lyrics-autovocal')}</p>
+          )}
           {withVocal && lyricLines > 0 && (
             <p className={`music-note${mismatch ? ' is-warn' : ''}`}>
               {tpl('music.length-check', { n: lyricLines, s: suggestSeconds })}
