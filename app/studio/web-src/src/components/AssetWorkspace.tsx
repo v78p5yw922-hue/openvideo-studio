@@ -1,19 +1,23 @@
 /** 资产管理 —— 顶部 tab（角色/场景/视频/图片/音频）+ 项目筛选 + 分页 30/页 */
 
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAppModals } from '../lib/app-modals'
 import { t, tpl } from '../lib/i18n'
 import { confirmDialog } from '../lib/confirm'
 import { toast, useStore } from '../lib/store'
 import type { AssetCandidate, Character, OutputVideo, Scene } from '../lib/types'
+import { AudioBar } from '../lib/audioPlayer'
+import { AudioDetail } from './AudioDetail'
+import { SmartImg } from './MediaFallback'
 import './AssetWorkspace.css'
 
 interface Props {
   onOpenAsset: (kind: 'character' | 'scene', id: string, projectId?: string) => void
 }
 
-type Tab = 'character' | 'scene' | 'video' | 'image' | 'audio'
+type Tab = 'character' | 'scene' | 'video' | 'image' | 'audio' | 'mv'
 const PAGE_SIZE = 30
 
 const TABS: Array<{ key: Tab; label: string }> = [
@@ -22,6 +26,7 @@ const TABS: Array<{ key: Tab; label: string }> = [
   { key: 'video', label: 'assets.videos' },
   { key: 'image', label: 'assets.images' },
   { key: 'audio', label: 'assets.audio' },
+  { key: 'mv', label: 'assets.mv' },
 ]
 
 function timeLabel(iso: string) {
@@ -51,9 +56,11 @@ function CopyId({ value, label }: { value: string; label: string }) {
 export function AssetWorkspace({ onOpenAsset }: Props) {
   const { projects } = useStore()
   const modals = useAppModals()
-  const [tab, setTab] = useState<Tab>('character')
+  const [tab, setTab] = useState<Tab>((new URLSearchParams(window.location.search)
+    .get('tab') as Tab) || 'character')
   const [page, setPage] = useState(0)
-  const [projectFilter, setProjectFilter] = useState('')
+  const [sp] = useSearchParams()
+  const [projectFilter, setProjectFilter] = useState(sp.get('project') || '')
   const [characters, setCharacters] = useState<Character[]>([])
   const [scenes, setScenes] = useState<Scene[]>([])
   const [outputs, setOutputs] = useState<OutputVideo[]>([])
@@ -106,15 +113,19 @@ export function AssetWorkspace({ onOpenAsset }: Props) {
     return outputs.filter((o) => (o as unknown as { project_id?: string }).project_id === projectFilter)
   }, [outputs, projectFilter])
 
-  const images = useMemo(() => cands.filter((c) => c.kind !== 'music'), [cands])
+  const images = useMemo(
+    () => cands.filter((c) => c.kind !== 'music' && !(c as unknown as { broken?: boolean }).broken),
+    [cands])
   const audios = useMemo(() => cands.filter((c) => c.kind === 'music'), [cands])
 
+  const mvProjects = (projects || []).filter((p) => p.id.startsWith('p_mv_'))
   const counts: Record<Tab, number> = {
     character: chars.length,
     scene: scenesAll.length,
     video: videos.length,
     image: images.length,
     audio: audios.length,
+    mv: mvProjects.length,
   }
 
   const total = counts[tab]
@@ -186,9 +197,9 @@ export function AssetWorkspace({ onOpenAsset }: Props) {
               <div key={c.character_id} className="aw-card aw-char"
                    onClick={() => onOpenAsset('character', c.character_id)}>
                 <div className="aw-thumb aw-thumb-contain">
-                  <img src={`/assets/characters/${encodeURIComponent(c.character_id)}?v=${encodeURIComponent((c.primary_ref || '').split('/').pop() || '0')}`}
-                       alt={c.name} loading="lazy"
-                       onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }} />
+                  <SmartImg
+                    src={`/assets/characters/${encodeURIComponent(c.character_id)}?v=${encodeURIComponent((c.primary_ref || '').split('/').pop() || '0')}`}
+                    alt={c.name} />
                 </div>
                 <div className="aw-meta">
                   <b title={c.name}>{c.name}</b>
@@ -212,9 +223,9 @@ export function AssetWorkspace({ onOpenAsset }: Props) {
               <div key={`${s.project_id}/${s.scene_id}`} className="aw-card aw-scene"
                    onClick={() => onOpenAsset('scene', s.scene_id, s.project_id)}>
                 <div className="aw-thumb aw-thumb-cover">
-                  <img src={`/assets/scenes/${encodeURIComponent(s.project_id)}/${encodeURIComponent(s.scene_id)}?v=${s.updated_at || ''}`}
-                       alt={s.name} loading="lazy"
-                       onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden' }} />
+                  <SmartImg
+                    src={`/assets/scenes/${encodeURIComponent(s.project_id)}/${encodeURIComponent(s.scene_id)}?v=${s.updated_at || ''}`}
+                    alt={s.name} />
                 </div>
                 <div className="aw-meta">
                   <b title={s.name}>{s.name || s.scene_id}</b>
@@ -240,7 +251,7 @@ export function AssetWorkspace({ onOpenAsset }: Props) {
             {slice(videos).map((o) => (
               <div key={o.url} className="aw-card aw-video">
                 <div className="aw-thumb aw-thumb-cover aw-video-thumb">
-                  {o.poster ? <img src={o.poster} alt={o.name} loading="lazy" /> : null}
+                  <SmartImg src={o.poster} alt={o.name} />
                   <button className="aw-play" onClick={() => setPlay(o)} title={t('assets.play')}>▶</button>
                   <a className="aw-dl" href={o.url} download onClick={(e) => e.stopPropagation()}
                      title={t('assets.download')}>⬇</a>
@@ -272,7 +283,7 @@ export function AssetWorkspace({ onOpenAsset }: Props) {
             {slice(images).map((c) => (
               <figure key={c.id} className="aw-card aw-image" onClick={() => setZoom(c)}>
                 <div className="aw-thumb aw-thumb-contain">
-                  {c.url ? <img src={c.url} alt={c.prompt} loading="lazy" /> : null}
+                  <SmartImg src={c.url} alt={c.prompt} />
                 </div>
                 <div className="aw-meta">
                   <b className="muted">{timeLabel(c.created_at)}</b>
@@ -286,6 +297,27 @@ export function AssetWorkspace({ onOpenAsset }: Props) {
               </figure>
             ))}
             {images.length === 0 && <div className="muted">{t('assets.generated-empty')}</div>}
+          </div>
+        )}
+
+        {tab === 'mv' && (
+          <div className="aw-music-list">
+            {slice(mvProjects).map((p) => (
+              <div key={p.id} className="aw-music">
+                <div className="aw-music-head">
+                  <b>{p.title}</b>
+                  <span className="aw-meta-right muted">{p.id}</span>
+                </div>
+                <div className="aw-music-actions">
+                  <span className="muted">{p.updated_at ? timeLabel(p.updated_at) : ''}</span>
+                  <div className="aw-tabs-spacer" />
+                  <button className="ghost sm" onClick={() => onOpenAsset('scene', '', p.id)}>
+                    {t('mv.open-rendering')}
+                  </button>
+                </div>
+              </div>
+            ))}
+            {mvProjects.length === 0 && <div className="muted">{t('assets.mv-empty')}</div>}
           </div>
         )}
 
@@ -304,7 +336,7 @@ export function AssetWorkspace({ onOpenAsset }: Props) {
                       </span>
                     </span>
                   </div>
-                  <audio controls preload="none" src={m.url || ''} />
+                  <AudioBar url={m.url || ''} />
                   <div className="aw-ids">
                     <span className="aw-id" title={m.id}>{m.id}</span>
                     <CopyId value={m.id} label="asset_id" />

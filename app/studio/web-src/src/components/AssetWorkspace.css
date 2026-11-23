@@ -132,3 +132,12 @@
 .aw-zoom-stage { display: grid; place-items: center; overflow: auto; max-height: 64vh; }
 .aw-zoom-stage img { max-width: 100%; max-height: 64vh; cursor: zoom-in; }
 .aw-zoom-prompt { font-size: 13px; line-height: 1.6; color: var(--text-2); margin: 0; }
+
+.media-ph {
+  display: grid; place-items: center; gap: 4px; width: 100%; height: 100%;
+  background: color-mix(in srgb, var(--bg) 80%, #000 8%);
+  color: var(--text-2); font-size: 12px;
+}
+.media-ph span { font-size: 20px; opacity: .55; }
+.media-ph em { font-style: normal; opacity: .7; }
+.media-ph.inline { display: inline; background: none; }

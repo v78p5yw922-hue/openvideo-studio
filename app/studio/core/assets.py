@@ -21,6 +21,9 @@ def _row_to_candidate(row: db.sqlite3.Row) -> dict:
     c = {k: row[k] for k in row.keys()}
     c["params"] = db.loads(c.pop("params_json", "{}") or "{}", {})
     c["url"] = _candidate_url(c.get("path", ""))
+    _p = Path(c.get("path") or "")
+    _media = {".png", ".jpg", ".jpeg", ".webp", ".flac", ".wav", ".mp3", ".m4a", ".mp4", ".webm"}
+    c["broken"] = (not c.get("path")) or (not _p.is_file()) or (_p.suffix.lower() not in _media)
     if c.get("kind") == "music":
         c["lyrics"] = lyrics_of(c)
         lrc = Path(c.get("path") or "").with_suffix(".lrc")

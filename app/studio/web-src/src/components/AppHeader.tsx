@@ -33,6 +33,8 @@ export function AppHeader({ title, subtitle, tabs, actions, compact }: Props) {
   const nav = useNavigate()
   const loc = useLocation()
   const isHub = loc.pathname === '/projects'
+  // 独立工作台（文生图 / 音乐 / MV）不跟项目走，不显示项目选择器
+  const hideProjectPicker = /\/(create\/text-to-image|create\/music|create\/mv)/.test(loc.pathname)
   const renaming = usePopover()
   const moreMenu = usePopover()
   const projMenu = usePopover()
@@ -111,7 +113,7 @@ export function AppHeader({ title, subtitle, tabs, actions, compact }: Props) {
           {stats && <span className="page-subtitle">{stats}</span>}
         </div>
 
-        {!isHub && (
+        {!isHub && !hideProjectPicker && (
         <div className="page-project">
           <div className="popover" ref={projMenu.ref}>
             <button

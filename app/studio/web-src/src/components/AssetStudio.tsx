@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { RESOLUTION_PRESETS, findPreset, presetWarnings, megapixels } from '../lib/resolutionPresets'
 import { STYLE_FAMILIES, stylesOf, findStyle, type StyleFamily } from '../lib/stylePresets'
 import { compilePrompt, type PromptSegments } from '../lib/promptBuilder'
@@ -54,6 +55,8 @@ export function AssetStudio() {
   const [refs, setRefs] = useState<UploadedRef[]>([])
   const [refNote, setRefNote] = useState('')
 
+  const [sp] = useSearchParams()
+  const onlyProject = sp.get('project') || ''
   const [candidates, setCandidates] = useState<AssetCandidate[]>([])
   const [busyId, setBusyId] = useState('')
   const [broken, setBroken] = useState<Set<string>>(new Set())
@@ -70,7 +73,10 @@ export function AssetStudio() {
     try {
       const r = await api.assetCandidates()
       // 只要图片：音乐走「创作 → 音乐」；没有 url 的（文件丢失）也不显示
-      setCandidates((r.candidates || []).filter((c) => c.kind !== 'music' && !!c.url))
+      setCandidates((r.candidates || []).filter(
+        (c) => c.kind !== 'music' && !!c.url
+          && !(c as unknown as { broken?: boolean }).broken
+          && (!onlyProject || c.project_id === onlyProject)))
       setLoadError('')
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : t('t2i.read-failed'))

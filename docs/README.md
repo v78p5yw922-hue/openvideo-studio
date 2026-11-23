@@ -78,10 +78,8 @@ _archive/root-legacy/           仓库根目录 11-12 ~ 11-19 的阶段性报告
 
 | 截图 | 说明 |
 |---|---|
-| `screenshots/login.png` | 登录页（深色） |
-| `screenshots/assets.png` | 资产管理：角色 / 场景 / 视频 / 图片 / 音频 五个 tab，项目筛选 + 分页 |
+| `screenshots/login.png` | 登录页（深色，搭象工坊 logo） |
+| `screenshots/assets.png` | 资产管理：角色 / 场景 / 视频 / 图片 / 音频 / MV 六个 tab |
 | `screenshots/t2i.png` | 文生图工作台：参数在上、图片流在下，点开弹窗放大 |
-| `screenshots/music.png` | 音乐生成：风格 + 歌词 → 入库，带 .lrc 与播放进度 |
-| `screenshots/compose.png` | 合成：拼接 / 字幕 / BGM 选择 |
-| `screenshots/projects.png` | 项目管理 |
-
+| `screenshots/music.png` | 音乐生成：中英文风格 + 歌词 → 入库，带 .lrc 与进度 |
+| `screenshots/mv.png` | 音乐 MV：选曲 + 地域/舞蹈风格 → 自动展开分镜 |

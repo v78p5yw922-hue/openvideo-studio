@@ -45,7 +45,6 @@
 
 拼接、烧字幕、铺 BGM / 环境声；BGM 可以从音频库里选，也可以指向磁盘上任意音频文件。
 
-![合成](docs/screenshots/compose.png)
 
 ### 文生图：独立图片工作台
 
@@ -61,9 +60,15 @@
 
 ![音乐](docs/screenshots/music.png)
 
+### 音乐 MV：一首歌 + 一个地域/舞蹈风格
+
+选一首音乐、挑一个风格（北京胡同 / 内蒙草原 / 深圳夜色 / 国风水袖 / 街舞 / 芭蕾），
+自动展开成分镜项目：整片只用这一首歌铺底、镜头末帧接续、空间锚点固定。
+
+![MV](docs/screenshots/mv.png)
+
 ### 项目管理
 
-![项目](docs/screenshots/projects.png)
 
 ---
 

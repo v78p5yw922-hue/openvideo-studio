@@ -21,3 +21,6 @@
 .ad-meta p { margin: 0 0 8px; line-height: 1.6; }
 .ad-list { margin: 0 0 10px; padding-left: 18px; font-size: 12px; color: var(--text-2); line-height: 1.7; }
 .ad-list code { font-family: ui-monospace, monospace; font-size: 12px; }
+
+.ad-zh { font-size: 13px; line-height: 1.6; margin: 0 0 4px; }
+.ad-en { font-size: 12px; line-height: 1.5; color: var(--text-2); opacity: .8; margin: 0 0 8px; }

@@ -10,20 +10,41 @@ import { t, tpl } from '../lib/i18n'
 import { toast, useStore } from '../lib/store'
 import { Modal } from '../components/Modal'
 import { AudioDetail } from '../components/AudioDetail'
+import { AudioBar } from '../lib/audioPlayer'
 import './MusicPage.css'
 
 type Cand = { id: string; kind: string; prompt: string; seed: number; url?: string; path?: string }
 type Job = { id: string; state: string; progress?: { pct?: number | null; detail?: string } }
 
 const PRESETS = [
-  { id: 'rural', label: '乡村怀旧', caption: 'warm acoustic guitar, harmonica, 1990s rural China, gentle and nostalgic, mid tempo, no vocals' },
-  { id: 'tender', label: '温柔钢琴', caption: 'soft solo piano, warm room reverb, tender and intimate, slow tempo 60 BPM, instrumental' },
-  { id: 'playful', label: '轻快童趣', caption: 'playful pizzicato strings, light percussion, mischievous and bright, mid tempo 110 BPM, instrumental' },
-  { id: 'tense', label: '紧张悬疑', caption: 'low string drone, sparse piano hits, tense and uneasy, slow tempo, no vocals' },
-  { id: 'mandopop', label: '普通话女声', caption: 'Chinese folk ballad, acoustic guitar and erhu, warm female vocal singing in Mandarin, gentle, slow tempo' },
-  { id: 'vocal-folk', label: '女声民谣·雨天', caption: 'Chinese folk ballad, acoustic guitar and erhu, warm female vocal singing in Mandarin, clear diction, close-mic, gentle and bittersweet, slow tempo 70 BPM, intimate room reverb' },
-  { id: 'vocal-piano', label: '女声钢琴·旧照片', caption: 'Soft solo piano with warm cello, female vocal singing in Mandarin, clear diction, close-mic, melancholic and tender, slow tempo 64 BPM, dry vocal, no reverb wash' },
-  { id: 'vocal-summer', label: '女声轻快·夏天', caption: 'Upbeat acoustic folk, ukulele and light hand percussion, bright female vocal singing in Mandarin, clear diction, sunny and playful, mid tempo 108 BPM' },
+  // —— 中式
+  { id: 'cn_folk', label: '中式·民谣', zh: '木吉他 + 二胡，温暖、怀旧，中慢速',
+    caption: 'Chinese folk ballad, acoustic guitar and erhu, warm and nostalgic, mid tempo 80 BPM, no vocals' },
+  { id: 'cn_guofeng', label: '中式·国风', zh: '古筝 + 竹笛 + 轻鼓，清亮、悠远',
+    caption: 'Chinese guofeng, guzheng and bamboo flute with light drums, bright and airy, mid tempo, instrumental' },
+  { id: 'cn_xiqu', label: '中式·戏曲元素', zh: '京胡、板鼓、锣，戏曲腔的顿挫',
+    caption: 'Chinese opera-flavoured score, jinghu fiddle, woodblock and gong, dramatic accents, mid tempo, instrumental' },
+  // —— 西式
+  { id: 'west_piano', label: '西式·钢琴', zh: '钢琴独奏 + 弦乐垫底，忧郁、克制',
+    caption: 'soft solo piano with warm strings pad, melancholic and restrained, slow tempo 62 BPM, instrumental' },
+  { id: 'west_jazz', label: '西式·爵士', zh: '钢琴三重奏，刷鼓、走低音，夜晚酒吧感',
+    caption: 'jazz piano trio, brushed drums and walking bass, smoky late-night club feel, mid tempo 96 BPM, instrumental' },
+  { id: 'west_orch', label: '西式·管弦', zh: '弦乐 + 铜管，开阔、有 ascend 的推进',
+    caption: 'cinematic orchestral score, strings and french horn, wide and rising, slow build, instrumental' },
+  // —— 中国城市 / 地域
+  { id: 'city_beijing', label: '北京·胡同', zh: '京腔民谣，三弦 + 口琴，灰砖院墙的清晨',
+    caption: 'Beijing hutong folk, sanxian and harmonica, grey brick courtyards at dawn, warm and plain, mid tempo 84 BPM' },
+  { id: 'city_neimeng', label: '内蒙·草原', zh: '马头琴 + 长调式人声，草原与风',
+    caption: 'Inner Mongolian grassland, morin khuur and throaty long-tone vocal, open and vast, slow tempo 60 BPM' },
+  { id: 'city_shenzhen', label: '深圳·夜色', zh: '合成器 + 电鼓，霓虹、车流、都市夜',
+    caption: 'Shenzhen city night, warm synth pads and electronic drums, neon and traffic, mid tempo 104 BPM, instrumental' },
+  // —— 带人声（人声配方，旋律清楚）
+  { id: 'vocal_folk', label: '女声民谣·雨天', zh: '中文女声 + 民谣吉他 + 二胡，咬字清楚',
+    caption: 'Chinese folk ballad, acoustic guitar and erhu, warm female vocal singing in Mandarin, clear diction, close-mic, gentle and bittersweet, slow tempo 70 BPM, intimate room reverb' },
+  { id: 'vocal_piano', label: '女声钢琴·旧照片', zh: '中文女声 + 钢琴 + 大提琴，克制、怀旧',
+    caption: 'Soft solo piano with warm cello, female vocal singing in Mandarin, clear diction, close-mic, melancholic and tender, slow tempo 64 BPM, dry vocal, no reverb wash' },
+  { id: 'vocal_summer', label: '女声轻快·夏天', zh: '中文女声 + 尤克里里，明亮轻快',
+    caption: 'Upbeat acoustic folk, ukulele and light hand percussion, bright female vocal singing in Mandarin, clear diction, sunny and playful, mid tempo 108 BPM' },
 ]
 
 const EXAMPLE_CAPTION =
@@ -123,8 +144,9 @@ export function MusicPage() {
     if (withVocal && !lyrics.trim()) { toast(t('music.need-lyrics'), 'err'); return }
     setBusy(true)
     try {
+      const zh = PRESETS.find((p) => p.caption === caption)?.zh || ''
       const r = await api.generateMusic({
-        prompt: caption, lyrics: withVocal ? lyrics : '',
+        prompt: caption, caption_zh: zh, lyrics: withVocal ? lyrics : '',
         seconds, seed, project_id: pid || '',
       })
       setJob({ id: r.job_id, state: 'queued' })
@@ -181,7 +203,9 @@ export function MusicPage() {
             </span>
             <textarea rows={3} value={caption} onChange={(e) => setCaption(e.target.value)}
                       placeholder={EXAMPLE_CAPTION} />
-            <em className="muted music-hint">{t('music.caption.hint')}</em>
+            <em className="muted music-hint">
+              {PRESETS.find((p) => p.caption === caption)?.zh || t('music.caption.hint')}
+            </em>
           </label>
 
           <label className="music-row">
@@ -260,7 +284,7 @@ export function MusicPage() {
                   <b>{c.prompt.slice(0, 60)}</b>
                   <span className="muted sm">seed {c.seed}</span>
                 </div>
-                {c.url && <audio controls src={c.url} preload="none" />}
+                {c.url && <AudioBar url={c.url} />}
                 <div className="music-actions">
                   <button className="ghost sm" onClick={() => setDetail(c)}>{t('audio.detail')}</button>
                   <button className="ghost sm" onClick={() => void asBgm(c.id)}>{t('music.as-bgm')}</button>

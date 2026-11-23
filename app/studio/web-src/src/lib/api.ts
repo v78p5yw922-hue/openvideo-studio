@@ -196,6 +196,10 @@ export const api = {
     if (!r.ok) throw new Error(await r.text())
     return (await r.json()) as { ok: boolean; url: string }
   },
+  mvPresets: () => get<{ presets: Array<{ id: string; kind: string; region: string;
+    label: string; zh: string; en: string; style: string }> }>('/api/mv/presets'),
+  mvPlan: (body: { music_id: string; preset_id: string; seconds?: number }) =>
+    post<{ ok: boolean; project_id: string; title: string; shots: number }>('/api/mv/plan', body),
   deleteBed: (pid: string, kind: string) =>
     del<{ ok: boolean; kind: string; removed: string[] }>(`${P(pid)}/audio/${enc(kind)}`),
   activeJobs: () => get<{ jobs: Array<{ id: string; kind: string; state: string;
@@ -391,7 +395,7 @@ export const api = {
   /** 设置页：只读配置展示 */
   configView: () => get<Record<string, unknown>>('/api/config'),
   /** 音乐生成（MiniMax Music 3） */
-  generateMusic: (body: { prompt: string; lyrics?: string; seconds?: number;
+  generateMusic: (body: { prompt: string; caption_zh?: string; lyrics?: string; seconds?: number;
                             seed?: number; project_id?: string; group_id?: string }) =>
     post<{ job_id: string; queue_position: number }>('/api/assets/generate',
          { kind: 'music', ...body }),

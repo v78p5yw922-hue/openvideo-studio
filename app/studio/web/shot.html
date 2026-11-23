@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>shot</title></head>
+<body>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var token = q.get('t') || '';
+  var to = q.get('to') || '/app';
+  var theme = q.get('theme') || 'dark';
+  try {
+    if (token) localStorage.setItem('ov-token', token);
+    localStorage.setItem('ov-theme', theme);
+  } catch (e) {}
+  location.replace(to);
+})();
+</script>
+</body></html>

@@ -328,6 +328,7 @@ def _run_music(job: dict, payload: dict) -> dict:
     pid = job["project_id"]
     caption = str(payload.get("prompt") or "").strip()
     lyrics = str(payload.get("lyrics") or "")
+    caption_zh = str(payload.get("caption_zh") or "")
     seconds = float(payload.get("seconds") or 60.0)
     seed = int(payload.get("seed", -1))
     if not caption:
@@ -361,7 +362,8 @@ def _run_music(job: dict, payload: dict) -> dict:
             kind="music", prompt=caption, negative="", width=0, height=0, seed=seed,
             steps=0, path=str(out), elapsed_s=0.0, project_id=pid,
             group_id=str(payload.get("group_id") or ""),
-            params={"kind": "music", "caption": caption, "lyrics": lyrics,
+            params={"kind": "music", "caption": caption, "caption_zh": caption_zh,
+                    "lyrics": lyrics,
                     "seconds": seconds, "seed": seed, "steps": 30, "cfg": 1.7, "top_k": 50,
                     "model": "minimax_music3_int8"})
         _finish(job["id"], "done", f"音乐 {seconds:.0f}s → {cand['id']}")

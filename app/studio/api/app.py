@@ -1848,8 +1848,59 @@ class AssetGenerateIn(BaseModel):
     group_id: str = ""
     refs: list[str] = []  # 角色 id（旧接口，保留兼容）
     ref_paths: list[str] = []  # 上传的参考图路径（不绑角色/项目），最多 4 张
+    caption_zh: str = ""   # kind=music：中文风格说明（仅展示/留痕）
     lyrics: str = ""      # kind=music：歌词（留空=器乐）
     seconds: float = 60.0  # kind=music：时长（秒，≤360）
+
+
+@app.get("/api/mv/presets")
+def mv_presets():
+    from ..core import mv as _mv
+
+    return {"presets": _mv.list_presets()}
+
+
+class MvPlanIn(BaseModel):
+    music_id: str                       # 资产里的音乐候选 id
+    preset_id: str                      # /api/mv/presets 里的 id
+    seconds: float | None = None        # 不传就用音乐自己的时长
+
+
+@app.post("/api/mv/plan")
+def mv_plan(body: MvPlanIn):
+    """把「一段音乐 + 一个地域/舞蹈预设」展开成一个可分镜渲染的项目。"""
+    import uuid as _uuid
+    from ..core import mv as _mv
+
+    preset = _mv.get_preset(body.preset_id)
+    if not preset:
+        raise HTTPException(400, "没有这个 MV 预设")
+    cand = assets.get_candidate(body.music_id)
+    if not cand or cand.get("kind") != "music":
+        raise HTTPException(404, "音乐不存在")
+    params = cand.get("params") or {}
+    seconds = float(body.seconds or params.get("seconds") or 0)
+    if seconds <= 0:
+        seconds = 40.0
+    music = {"id": cand["id"], "name": Path(cand.get("path") or "").name}
+    title, markdown = _mv.build_markdown(preset, music, seconds)
+
+    pid = "p_mv_" + _uuid.uuid4().hex[:8]
+    service.create_project(title=title, project_id=pid)
+    service.import_markdown(pid, markdown)
+    # 舞蹈类 MV 需要「舞者」这个角色：导入时若没建成，补一个空壳（之后可以给它挂参考图）
+    known = {c["character_id"] for c in service.list_characters()}
+    for sh in service.list_shots(pid):
+        for cid in sh.get("cast") or []:
+            if cid not in known:
+                service.upsert_character(cid, "舞者",
+                                         "年轻舞者，短黑发，深色练功服，动作干净", [])
+                known.add(cid)
+    # 音乐直接挂成该项目的 BGM
+    service.set_project_audio(pid, {"bgm": {"mode": "file", "path": cand.get("path") or ""}})
+    return {"ok": True, "project_id": pid, "title": title,
+            "shots": len(service.list_shots(pid)), "seconds": seconds,
+            "music": {"id": cand["id"], "duration": seconds}}
 
 
 @app.post("/api/assets/refs/upload")

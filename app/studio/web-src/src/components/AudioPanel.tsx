@@ -5,6 +5,7 @@ import { api } from '../lib/api'
 import { t, tpl } from '../lib/i18n'
 import { confirmDialog } from '../lib/confirm'
 import { toast, useStore } from '../lib/store'
+import { AudioBar } from '../lib/audioPlayer'
 import './AudioPanel.css'
 
 type Kind = 'bgm' | 'ambience'
@@ -239,10 +240,7 @@ export function AudioPanel() {
                          if (f) void upload(kind, f)
                        }} />
               </label>
-              {exists && (
-                <audio controls src={`/assets/audio/${pid}/${kind}.m4a`}
-                       style={{ height: 32 }} />
-              )}
+              {exists && <AudioBar url={`/assets/audio/${pid}/${kind}.m4a`} />}
               {(exists || c.mode === 'file') && (
                 <button className="ghost danger" onClick={() => void removeBed(kind)}>
                   {t('audio.delete')}
@@ -256,7 +254,7 @@ export function AudioPanel() {
 
       <div className="row">
         <button className="ghost" onClick={() => void preview()}>{t('audio.preview')}</button>
-        {previewUrl && <audio controls autoPlay src={previewUrl} style={{ height: 32 }} />}
+        {previewUrl && <AudioBar url={previewUrl} />}
       </div>
       {status.running && <p className="muted">{t('audio.running')}</p>}
       {status.error && <p className="muted">{tpl('audio.last-error', { err: status.error })}</p>}

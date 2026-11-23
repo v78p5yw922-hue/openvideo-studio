@@ -14,6 +14,7 @@ import { PromptEditorModal } from './components/PromptEditorModal'
 import { Sidebar } from './components/Sidebar'
 import { TopNav } from './components/TopNav'
 import { LoginPage } from './components/LoginPage'
+import { useProjectFromQuery } from './lib/useProjectFromQuery'
 import { StatusBar } from './components/StatusBar'
 import { ToastHost } from './components/ToastHost'
 import { VersionModal } from './components/VersionModal'
@@ -24,6 +25,7 @@ import { t, tpl, useI18n } from './lib/i18n'
 import { Router } from './router'
 
 export function App() {
+  useProjectFromQuery()
   const { detail, loading, error } = useStore()
   const { user, ready } = useAuth()
   // 订阅语言：切中英文时整棵树跟着重渲染（t() 只是读快照）

@@ -7,6 +7,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { t, tpl } from '../lib/i18n'
+import { stopAll } from '../lib/audioPlayer'
 import { Modal } from './Modal'
 import './AudioDetail.css'
 
@@ -43,6 +44,8 @@ export function AudioDetail({ cand, onClose }: { cand: AudioCand; onClose: () =>
   const [now, setNow] = useState(0)
   const [dur, setDur] = useState(0)
   const [lrc, setLrc] = useState('')
+
+  useEffect(() => { stopAll() }, [cand.id])
 
   useEffect(() => {
     if (typeof cand.lyrics === 'string' && cand.lyrics.trim()) setLrc(cand.lyrics)
@@ -95,7 +98,8 @@ export function AudioDetail({ cand, onClose }: { cand: AudioCand; onClose: () =>
 
           <div className="ad-meta">
             <div className="ad-label">{t('audio.style')}</div>
-            <p>{cand.prompt}</p>
+            {pr.caption_zh ? <p className="ad-zh">{String(pr.caption_zh)}</p> : null}
+            <p className="ad-en">{cand.prompt}</p>
 
             <div className="ad-label">{t('audio.params')}</div>
             <ul className="ad-list">

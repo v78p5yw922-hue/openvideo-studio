@@ -22,6 +22,7 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ de
 const GlossaryPage = lazy(() => import('./pages/GlossaryPage').then((m) => ({ default: m.GlossaryPage })))
 const SpecPage = lazy(() => import('./pages/SpecPage').then((m) => ({ default: m.SpecPage })))
 const MusicPage = lazy(() => import('./pages/MusicPage').then((m) => ({ default: m.MusicPage })))
+const MvPage = lazy(() => import('./pages/MvPage').then((m) => ({ default: m.MvPage })))
 const SkillsPage = lazy(() => import('./pages/SkillsPage').then((m) => ({ default: m.SkillsPage })))
 const UsersPage = lazy(() => import('./pages/UsersPage').then((m) => ({ default: m.UsersPage })))
 
@@ -76,6 +77,7 @@ export function Router() {
           <Route path="text-to-image" element={<TextToImagePage />} />
           {/* Create-Music：和视频/文生图并列 */}
           <Route path="music" element={<MusicPage />} />
+          <Route path="mv" element={<MvPage />} />
         </Route>
 
         {/* 兜底 */}
