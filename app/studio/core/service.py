@@ -1919,3 +1919,22 @@ def take_path(project_id: str, shot_id: str, version: int) -> Path:
     root = Path.home() / "openvideo/studio-data" / "projects" / project_id / "takes"
     root.mkdir(parents=True, exist_ok=True)
     return root / take_name(shot_id, version)
+
+
+def delete_scene(project_id: str, scene_id: str) -> bool:
+    """删场景：母版/补充图进回收站，库里删行（镜头引用会变成未知场景）。"""
+    from . import trash as _trash
+
+    with db.txn() as conn:
+        row = conn.execute("SELECT * FROM scenes WHERE project_id=? AND scene_id=?",
+                           (project_id, scene_id)).fetchone()
+        if row is None:
+            return False
+        extra = db.loads(row["extra_plates_json"] or "[]", [])
+        plate = row["plate_path"] or ""
+        conn.execute("DELETE FROM scenes WHERE project_id=? AND scene_id=?",
+                     (project_id, scene_id))
+    for f in [plate, *extra]:
+        if f:
+            _trash.move_to_trash(f, kind="scene", owner=scene_id)
+    return True

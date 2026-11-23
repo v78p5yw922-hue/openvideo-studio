@@ -121,70 +121,73 @@ export function ImportModal({ onClose }: Props) {
         </>
       )}
     >
-      <div className="row">
-        <label className="field">
-          <span>{t('import.project-id')}</span>
-          <input value={projectId}
-            onChange={(e) => { setProjectId(e.target.value); setPreview(null); setArmed(false) }}
-            placeholder={t('import.project-id.placeholder')} />
-        </label>
-        <button className="ghost"
-          onClick={() => {
-            setProjectId(newProjectId(new Set(projects.map(p => p.id))))
-            setPreview(null)
-            setArmed(false)
-          }}>＋ {t('import.new-project')}</button>
-        {pid && projectId !== pid && (
-          <button className="ghost" onClick={() => { setProjectId(pid); setPreview(null); setArmed(false) }}>
-            {t('import.back-current')}
-          </button>
-        )}
-        <button className="ghost" onClick={() => fileRef.current?.click()}>{t('import.choose-file')}</button>
-        <input ref={fileRef} type="file" accept=".md,.markdown,.txt" hidden
-          onChange={async (e) => {
-            const f = e.target.files?.[0]
-            if (f) setMarkdown(await f.text())
-            e.target.value = ''
-          }} />
-      </div>
+      <div className="form-rows">
+        <div className="form-row">
+          <label className="form-label" htmlFor="import-pid">{t('import.project-id')}</label>
+          <div className="form-control">
+            <input id="import-pid" className="form-input" value={projectId}
+              onChange={(e) => { setProjectId(e.target.value); setPreview(null); setArmed(false) }}
+              placeholder={t('import.project-id.placeholder')} />
+            <button className="ghost sm nowrap"
+              onClick={() => {
+                setProjectId(newProjectId(new Set(projects.map(p => p.id))))
+                setPreview(null)
+                setArmed(false)
+              }}>＋ {t('import.new-project')}</button>
+            {pid && projectId !== pid && (
+              <button className="ghost sm nowrap"
+                onClick={() => { setProjectId(pid); setPreview(null); setArmed(false) }}>
+                {t('import.back-current')}
+              </button>
+            )}
+          </div>
+        </div>
 
-      {projectId.trim() && (
-        <p className="muted">
-          {existing
-            ? tpl('import.existing', { title: existing.title, id: existing.id })
-            : tpl('import.new', { id: projectId.trim() })}
-        </p>
-      )}
+        <div className="form-row">
+          <label className="form-label" htmlFor="import-group">{t('import.group')}</label>
+          <div className="form-control">
+            <select id="import-group" className="form-select"
+              value={groupId} onChange={(e) => setGroupId(e.target.value)}>
+              <option value="">＋ {t('import.group-auto')}</option>
+              {groups.filter((g) => g.id).map((g) => (
+                <option key={g.id} value={g.id}>{g.name}</option>
+              ))}
+              <option value="__new__">＋ {t('import.group-new')}</option>
+            </select>
+            {groupId === '__new__' && (
+              <input className="form-input" value={newGroupName}
+                placeholder={t('import.group-name.placeholder')}
+                onChange={(e) => setNewGroupName(e.target.value)} />
+            )}
+          </div>
+        </div>
 
-      <div className="row">
-        <label className="field">
-          <span>{t('import.group')}</span>
-          <select value={groupId} onChange={(e) => setGroupId(e.target.value)}>
-            <option value="">＋ {t('import.group-auto')}</option>
-            {groups.filter((g) => g.id).map((g) => (
-              <option key={g.id} value={g.id}>{g.name}</option>
-            ))}
-            <option value="__new__">＋ {t('import.group-new')}</option>
-          </select>
-        </label>
-        {groupId === '__new__' && (
-          <label className="field">
-            <span>{t('import.group-name')}</span>
-            <input value={newGroupName} placeholder={t('import.group-name.placeholder')}
-              onChange={(e) => setNewGroupName(e.target.value)} />
-          </label>
-        )}
-      </div>
+        <div className="form-row">
+          <label className="form-label" htmlFor="import-title">{t('import.name')}</label>
+          <div className="form-control">
+            <input id="import-title" className="form-input" value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={preview?.title
+                ? tpl('import.name.placeholder-known', { title: preview.title })
+                : t('import.name.placeholder')} />
+          </div>
+        </div>
 
-      <div className="row">
-        <label className="field">
-          <span>{t('import.name')}</span>
-          <input value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={preview?.title
-              ? tpl('import.name.placeholder-known', { title: preview.title })
-              : t('import.name.placeholder')} />
-        </label>
+        <div className="form-row">
+          <span className="form-label">{t('import.md-label')}</span>
+          <div className="form-control form-actions">
+            <button className="ghost sm" onClick={() => fileRef.current?.click()}>
+              {t('import.choose-file')}
+            </button>
+            <input ref={fileRef} type="file" accept=".md,.markdown,.txt" hidden
+              onChange={async (e) => {
+                const f = e.target.files?.[0]
+                if (f) setMarkdown(await f.text())
+                e.target.value = ''
+              }} />
+            <span className="muted sm">{t('import.md-hint')}</span>
+          </div>
+        </div>
       </div>
 
       <textarea

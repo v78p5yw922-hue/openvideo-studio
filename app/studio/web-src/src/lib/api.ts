@@ -328,6 +328,8 @@ export const api = {
   saveCharacter: (body: { character_id: string; name: string; description?: string; refs?: string[] }) =>
     post<Character>('/api/characters', body),
   /** force=true 时角色被镜头占用也能删（会把这些镜头里的它移除） */
+  deleteScene: (pid: string, sid: string) =>
+    del<{ ok: boolean }>(`${P(pid)}/scenes/${enc(sid)}`),
   deleteCharacter: (cid: string, force = false) =>
     del<{ deleted: string }>(`/api/characters/${enc(cid)}${force ? '?force=1' : ''}`),
   /** 单张上传（旧接口，插入到列表最前）。新代码优先用 uploadCharacterRefs。 */

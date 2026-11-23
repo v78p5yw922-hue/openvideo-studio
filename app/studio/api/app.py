@@ -470,6 +470,15 @@ async def upload_plate(pid: str, scene_id: str, file: UploadFile = File(...),
         raise HTTPException(409, str(e)) from e
 
 
+@app.delete("/api/projects/{pid}/scenes/{sid}")
+def delete_scene_api(pid: str, sid: str):
+    if not service.get_project(pid):
+        raise HTTPException(404, "项目不存在")
+    if not service.delete_scene(pid, sid):
+        raise HTTPException(404, "场景不存在")
+    return {"ok": True}
+
+
 @app.post("/api/projects/{pid}/scenes/{sid}/plates")
 async def add_scene_plate(pid: str, sid: str,
                           files: list[UploadFile] = File(...)):

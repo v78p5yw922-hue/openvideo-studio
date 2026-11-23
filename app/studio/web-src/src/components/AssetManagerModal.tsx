@@ -148,6 +148,24 @@ function CharacterManager({ cid, onClose }: { cid: string; onClose: () => void }
       + encodeURIComponent(baseName(refs[i]))
   }
 
+  async function removeCharacter() {
+    const ok = await confirmDialog({
+      title: t('asset.delete-character'),
+      message: tpl('asset.delete-character.confirm', { name: ch.name }),
+      confirmText: t('btn.delete'),
+      danger: true,
+    })
+    if (!ok) return
+    try {
+      await api.deleteCharacter(ch.character_id, true)
+      toast(t('asset.deleted'), 'ok')
+      onClose()
+      await refresh()
+    } catch (e) {
+      toast(tpl('asset.delete-failed', { err: errText(e) }), 'err')
+    }
+  }
+
   return (
     <Modal
       title={tpl('asset.char-title', { name: ch.name })}
@@ -155,9 +173,12 @@ function CharacterManager({ cid, onClose }: { cid: string; onClose: () => void }
       className="gallery-modal"
       footer={(
         <>
+          <button className="ghost danger" onClick={() => void removeCharacter()}>
+            🗑 {t('asset.delete-character')}
+          </button>
           <span className="muted">{t('asset.drag-hint')}</span>
           <div className="spacer" />
-          <button onClick={onClose}>{t('asset.close')}</button>
+          <button className="primary" onClick={onClose}>{t('asset.close')}</button>
         </>
       )}
     >
@@ -368,6 +389,24 @@ function SceneManager({ sid, projectId, onClose }: {
     }
   }
 
+  async function removeScene() {
+    const ok = await confirmDialog({
+      title: t('asset.delete-scene'),
+      message: tpl('asset.delete-scene.confirm', { name: scene.name || sid }),
+      confirmText: t('btn.delete'),
+      danger: true,
+    })
+    if (!ok) return
+    try {
+      await api.deleteScene(activePid, sid)
+      toast(t('asset.deleted'), 'ok')
+      onClose()
+      await refresh()
+    } catch (e) {
+      toast(tpl('asset.delete-failed', { err: errText(e) }), 'err')
+    }
+  }
+
   return (
     <Modal
       title={tpl('asset.scene-title', { name: scene.name || sid })}
@@ -375,6 +414,9 @@ function SceneManager({ sid, projectId, onClose }: {
       className="gallery-modal"
       footer={(
         <>
+          <button className="ghost danger" onClick={() => void removeScene()}>
+            🗑 {t('asset.delete-scene')}
+          </button>
           <label className="check-row">
             <input type="checkbox" checked={Boolean(scene.locked)}
               onChange={async (e) => {
@@ -388,7 +430,7 @@ function SceneManager({ sid, projectId, onClose }: {
             {t('asset.lock')}
           </label>
           <div className="spacer" />
-          <button className="primary" onClick={onClose}>{t('asset.done')}</button>
+          <button className="primary" onClick={onClose}>{t('asset.close')}</button>
         </>
       )}
     >
