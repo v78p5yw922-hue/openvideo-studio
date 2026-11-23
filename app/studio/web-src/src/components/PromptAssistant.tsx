@@ -8,6 +8,7 @@ import { useMemo, useRef, useState } from 'react'
 import { t, tpl } from '../lib/i18n'
 import glossary from '../data/prompt-glossary.json'
 import { compilePrompt, type PromptSegments } from '../lib/promptBuilder'
+import './PromptAssistant.css'
 
 const SEG_KEYS: Array<keyof PromptSegments> = [
   'style', 'subject', 'state', 'material', 'light', 'lens', 'motion',
@@ -137,7 +138,9 @@ export function PromptAssistant({ value, onChange, kind = 'character', refNames 
         ))}
       </div>
 
-      <div className="pa-glossary">
+      <details className="pa-glossary-wrap">
+        <summary>{t('pa.glossary')}</summary>
+        <div className="pa-glossary">
         <div className="pa-glossary-head">
           <select value={activeCat} onChange={(e) => setActiveCat(e.target.value)}>
             <option value="all">{t('pa.all-categories')}</option>
@@ -168,6 +171,7 @@ export function PromptAssistant({ value, onChange, kind = 'character', refNames 
           {filteredItems.length > 80 && <div className="muted">{t('pa.limit')}</div>}
         </div>
       </div>
+      </details>
 
       <div className="pa-preview">
         <div className="pa-preview-head">

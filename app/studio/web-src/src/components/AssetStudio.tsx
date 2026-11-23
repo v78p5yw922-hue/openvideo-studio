@@ -55,6 +55,7 @@ export function AssetStudio() {
   const [refs, setRefs] = useState<UploadedRef[]>([])
   const [refNote, setRefNote] = useState('')
 
+  const [promptOpen, setPromptOpen] = useState(false)
   const [sp] = useSearchParams()
   const onlyProject = sp.get('project') || ''
   const [candidates, setCandidates] = useState<AssetCandidate[]>([])
@@ -309,8 +310,16 @@ export function AssetStudio() {
         </div>
 
         <div className="sv2-prompt">
-          <PromptAssistant value={segs} onChange={setSegs} kind={kind}
-                           refNames={refs.map((r) => r.name)} />
+          <button className="sv2-toggle" onClick={() => setPromptOpen((v) => !v)}>
+            {promptOpen ? t('t2i.prompt.collapse') : t('t2i.prompt.expand')}
+            <span className="muted">
+              {Object.values(segs).filter((v) => (v || '').trim()).length}/7
+            </span>
+          </button>
+          {promptOpen && (
+            <PromptAssistant value={segs} onChange={setSegs} kind={kind}
+                             refNames={refs.map((r) => r.name)} />
+          )}
           {refs.length > 0 && (
             <label className="sv2-refnote">
               <span className="muted">{t('t2i.refs.note')}</span>

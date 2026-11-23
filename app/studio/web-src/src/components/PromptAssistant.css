@@ -6,14 +6,30 @@
 }
 
 .pa-segments {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
 }
 .pa-field {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+}
+.pa-field textarea {
+  min-height: 34px;
+  padding: 5px 8px;
+  font-size: 13px;
+  border-radius: 7px;
+}
+.pa-label { font-size: 12px; }
+.pa-desc {
+  font-size: 12px;
+  color: var(--dim);
+  opacity: .85;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .pa-label {
   font-size: 12px;
@@ -22,9 +38,7 @@
 }
 .pa-field textarea {
   resize: vertical;
-  min-height: 40px;
-  font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
 .pa-glossary {
@@ -132,3 +146,15 @@
   border: 1px solid #2f9e6b44; border-radius: 8px; padding: 6px 10px; margin-bottom: 8px;
 }
 .pa-field .pa-desc { display: block; font-size: 12px; color: var(--text-3); margin: 1px 0 3px; }
+
+/* 词库折叠：默认收起，避免把页面撑得很长 */
+.pa-glossary-wrap {
+  border: 1px solid var(--line); border-radius: 8px; background: var(--panel);
+}
+.pa-glossary-wrap > summary {
+  cursor: pointer; padding: 6px 10px; font-size: 12px; color: var(--text-2);
+  list-style: none;
+}
+.pa-glossary-wrap > summary::-webkit-details-marker { display: none; }
+.pa-glossary-wrap[open] > summary { border-bottom: 1px solid var(--line); }
+.pa-glossary-wrap .pa-glossary { border: none; }
