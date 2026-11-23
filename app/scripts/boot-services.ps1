@@ -1,51 +1,59 @@
-# Boot OpenVideo services. ASCII only: PS 5.1 reads BOM-less .ps1 as ANSI,
-# so any UTF-8 Chinese here would corrupt parsing.
+# OpenVideo boot launcher (ASCII only: PS 5.1 reads BOM-less files as ANSI,
+# so non-ASCII comments here can break parsing).
 #
-#   .\scripts\boot-services.ps1          start everything and wait for health
-#   .\scripts\boot-services.ps1 -Status  show current state only
+#   .\scripts\boot-services.ps1          start services, wait for health
+#   .\scripts\boot-services.ps1 -Status  show state only
 
 param([switch]$Status)
 
 $ErrorActionPreference = 'SilentlyContinue'
 $distro = 'Ubuntu'
-$services = @('comfyui-8188.service', 'studio.service', 'openvideo-health.timer')
+$services = @('comfyui-h3-045.service', 'studio.service', 'openvideo-health.timer')
+$log = Join-Path $env:LOCALAPPDATA 'openvideo-boot.log'
+$health = 'http://127.0.0.1:8801/api/health'
 
+function Write-Log($msg) {
+    $line = '{0}  {1}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $msg
+    Add-Content -Path $log -Value $line
+}
 function Wsl($cmd) { & wsl.exe -d $distro -u root -- bash -lc $cmd }
+function Test-Health {
+    $code = (Wsl "curl -s -o /dev/null -w '%{http_code}' --max-time 5 $health").Trim()
+    return ($code -eq '200')
+}
 
 if ($Status) {
-    $vmmem = Get-Process -Name 'vmmemWSL' -ErrorAction SilentlyContinue
-    if (-not $vmmem) {
-        Write-Host 'WSL: not running'
-        exit 0
-    }
-    Write-Host 'WSL: running'
     foreach ($s in $services) {
-        $act = (Wsl "systemctl is-active $s").Trim()
-        if (-not $act) { $act = 'unknown' }
-        Write-Host ("  {0,-26} {1}" -f $s, $act)
+        Write-Host ("{0,-26} {1}" -f $s, (Wsl "systemctl is-active $s").Trim())
     }
-    $code = (Wsl "curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.1:8801/api/health").Trim()
-    Write-Host "  studio health: $code"
+    Write-Host ("studio health: " + (Wsl "curl -s -o /dev/null -w '%{http_code}' --max-time 5 $health").Trim())
     exit 0
 }
 
-Write-Host '== start WSL =='
-& wsl.exe -d $distro -u root -- echo boot | Out-Null
-Start-Sleep -Seconds 3
+Write-Log 'boot: starting'
 
-Write-Host '== start services =='
-Wsl ("systemctl start " + ($services -join ' ')) | Out-Null
-Start-Sleep -Seconds 6
-
-Write-Host '== wait for studio =='
 for ($i = 1; $i -le 20; $i++) {
-    $code = (Wsl "curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.1:8801/api/health").Trim()
-    if ($code -eq '200') {
-        Write-Host '  ready: http://127.0.0.1:8801'
-        exit 0
-    }
+    $ok = (Wsl 'echo up').Trim()
+    if ($ok -eq 'up') { break }
     Start-Sleep -Seconds 3
 }
+Write-Log 'wsl up'
 
-Write-Host '  TIMEOUT - check: systemctl status studio' -ForegroundColor Yellow
+for ($attempt = 1; $attempt -le 2; $attempt++) {
+    Wsl ("systemctl start " + ($services -join ' ')) | Out-Null
+    for ($i = 1; $i -le 30; $i++) {
+        Start-Sleep -Seconds 4
+        if (Test-Health) {
+            Write-Log ("studio ready (attempt " + $attempt + ")")
+            exit 0
+        }
+    }
+    Write-Log ("attempt " + $attempt + " timed out")
+}
+
+$keepalive = Join-Path $env:LOCALAPPDATA 'OpenVideo\wsl-keepalive.vbs'
+if (Test-Path $keepalive) {
+    Start-Process -FilePath 'wscript.exe' -ArgumentList ('"' + $keepalive + '"') -WindowStyle Hidden
+}
+Write-Log 'boot: TIMEOUT'
 exit 1

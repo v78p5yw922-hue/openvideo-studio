@@ -168,3 +168,36 @@ GET /api/health/deps
 ```
 
 只返回"缺什么"，不返回磁盘路径和显存细节；完整报告要登录后 `GET /api/doctor`。
+
+---
+
+## 开机自启（Windows + WSL2）
+
+三件东西配合，重启后不用手动开：
+
+| 组件 | 位置 | 作用 |
+|---|---|---|
+| `OpenVideoBoot` 计划任务 | 任务计划程序 → 登录时触发，延迟 30 秒 | 起 WSL → 起 `comfyui-h3-045` + `studio` + 健康检查，等 `/api/health` 返回 200（最多约 4 分钟） |
+| `OpenVideo-KeepAlive.lnk` | 启动文件夹 → `wsl-keepalive.vbs` | 常驻一个 `wsl -- sleep infinity` 会话，WSL 不会因为"没有进程"被回收，正在渲的镜头不会被杀 |
+| `OpenVideoWatchdog` 计划任务 | 每 2 分钟 | 探一下 `/api/health`，挂了就重启 WSL / 服务（日志：`%LOCALAPPDATA%\openvideo-watchdog.log`） |
+
+系统里这两个 systemd 单元必须 enabled（安装脚本已经做过）：
+
+```bash
+systemctl is-enabled studio.service comfyui-h3-045.service   # 都应是 enabled
+```
+
+手动检查 / 手动补一次：
+
+```powershell
+powershell -File scripts\boot-services.ps1 -Status   # 看当前状态
+powershell -File scripts\boot-services.ps1          # 立刻起一遍并等健康
+```
+
+注意：
+
+```
+· 触发条件是"登录 Windows 之后"，不是纯开机（WSL 需要用户会话）
+· 冷启动到能打开页面大约 60–120 秒（引擎加载模型还要更久）
+· 想临时关掉自启：任务计划程序里禁用 OpenVideoBoot，或删启动文件夹里的快捷方式
+```
