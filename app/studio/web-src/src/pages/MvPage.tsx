@@ -11,6 +11,7 @@ import { api } from '../lib/api'
 import { t, tpl } from '../lib/i18n'
 import { toast, useStore } from '../lib/store'
 import { AudioBar } from '../lib/audioPlayer'
+import { musicZh } from '../lib/musicZh'
 import './MvPage.css'
 
 interface Music { id: string; prompt: string; url?: string; params?: Record<string, unknown> }
@@ -82,7 +83,7 @@ export function MvPage() {
                          onChange={() => setPicked(m.id)} />
                   <span className="mv-music-text">
                     <b>{(m.prompt || m.id).slice(0, 46)}</b>
-                    {pr.caption_zh ? <span className="mv-music-zh">{String(pr.caption_zh)}</span> : null}
+                    <span className="mv-music-zh">{musicZh(m.prompt || '', String(pr.caption_zh || ''))}</span>
                     <span className="muted sm">
                       {pr.seconds ? `${pr.seconds}s` : ''} {pr.lyrics ? t('assets.music-vocal') : t('assets.music-instrumental')}
                     </span>

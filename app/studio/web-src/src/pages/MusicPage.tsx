@@ -195,33 +195,36 @@ export function MusicPage() {
             ))}
           </div>
 
-          <label className="music-field">
-            <span>
+          <div className="music-field">
+            <span className="music-label">
               {t('music.caption')}
               <button className="music-help sm" type="button"
-                      onClick={() => setHelp('caption')}>?</button>
+                      aria-label={t('music.help.tip')}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHelp('caption') }}>?</button>
             </span>
             <textarea rows={3} value={caption} onChange={(e) => setCaption(e.target.value)}
                       placeholder={EXAMPLE_CAPTION} />
             <em className="muted music-hint">
               {PRESETS.find((p) => p.caption === caption)?.zh || t('music.caption.hint')}
             </em>
-          </label>
+          </div>
 
-          <label className="music-row">
-            <input type="checkbox" checked={withVocal} onChange={(e) => setWithVocal(e.target.checked)} />
-            <span>{t('music.with-vocal')}</span>
-            <button className="music-help sm" type="button"
-                    onClick={() => setHelp('lyrics')}>?</button>
-          </label>
+          <div className="music-row">
+            <label className="music-check">
+              <input type="checkbox" checked={withVocal} onChange={(e) => setWithVocal(e.target.checked)} />
+              <span>{t('music.with-vocal')}</span>
+            </label>
+            <button className="music-help sm" type="button" aria-label={t('music.help.tip')}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setHelp('lyrics') }}>?</button>
+          </div>
 
           {withVocal && (
-            <label className="music-field">
+            <div className="music-field">
               <span>{t('music.lyrics')}</span>
               <textarea rows={8} value={lyrics} onChange={(e) => setLyrics(e.target.value)}
                         placeholder={'[Verse]\n一行一句\n\n[Chorus]\n一句一句'} />
               <em className="muted music-hint">{t('music.lyrics.hint')}</em>
-            </label>
+            </div>
           )}
 
           {seconds > 35 && (

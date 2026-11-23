@@ -93,8 +93,14 @@ def get_preset(pid: str) -> dict | None:
 
 def plan_shots(duration: float, preset: dict) -> list[dict]:
     """按音乐时长切镜头：每镜 5 或 8 秒，镜头数 3–10。"""
-    n = max(3, min(10, int(round(duration / 6.5))))
-    per = 5 if duration / n <= 5.6 else 8
+    # 先用 5 秒镜头凑，凑不满再换 8 秒；总长尽量贴近音乐长度（±5 秒）
+    per = 5
+    n = max(3, min(10, int(round(duration / per))))
+    if n * per < duration * 0.6:
+        per = 8
+        n = max(3, min(10, int(round(duration / per))))
+    while n > 3 and n * per > duration + 5:
+        n -= 1
     beats = _DANCE_BEATS if preset["kind"] == "dance" else _SCENERY_BEATS
     shots = []
     for i in range(n):

@@ -141,3 +141,34 @@
 .media-ph span { font-size: 20px; opacity: .55; }
 .media-ph em { font-style: normal; opacity: .7; }
 .media-ph.inline { display: inline; background: none; }
+
+/* 音频：卡片平铺（比一行一条短一半，信息更密） */
+.aw-audio-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(276px, 1fr));
+  gap: 12px; align-content: start;
+}
+.aw-audio-card {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--panel); font-size: 12px; min-width: 0;
+}
+.aw-audio-card header {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+}
+.aw-audio-card header b {
+  font-size: 13px; font-weight: 500; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.aw-audio-en {
+  margin: 0; color: var(--text-2); font-size: 12px; line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.aw-audio-tags { display: flex; flex-wrap: wrap; gap: 4px 8px; color: var(--text-2); font-size: 12px; }
+.aw-audio-tags span {
+  padding: 0 6px; border-radius: 5px; line-height: 18px;
+  background: color-mix(in srgb, var(--line) 55%, transparent);
+}
+.aw-audio-card footer {
+  display: flex; align-items: center; gap: 6px; margin-top: 2px;
+}
+.aw-audio-card footer .aw-id { flex: 1 1 auto; }

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 import time
 import uuid
 from pathlib import Path
@@ -1850,7 +1851,8 @@ def list_jobs(project_id: str | None = None, limit: int = 50) -> list[dict]:
 
 
 REPO_DIR = Path(__file__).resolve().parents[2]
-VENV_PY = REPO_DIR / ".venv/bin/python"
+_VENV = REPO_DIR / ".venv/bin/python"
+VENV_PY = _VENV if _VENV.is_file() else Path(sys.executable)
 
 
 def fail_orphan_running(reason: str = "服务重启，任务中断") -> int:

@@ -11,6 +11,7 @@ import type { AssetCandidate, Character, OutputVideo, Scene } from '../lib/types
 import { AudioBar } from '../lib/audioPlayer'
 import { AudioDetail } from './AudioDetail'
 import { SmartImg } from './MediaFallback'
+import { musicZh } from '../lib/musicZh'
 import './AssetWorkspace.css'
 
 interface Props {
@@ -52,6 +53,8 @@ function CopyId({ value, label }: { value: string; label: string }) {
             }}>⧉</button>
   )
 }
+
+
 
 export function AssetWorkspace({ onOpenAsset }: Props) {
   const { projects } = useStore()
@@ -306,14 +309,11 @@ export function AssetWorkspace({ onOpenAsset }: Props) {
               <div key={p.id} className="aw-music">
                 <div className="aw-music-head">
                   <b>{p.title}</b>
-                  <span className="aw-meta-right muted">{p.id}</span>
+                  <span className="aw-meta-right muted">{p.updated_at ? timeLabel(p.updated_at) : ''}</span>
                 </div>
-                <div className="aw-music-actions">
-                  <span className="muted">{p.updated_at ? timeLabel(p.updated_at) : ''}</span>
-                  <div className="aw-tabs-spacer" />
-                  <button className="ghost sm" onClick={() => onOpenAsset('scene', '', p.id)}>
-                    {t('mv.open-rendering')}
-                  </button>
+                <div className="aw-ids">
+                  <span className="aw-id" title={p.id}>{p.id}</span>
+                  <CopyId value={p.id} label="project_id" />
                 </div>
               </div>
             ))}
@@ -322,39 +322,41 @@ export function AssetWorkspace({ onOpenAsset }: Props) {
         )}
 
         {tab === 'audio' && (
-          <div className="aw-music-list">
+          <div className="aw-audio-grid">
             {slice(audios).map((m) => {
               const pr = (m as unknown as { params?: Record<string, unknown> }).params || {}
+              const zh = musicZh(m.prompt || '', String(pr.caption_zh || ''))
+              const hasLyrics = !!pr.lyrics
+              const lines = String(pr.lyrics || '').split('\n')
+                .filter((x) => x.trim() && !x.trim().startsWith('[')).length
               return (
-                <div key={m.id} className="aw-music">
-                  <div className="aw-music-head">
-                    <b title={m.prompt}>{m.prompt}</b>
-                    <span className="aw-meta-right">
-                      <ProjectTag name={projectName(m.project_id)} />
-                      <span className="muted">
-                        {pr.seconds ? `${pr.seconds}s` : '—'} · {pr.lyrics ? t('assets.music-vocal') : t('assets.music-instrumental')}
-                      </span>
-                    </span>
+                <article key={m.id} className="aw-audio-card">
+                  <header>
+                    <b title={zh || m.prompt}>{zh || (m.prompt || '').slice(0, 40)}</b>
+                    <span className="muted">{pr.seconds ? `${pr.seconds}s` : '—'}</span>
+                  </header>
+                  <p className="aw-audio-en" title={m.prompt}>{m.prompt}</p>
+                  <div className="aw-audio-tags">
+                    <span>{hasLyrics ? t('assets.music-vocal') : t('assets.music-instrumental')}</span>
+                    {hasLyrics ? <span>{tpl('assets.lyric-lines', { n: lines })}</span> : null}
+                    {m.seed != null ? <span>seed {m.seed}</span> : null}
+                    <span>{timeLabel(m.created_at)}</span>
                   </div>
                   <AudioBar url={m.url || ''} />
-                  <div className="aw-ids">
+                  <footer>
                     <span className="aw-id" title={m.id}>{m.id}</span>
-                    <CopyId value={m.id} label="asset_id" />
-                  </div>
-                  <div className="aw-music-actions">
-                    <span className="muted">{timeLabel(m.created_at)}</span>
-                    <div className="aw-tabs-spacer" />
                     <button className="ghost sm" onClick={() => setAudioDetail(m)}>{t('audio.detail')}</button>
                     <button className="ghost sm danger" onClick={() => void removeCandidate(m)}>
                       {t('assets.delete')}
                     </button>
-                  </div>
-                </div>
+                  </footer>
+                </article>
               )
             })}
             {audios.length === 0 && <div className="muted">{t('assets.music-empty')}</div>}
           </div>
         )}
+
       </div>
 
       {zoom && (

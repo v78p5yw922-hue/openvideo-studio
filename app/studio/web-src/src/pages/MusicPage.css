@@ -63,3 +63,7 @@
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
 .music-note.is-warn { color: var(--warn, #d08b3a); }
+
+.music-label { display: inline-flex; align-items: center; gap: 6px; }
+.music-check { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.music-help.sm { width: 16px; height: 16px; flex: 0 0 auto; }
